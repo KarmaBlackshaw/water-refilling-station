@@ -1,0 +1,16 @@
+export type Color =
+  | 'american-diamond'
+  | 'full-white'
+  | 'bright-chrome'
+  | 'sparkling-silver'
+  | 'tender-light-blue'
+  | 'casual-navy'
+  | 'bondi-blue'
+  | 'independence'
+  | 'oslo'
+  | 'turquoise-stone'
+  | 'psychedelic-aqua'
+  | 'cerulean'
+  | 'dark-green-turquoise'
+  | 'blaze-red'
+  | 'strong-amber';

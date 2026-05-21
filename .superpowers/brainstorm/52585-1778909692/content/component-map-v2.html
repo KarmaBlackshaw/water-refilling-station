@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WRS — Component Architecture v2</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: Inter, system-ui, sans-serif; }
+  body { background: #f1f5f9; padding: 24px 20px; color: #0a0e1a; }
+  h1 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .subtitle { font-size: 12px; color: #64748b; margin-bottom: 20px; }
+
+  .deps { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+  .dep {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+    padding: 10px 14px; display: flex; flex-direction: column; gap: 3px;
+  }
+  .dep-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #94a3b8; }
+  .dep-name { font-size: 12px; font-weight: 700; color: #0a0e1a; font-family: monospace; }
+  .dep-note { font-size: 10px; color: #64748b; }
+  .dep.new .dep-name { color: #0284c7; }
+  .dep.existing .dep-name { color: #059669; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .col { display: flex; flex-direction: column; gap: 14px; }
+
+  .group { background: #fff; border-radius: 14px; border: 1px solid #e2e8f0; padding: 14px; }
+  .group-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .group-badge { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.8px; }
+  .badge-new { background: rgba(0,201,240,0.15); color: #0284c7; }
+  .badge-update { background: rgba(245,158,11,0.15); color: #d97706; }
+  .badge-keep { background: rgba(16,185,129,0.12); color: #059669; }
+  .badge-install { background: rgba(168,85,247,0.12); color: #9333ea; }
+  .group-title { font-size: 12px; font-weight: 700; color: #0a0e1a; }
+  .group-path { font-size: 9px; color: #94a3b8; margin-bottom: 8px; font-family: monospace; }
+
+  .comp { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; border-bottom: 1px solid #f1f5f9; }
+  .comp:last-child { border-bottom: none; }
+  .comp-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+  .dot-new { background: #00C9F0; }
+  .dot-update { background: #f59e0b; }
+  .dot-keep { background: #10b981; }
+  .dot-lib { background: #a855f7; }
+  .comp-info { flex: 1; }
+  .comp-name { font-size: 11px; font-weight: 600; color: #0a0e1a; font-family: monospace; }
+  .comp-desc { font-size: 10px; color: #64748b; margin-top: 1px; line-height: 1.4; }
+  .comp-props { font-size: 9px; color: #94a3b8; font-family: monospace; margin-top: 3px; }
+  .comp-used { font-size: 9px; color: #00C9F0; margin-top: 2px; }
+
+  .legend { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #475569; }
+
+  .full-width { grid-column: 1 / -1; }
+
+  .lucide-box { background: #faf5ff; border: 1px solid #e9d5ff; border-radius: 12px; padding: 14px; }
+  .lucide-title { font-size: 12px; font-weight: 700; color: #7e22ce; margin-bottom: 4px; }
+  .lucide-sub { font-size: 10px; color: #9333ea; margin-bottom: 10px; }
+  .lucide-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .lucide-item { background: white; border: 1px solid #e9d5ff; border-radius: 8px; padding: 6px 8px; }
+  .lucide-icon { font-size: 10px; font-weight: 600; color: #6b21a8; font-family: monospace; }
+  .lucide-where { font-size: 9px; color: #94a3b8; margin-top: 1px; }
+
+  .struck { text-decoration: line-through; color: #94a3b8; }
+  .pill { font-size: 8px; background: #fef3c7; color: #d97706; border-radius: 3px; padding: 0 4px; font-weight: 700; margin-left: 3px; }
+  .pill-gone { font-size: 8px; background: #fee2e2; color: #dc2626; border-radius: 3px; padding: 0 4px; font-weight: 700; margin-left: 3px; }
+</style>
+</head>
+<body>
+  <h1>Component Architecture v2 — Library-First</h1>
+  <p class="subtitle">Use packages where they eliminate complexity. Build only what libraries can't give you.</p>
+
+  <!-- Dependencies -->
+  <div class="deps">
+    <div class="dep new">
+      <div class="dep-label">Install</div>
+      <div class="dep-name">lucide-vue-next</div>
+      <div class="dep-note">Replaces all manual Icon components. Tree-shakeable Vue components.</div>
+    </div>
+    <div class="dep existing">
+      <div class="dep-label">Already installed</div>
+      <div class="dep-name">vue-chartjs</div>
+      <div class="dep-note">Bar + donut charts. Thin wrapper components on top.</div>
+    </div>
+    <div class="dep existing">
+      <div class="dep-label">Already installed</div>
+      <div class="dep-name">chart.js</div>
+      <div class="dep-note">Peer dep for vue-chartjs.</div>
+    </div>
+    <div class="dep existing">
+      <div class="dep-label">Already installed</div>
+      <div class="dep-name">dayjs</div>
+      <div class="dep-note">Date formatting in charts + lists.</div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="comp-dot dot-new"></div> New component</div>
+    <div class="legend-item"><div class="comp-dot dot-update"></div> Update existing</div>
+    <div class="legend-item"><div class="comp-dot dot-keep"></div> Keep as-is</div>
+    <div class="legend-item"><div class="comp-dot dot-lib"></div> From library (lucide)</div>
+  </div>
+
+  <div class="grid">
+
+    <!-- Col 1 -->
+    <div class="col">
+      <div class="group">
+        <div class="group-header">
+          <span class="group-badge badge-update">UPDATE</span>
+          <span class="group-title">Shell</span>
+        </div>
+        <div class="group-path">src/components/The/</div>
+        <div class="comp">
+          <div class="comp-dot dot-update"></div>
+          <div class="comp-info">
+            <div class="comp-name">Sidebar.vue</div>
+            <div class="comp-desc">Uses lucide icons via <code>&lt;component :is="icon" /&gt;</code> pattern. Nav item map gets lucide component refs instead of SVG strings. Active state: bg + color, no border.</div>
+            <div class="comp-props">props: open: boolean</div>
+          </div>
+        </div>
+        <div class="comp">
+          <div class="comp-dot dot-update"></div>
+          <div class="comp-info">
+            <div class="comp-name">Topbar.vue</div>
+            <div class="comp-desc">Search bar (⌘F, non-functional), Bell + Mail from lucide, avatar + user name/email from authStore.</div>
+            <div class="comp-props">no props</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-header">
+          <span class="group-badge badge-new">NEW</span>
+          <span class="group-title">Base — Charts</span>
+        </div>
+        <div class="group-path">src/components/Base/</div>
+        <div class="comp">
+          <div class="comp-dot dot-new"></div>
+          <div class="comp-info">
+            <div class="comp-name">BaseKpiCard.vue</div>
+            <div class="comp-desc">Reusable KPI stat card. Icon via default slot (pass any lucide icon). Variant drives hero/default/warning/danger color.</div>
+            <div class="comp-props">variant: 'hero'|'default'|'warning'|'danger'<br>label, value, sub?, to?</div>
+            <div class="comp-used">→ dashboard.vue</div>
+          </div>
+        </div>
+        <div class="comp">
+          <div class="comp-dot dot-new"></div>
+          <div class="comp-info">
+            <div class="comp-name">BaseBarChart.vue</div>
+            <div class="comp-desc">Wraps vue-chartjs Bar. Teal color tokens applied internally. Accepts labels + data arrays only.</div>
+            <div class="comp-props">labels: string[], data: number[], title?: string</div>
+            <div class="comp-used">→ dashboard.vue</div>
+          </div>
+        </div>
+        <div class="comp">
+          <div class="comp-dot dot-new"></div>
+          <div class="comp-info">
+            <div class="comp-name">BaseDonutChart.vue</div>
+            <div class="comp-desc">Wraps vue-chartjs Doughnut. Segments array drives slices + legend. Center label via prop.</div>
+            <div class="comp-props">segments: {label,value,color}[], centerLabel?: string, title?: string</div>
+            <div class="comp-used">→ dashboard.vue</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Col 2 -->
+    <div class="col">
+      <div class="group">
+        <div class="group-header">
+          <span class="group-badge badge-new">NEW</span>
+          <span class="group-title">Dashboard Widgets</span>
+        </div>
+        <div class="group-path">src/components/Dashboard/</div>
+        <div class="comp">
+          <div class="comp-dot dot-new"></div>
+          <div class="comp-info">
+            <div class="comp-name">DashboardRoutePanel.vue</div>
+            <div class="comp-desc">Self-fetching. Groups today's deliveries by rider, shows stop count + completion progress bar.</div>
+            <div class="comp-props">no props</div>
+          </div>
+        </div>
+        <div class="comp">
+          <div class="comp-dot dot-new"></div>
+          <div class="comp-info">
+            <div class="comp-name">DashboardQuickActions.vue</div>
+            <div class="comp-desc">Static list of quick-action buttons. router.push only. No data fetching.</div>
+            <div class="comp-props">no props</div>
+          </div>
+        </div>
+        <div class="comp">
+          <div class="comp-dot dot-new"></div>
+          <div class="comp-info">
+            <div class="comp-name">DashboardDeliveryList.vue</div>
+            <div class="comp-desc">Renders today's deliveries list. Status badge + customer + rider. Parent owns data.</div>
+            <div class="comp-props">deliveries: DeliverySaleRow[]</div>
+          </div>
+        </div>
+        <div class="comp">
+          <div class="comp-dot dot-new"></div>
+          <div class="comp-info">
+            <div class="comp-name">DashboardBookingList.vue</div>
+            <div class="comp-desc">Renders upcoming bookings list. Date + customer + rider + status. Parent owns data.</div>
+            <div class="comp-props">bookings: BookingRow[]</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-header">
+          <span class="group-badge badge-update">UPDATE</span>
+          <span class="group-title">Base — Updated</span>
+        </div>
+        <div class="group-path">src/components/Base/</div>
+        <div class="comp">
+          <div class="comp-dot dot-update"></div>
+          <div class="comp-info">
+            <div class="comp-name">BaseCard.vue</div>
+            <div class="comp-desc">Remove kpi variant (now BaseKpiCard). Add title + action slots. Keep default + hero.</div>
+          </div>
+        </div>
+        <div class="comp">
+          <div class="comp-dot dot-update"></div>
+          <div class="comp-info">
+            <div class="comp-name">BaseTable.vue</div>
+            <div class="comp-desc">Restyle headers/rows to match new tokens. Hover row, sticky header option.</div>
+          </div>
+        </div>
+        <div class="comp">
+          <div class="comp-dot dot-update"></div>
+          <div class="comp-info">
+            <div class="comp-name">BaseButton.vue</div>
+            <div class="comp-desc">Add ghost variant. Ensure icon slot works cleanly with lucide components.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Col 3 -->
+    <div class="col">
+      <div class="group">
+        <div class="group-header">
+          <span class="group-badge badge-keep">KEEP</span>
+          <span class="group-title">Base — Unchanged</span>
+        </div>
+        <div class="group-path">src/components/Base/</div>
+        <div class="comp"><div class="comp-dot dot-keep"></div><div class="comp-info"><div class="comp-name">BaseInput.vue</div></div></div>
+        <div class="comp"><div class="comp-dot dot-keep"></div><div class="comp-info"><div class="comp-name">BaseSelect.vue</div></div></div>
+        <div class="comp"><div class="comp-dot dot-keep"></div><div class="comp-info"><div class="comp-name">BaseBadge.vue</div></div></div>
+        <div class="comp"><div class="comp-dot dot-keep"></div><div class="comp-info"><div class="comp-name">BaseModal.vue</div></div></div>
+        <div class="comp"><div class="comp-dot dot-keep"></div><div class="comp-info"><div class="comp-name">BasePagination.vue</div></div></div>
+        <div class="comp"><div class="comp-dot dot-keep"></div><div class="comp-info"><div class="comp-name">BaseConfirm.vue</div></div></div>
+        <div class="comp"><div class="comp-dot dot-keep"></div><div class="comp-info"><div class="comp-name">BaseTabs.vue</div></div></div>
+        <div class="comp"><div class="comp-dot dot-keep"></div><div class="comp-info"><div class="comp-name">BaseEmptyState.vue</div></div></div>
+        <div class="comp"><div class="comp-dot dot-keep"></div><div class="comp-info"><div class="comp-name">BaseSpinner.vue</div></div></div>
+        <div class="comp"><div class="comp-dot dot-keep"></div><div class="comp-info"><div class="comp-name">BaseTextarea.vue</div></div></div>
+        <div class="comp"><div class="comp-dot dot-keep"></div><div class="comp-info"><div class="comp-name">BaseCheckbox.vue</div></div></div>
+      </div>
+
+      <div class="group" style="border-color:#fee2e2; background:#fff5f5;">
+        <div class="group-header">
+          <span class="group-badge" style="background:#fee2e2;color:#dc2626;">REMOVE</span>
+          <span class="group-title">Icon/ folder</span>
+        </div>
+        <div class="group-path">src/components/Icon/</div>
+        <div class="comp">
+          <div class="comp-dot" style="background:#dc2626;"></div>
+          <div class="comp-info">
+            <div class="comp-name struck">IconBuilding.vue</div>
+            <div class="comp-desc" style="color:#dc2626;">Replace with lucide <code>Building2</code></div>
+          </div>
+        </div>
+        <div class="comp">
+          <div class="comp-dot" style="background:#dc2626;"></div>
+          <div class="comp-info">
+            <div class="comp-name struck">IconCheck.vue</div>
+            <div class="comp-desc" style="color:#dc2626;">Replace with lucide <code>Check</code></div>
+          </div>
+        </div>
+        <div class="comp">
+          <div class="comp-dot" style="background:#dc2626;"></div>
+          <div class="comp-info">
+            <div class="comp-name struck">index.ts</div>
+            <div class="comp-desc" style="color:#dc2626;">Delete entire Icon/ folder</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lucide section full width -->
+    <div class="full-width lucide-box">
+      <div class="lucide-title">lucide-vue-next — Icons Used</div>
+      <div class="lucide-sub">Import per-file or register globally. No wrapper components. Tree-shakeable.</div>
+      <div class="lucide-grid">
+        <div class="lucide-item"><div class="lucide-icon">LayoutDashboard</div><div class="lucide-where">Sidebar</div></div>
+        <div class="lucide-item"><div class="lucide-icon">Users</div><div class="lucide-where">Sidebar, Customers page</div></div>
+        <div class="lucide-item"><div class="lucide-icon">Activity</div><div class="lucide-where">Sidebar, Sales</div></div>
+        <div class="lucide-item"><div class="lucide-icon">Truck</div><div class="lucide-where">Sidebar, KPI card</div></div>
+        <div class="lucide-item"><div class="lucide-icon">CalendarDays</div><div class="lucide-where">Sidebar, KPI card</div></div>
+        <div class="lucide-item"><div class="lucide-icon">Package</div><div class="lucide-where">Sidebar, Products</div></div>
+        <div class="lucide-item"><div class="lucide-icon">Map</div><div class="lucide-where">Sidebar, Areas</div></div>
+        <div class="lucide-item"><div class="lucide-icon">UserCheck</div><div class="lucide-where">Sidebar, Employees</div></div>
+        <div class="lucide-item"><div class="lucide-icon">Wrench</div><div class="lucide-where">Sidebar, KPI card</div></div>
+        <div class="lucide-item"><div class="lucide-icon">Car</div><div class="lucide-where">Sidebar, Vehicles</div></div>
+        <div class="lucide-item"><div class="lucide-icon">Receipt</div><div class="lucide-where">Sidebar, Expenses</div></div>
+        <div class="lucide-item"><div class="lucide-icon">Settings</div><div class="lucide-where">Sidebar</div></div>
+        <div class="lucide-item"><div class="lucide-icon">Search</div><div class="lucide-where">Topbar</div></div>
+        <div class="lucide-item"><div class="lucide-icon">Bell</div><div class="lucide-where">Topbar</div></div>
+        <div class="lucide-item"><div class="lucide-icon">Mail</div><div class="lucide-where">Topbar</div></div>
+        <div class="lucide-item"><div class="lucide-icon">DollarSign</div><div class="lucide-where">KPI: Revenue</div></div>
+        <div class="lucide-item"><div class="lucide-icon">ArrowUpRight</div><div class="lucide-where">KPI card link</div></div>
+        <div class="lucide-item"><div class="lucide-icon">Plus</div><div class="lucide-where">Buttons</div></div>
+        <div class="lucide-item"><div class="lucide-icon">X</div><div class="lucide-where">Sidebar close</div></div>
+        <div class="lucide-item"><div class="lucide-icon">Building2</div><div class="lucide-where">Replaces IconBuilding</div></div>
+        <div class="lucide-item"><div class="lucide-icon">Check</div><div class="lucide-where">Replaces IconCheck</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <p style="margin-top:16px;font-size:11px;color:#64748b;text-align:center;">
+    v2: Icon/ folder deleted. lucide-vue-next handles all icons. Components stay lean.
+  </p>
+</body>
+</html>

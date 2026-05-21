@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WRS — Component Architecture</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: Inter, system-ui, sans-serif; }
+  body { background: #f1f5f9; padding: 24px 20px; color: #0a0e1a; }
+  h1 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .subtitle { font-size: 12px; color: #64748b; margin-bottom: 24px; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .col { display: flex; flex-direction: column; gap: 14px; }
+
+  .group { background: #fff; border-radius: 14px; border: 1px solid #e2e8f0; padding: 14px; }
+  .group-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .group-badge {
+    font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 999px;
+    text-transform: uppercase; letter-spacing: 0.8px;
+  }
+  .badge-new { background: rgba(0,201,240,0.15); color: #0284c7; }
+  .badge-update { background: rgba(245,158,11,0.15); color: #d97706; }
+  .badge-keep { background: rgba(16,185,129,0.12); color: #059669; }
+  .group-title { font-size: 12px; font-weight: 700; color: #0a0e1a; }
+  .group-path { font-size: 9px; color: #94a3b8; margin-bottom: 8px; font-family: monospace; }
+
+  .comp { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; border-bottom: 1px solid #f1f5f9; }
+  .comp:last-child { border-bottom: none; }
+  .comp-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+  .dot-new { background: #00C9F0; }
+  .dot-update { background: #f59e0b; }
+  .dot-keep { background: #10b981; }
+  .comp-info { flex: 1; }
+  .comp-name { font-size: 11px; font-weight: 600; color: #0a0e1a; font-family: monospace; }
+  .comp-desc { font-size: 10px; color: #64748b; margin-top: 1px; line-height: 1.4; }
+  .comp-props { font-size: 9px; color: #94a3b8; font-family: monospace; margin-top: 3px; }
+  .comp-used { font-size: 9px; color: #00C9F0; margin-top: 2px; }
+
+  .legend { display: flex; gap: 16px; margin-bottom: 16px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #475569; }
+
+  .full-width { grid-column: 1 / -1; }
+  .icon-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .icon-item { background: #f8fafc; border-radius: 8px; padding: 6px 8px; }
+  .icon-name { font-size: 10px; font-weight: 600; color: #0a0e1a; font-family: monospace; }
+  .icon-usage { font-size: 9px; color: #94a3b8; margin-top: 1px; }
+  .tag-new { font-size: 8px; background: rgba(0,201,240,0.15); color: #0284c7; border-radius: 3px; padding: 0 3px; font-weight: 600; }
+  .tag-exists { font-size: 8px; background: rgba(16,185,129,0.12); color: #059669; border-radius: 3px; padding: 0 3px; font-weight: 600; }
+</style>
+</head>
+<body>
+  <h1>Component Architecture — WRS Redesign</h1>
+  <p class="subtitle">Component-first. Build specs → build pages. Every page is just composed components.</p>
+
+  <div class="legend">
+    <div class="legend-item"><div class="comp-dot dot-new"></div> New component</div>
+    <div class="legend-item"><div class="comp-dot dot-update"></div> Update existing</div>
+    <div class="legend-item"><div class="comp-dot dot-keep"></div> Keep as-is</div>
+  </div>
+
+  <div class="grid">
+
+    <!-- Col 1 -->
+    <div class="col">
+
+      <div class="group">
+        <div class="group-header">
+          <span class="group-badge badge-update">UPDATE</span>
+          <span class="group-title">Shell</span>
+        </div>
+        <div class="group-path">src/components/The/</div>
+
+        <div class="comp">
+          <div class="comp-dot dot-update"></div>
+          <div class="comp-info">
+            <div class="comp-name">Sidebar.vue</div>
+            <div class="comp-desc">New visual style. Uses &lt;IconXxx /&gt; for all nav icons. Active state: bg + color only, no border.</div>
+            <div class="comp-props">props: open: boolean</div>
+            <div class="comp-used">→ MainLayout.vue</div>
+          </div>
+        </div>
+
+        <div class="comp">
+          <div class="comp-dot dot-update"></div>
+          <div class="comp-info">
+            <div class="comp-name">Topbar.vue</div>
+            <div class="comp-desc">Add search bar (⌘F shortcut, non-functional placeholder), notification bell, mail icon, user avatar + name/role pulled from auth store.</div>
+            <div class="comp-props">no props — reads authStore directly</div>
+            <div class="comp-used">→ MainLayout.vue</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-header">
+          <span class="group-badge badge-new">NEW</span>
+          <span class="group-title">Base — KPI + Charts</span>
+        </div>
+        <div class="group-path">src/components/Base/</div>
+
+        <div class="comp">
+          <div class="comp-dot dot-new"></div>
+          <div class="comp-info">
+            <div class="comp-name">BaseKpiCard.vue</div>
+            <div class="comp-desc">Reusable KPI card. Icon slot, label, value, sub-text. Variant controls color scheme.</div>
+            <div class="comp-props">variant: 'hero'|'default'|'warning'|'danger'<br>label: string, value: string|number<br>sub?: string, to?: string</div>
+            <div class="comp-used">→ dashboard, future report pages</div>
+          </div>
+        </div>
+
+        <div class="comp">
+          <div class="comp-dot dot-new"></div>
+          <div class="comp-info">
+            <div class="comp-name">BaseBarChart.vue</div>
+            <div class="comp-desc">Thin vue-chartjs wrapper for bar charts. Accepts labels + dataset. Teal color scheme baked in.</div>
+            <div class="comp-props">labels: string[], data: number[]<br>title?: string, height?: number</div>
+            <div class="comp-used">→ dashboard (revenue chart)</div>
+          </div>
+        </div>
+
+        <div class="comp">
+          <div class="comp-dot dot-new"></div>
+          <div class="comp-info">
+            <div class="comp-name">BaseDonutChart.vue</div>
+            <div class="comp-desc">Thin vue-chartjs wrapper for doughnut charts. Accepts segments array. Legend rendered in slot.</div>
+            <div class="comp-props">segments: {label, value, color}[]<br>title?: string, centerLabel?: string</div>
+            <div class="comp-used">→ dashboard (deliveries chart)</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Col 2 -->
+    <div class="col">
+
+      <div class="group">
+        <div class="group-header">
+          <span class="group-badge badge-new">NEW</span>
+          <span class="group-title">Dashboard Widgets</span>
+        </div>
+        <div class="group-path">src/components/Dashboard/</div>
+
+        <div class="comp">
+          <div class="comp-dot dot-new"></div>
+          <div class="comp-info">
+            <div class="comp-name">DashboardRoutePanel.vue</div>
+            <div class="comp-desc">Right panel: today's riders with stop counts and progress bars. Fetches its own data via deliveries service.</div>
+            <div class="comp-props">no props — self-contained</div>
+            <div class="comp-used">→ dashboard right panel</div>
+          </div>
+        </div>
+
+        <div class="comp">
+          <div class="comp-dot dot-new"></div>
+          <div class="comp-info">
+            <div class="comp-name">DashboardQuickActions.vue</div>
+            <div class="comp-desc">Right panel: quick-action buttons. Uses router.push. Buttons: New Sale, Add Booking, Log Expense, View Deliveries.</div>
+            <div class="comp-props">no props — self-contained</div>
+            <div class="comp-used">→ dashboard right panel</div>
+          </div>
+        </div>
+
+        <div class="comp">
+          <div class="comp-dot dot-new"></div>
+          <div class="comp-info">
+            <div class="comp-name">DashboardDeliveryList.vue</div>
+            <div class="comp-desc">Today's deliveries list section. Extracts the list rendering from dashboard.vue into its own component.</div>
+            <div class="comp-props">deliveries: DeliverySaleRow[]</div>
+            <div class="comp-used">→ dashboard</div>
+          </div>
+        </div>
+
+        <div class="comp">
+          <div class="comp-dot dot-new"></div>
+          <div class="comp-info">
+            <div class="comp-name">DashboardBookingList.vue</div>
+            <div class="comp-desc">Upcoming bookings list section. Accepts bookings prop, formats scheduled date internally.</div>
+            <div class="comp-props">bookings: BookingRow[]</div>
+            <div class="comp-used">→ dashboard</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-header">
+          <span class="group-badge badge-update">UPDATE</span>
+          <span class="group-title">Base — Updated</span>
+        </div>
+        <div class="group-path">src/components/Base/</div>
+
+        <div class="comp">
+          <div class="comp-dot dot-update"></div>
+          <div class="comp-info">
+            <div class="comp-name">BaseCard.vue</div>
+            <div class="comp-desc">Remove kpi variant (replaced by BaseKpiCard). Keep default + hero. Add optional title + action slot.</div>
+          </div>
+        </div>
+
+        <div class="comp">
+          <div class="comp-dot dot-update"></div>
+          <div class="comp-info">
+            <div class="comp-name">BaseTable.vue</div>
+            <div class="comp-desc">Restyle headers/rows to match new design tokens. Striped hover row. Sticky header option.</div>
+          </div>
+        </div>
+
+        <div class="comp">
+          <div class="comp-dot dot-update"></div>
+          <div class="comp-info">
+            <div class="comp-name">BaseButton.vue</div>
+            <div class="comp-desc">Add ghost variant. Ensure icon slot works with &lt;IconXxx /&gt;. Tighten sizing tokens.</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Col 3 -->
+    <div class="col">
+      <div class="group">
+        <div class="group-header">
+          <span class="group-badge badge-keep">KEEP</span>
+          <span class="group-title">Base — Unchanged</span>
+        </div>
+        <div class="group-path">src/components/Base/</div>
+        <div class="comp"><div class="comp-dot dot-keep"></div><div class="comp-info"><div class="comp-name">BaseInput.vue</div><div class="comp-desc">No changes needed.</div></div></div>
+        <div class="comp"><div class="comp-dot dot-keep"></div><div class="comp-info"><div class="comp-name">BaseSelect.vue</div><div class="comp-desc">No changes needed.</div></div></div>
+        <div class="comp"><div class="comp-dot dot-keep"></div><div class="comp-info"><div class="comp-name">BaseBadge.vue</div><div class="comp-desc">No changes needed.</div></div></div>
+        <div class="comp"><div class="comp-dot dot-keep"></div><div class="comp-info"><div class="comp-name">BaseModal.vue</div><div class="comp-desc">No changes needed.</div></div></div>
+        <div class="comp"><div class="comp-dot dot-keep"></div><div class="comp-info"><div class="comp-name">BasePagination.vue</div><div class="comp-desc">No changes needed.</div></div></div>
+        <div class="comp"><div class="comp-dot dot-keep"></div><div class="comp-info"><div class="comp-name">BaseConfirm.vue</div><div class="comp-desc">No changes needed.</div></div></div>
+        <div class="comp"><div class="comp-dot dot-keep"></div><div class="comp-info"><div class="comp-name">BaseTabs.vue</div><div class="comp-desc">No changes needed.</div></div></div>
+        <div class="comp"><div class="comp-dot dot-keep"></div><div class="comp-info"><div class="comp-name">BaseEmptyState.vue</div><div class="comp-desc">No changes needed.</div></div></div>
+        <div class="comp"><div class="comp-dot dot-keep"></div><div class="comp-info"><div class="comp-name">BaseSpinner.vue</div><div class="comp-desc">No changes needed.</div></div></div>
+        <div class="comp"><div class="comp-dot dot-keep"></div><div class="comp-info"><div class="comp-name">BaseTextarea.vue</div><div class="comp-desc">No changes needed.</div></div></div>
+        <div class="comp"><div class="comp-dot dot-keep"></div><div class="comp-info"><div class="comp-name">BaseCheckbox.vue</div><div class="comp-desc">No changes needed.</div></div></div>
+      </div>
+    </div>
+
+    <!-- Icons — full width -->
+    <div class="group full-width">
+      <div class="group-header">
+        <span class="group-badge badge-new">NEW</span>
+        <span class="group-title">Icon Components</span>
+      </div>
+      <div class="group-path">src/components/Icon/ — all accept size?: number (default 20), class?</div>
+      <div class="icon-grid">
+        <div class="icon-item"><div class="icon-name">IconDashboard.vue <span class="tag-new">new</span></div><div class="icon-usage">Sidebar nav</div></div>
+        <div class="icon-item"><div class="icon-name">IconCustomers.vue <span class="tag-new">new</span></div><div class="icon-usage">Sidebar nav</div></div>
+        <div class="icon-item"><div class="icon-name">IconSales.vue <span class="tag-new">new</span></div><div class="icon-usage">Sidebar nav</div></div>
+        <div class="icon-item"><div class="icon-name">IconDeliveries.vue <span class="tag-new">new</span></div><div class="icon-usage">Sidebar nav, KPI card</div></div>
+        <div class="icon-item"><div class="icon-name">IconBookings.vue <span class="tag-new">new</span></div><div class="icon-usage">Sidebar nav, KPI card</div></div>
+        <div class="icon-item"><div class="icon-name">IconProducts.vue <span class="tag-new">new</span></div><div class="icon-usage">Sidebar nav</div></div>
+        <div class="icon-item"><div class="icon-name">IconAreas.vue <span class="tag-new">new</span></div><div class="icon-usage">Sidebar nav</div></div>
+        <div class="icon-item"><div class="icon-name">IconEmployees.vue <span class="tag-new">new</span></div><div class="icon-usage">Sidebar nav</div></div>
+        <div class="icon-item"><div class="icon-name">IconMaintenance.vue <span class="tag-new">new</span></div><div class="icon-usage">Sidebar nav, KPI card</div></div>
+        <div class="icon-item"><div class="icon-name">IconVehicles.vue <span class="tag-new">new</span></div><div class="icon-usage">Sidebar nav</div></div>
+        <div class="icon-item"><div class="icon-name">IconExpenses.vue <span class="tag-new">new</span></div><div class="icon-usage">Sidebar nav</div></div>
+        <div class="icon-item"><div class="icon-name">IconSettings.vue <span class="tag-new">new</span></div><div class="icon-usage">Sidebar nav</div></div>
+        <div class="icon-item"><div class="icon-name">IconSearch.vue <span class="tag-new">new</span></div><div class="icon-usage">Topbar</div></div>
+        <div class="icon-item"><div class="icon-name">IconBell.vue <span class="tag-new">new</span></div><div class="icon-usage">Topbar</div></div>
+        <div class="icon-item"><div class="icon-name">IconMail.vue <span class="tag-new">new</span></div><div class="icon-usage">Topbar</div></div>
+        <div class="icon-item"><div class="icon-name">IconMoney.vue <span class="tag-new">new</span></div><div class="icon-usage">Dashboard KPI card</div></div>
+        <div class="icon-item"><div class="icon-name">IconArrowUpRight.vue <span class="tag-new">new</span></div><div class="icon-usage">KPI card link arrow</div></div>
+        <div class="icon-item"><div class="icon-name">IconPlus.vue <span class="tag-new">new</span></div><div class="icon-usage">Buttons</div></div>
+        <div class="icon-item"><div class="icon-name">IconX.vue <span class="tag-new">new</span></div><div class="icon-usage">Sidebar close (mobile)</div></div>
+        <div class="icon-item"><div class="icon-name">IconBuilding.vue <span class="tag-exists">exists</span></div><div class="icon-usage">Keep</div></div>
+        <div class="icon-item"><div class="icon-name">IconCheck.vue <span class="tag-exists">exists</span></div><div class="icon-usage">Keep</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <p style="margin-top:16px;font-size:11px;color:#64748b;text-align:center;">
+    Pages compose these components. Changing a component updates every page that uses it automatically.
+  </p>
+</body>
+</html>

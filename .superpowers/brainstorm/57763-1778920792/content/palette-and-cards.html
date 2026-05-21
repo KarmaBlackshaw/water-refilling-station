@@ -1,0 +1,62 @@
+<h2>Accent color direction?</h2>
+<p class="subtitle">Reference uses cream bg + bright blue. WRS currently uses light slate bg + cyan/teal. Pick the accent we anchor on.</p>
+
+<div class="options">
+  <div class="option" data-choice="palette-blue" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Faithful — bright blue + cream</h3>
+      <p>Cream bg <code style="background:#F2EAD9;padding:2px 8px;border-radius:4px">#F2EAD9</code> · panel white · accent <code style="background:#2563EB;color:white;padding:2px 8px;border-radius:4px">#2563EB</code> (image's pill nav blue). Drops current WRS cyan.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="palette-hybrid" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Hybrid — cream bg, keep WRS cyan accent</h3>
+      <p>Cream bg <code style="background:#F2EAD9;padding:2px 8px;border-radius:4px">#F2EAD9</code> · panel white · accent stays WRS cyan <code style="background:#00C9F0;color:white;padding:2px 8px;border-radius:4px">#00C9F0</code>. Pill nav uses cyan. Brand continuity.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="palette-water" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>On-brand water — soft blue bg + deep blue accent</h3>
+      <p>Bg <code style="background:#EAF1FA;padding:2px 8px;border-radius:4px">#EAF1FA</code> · panel white · accent <code style="background:#1E5BBA;color:white;padding:2px 8px;border-radius:4px">#1E5BBA</code>. Same shape language as reference, water-themed palette.</p>
+    </div>
+  </div>
+</div>
+
+<h2 style="margin-top:48px">Panel + card shape?</h2>
+<p class="subtitle">Reference: very rounded outer panel, soft shadow, medium-rounded inner cards.</p>
+
+<div class="cards">
+  <div class="card" data-choice="cards-faithful" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:linear-gradient(135deg,#F2EAD9,#E8DCC4);display:flex;align-items:center;justify-content:center;padding:24px">
+      <div style="background:white;border-radius:24px;box-shadow:0 8px 24px rgba(0,0,0,0.06);width:90%;height:80%;padding:16px;display:flex;flex-direction:column;gap:8px">
+        <div style="background:#F8FAFC;border-radius:14px;height:30%;border:1px solid #E2E8F0"></div>
+        <div style="display:flex;gap:8px;flex:1">
+          <div style="background:#F8FAFC;border-radius:14px;flex:1;border:1px solid #E2E8F0"></div>
+          <div style="background:#F8FAFC;border-radius:14px;flex:1;border:1px solid #E2E8F0"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Faithful — rounded-3xl outer panel</h3>
+      <p>Outer panel <code>rounded-[28px]</code> with soft shadow. Inner cards <code>rounded-2xl</code>. Matches reference exactly.</p>
+    </div>
+  </div>
+  <div class="card" data-choice="cards-current" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#F1F5F9;display:flex;align-items:center;justify-content:center;padding:24px">
+      <div style="background:white;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.08);width:90%;height:80%;padding:16px;display:flex;flex-direction:column;gap:8px">
+        <div style="background:#F8FAFC;border-radius:8px;height:30%;border:1px solid #E2E8F0"></div>
+        <div style="display:flex;gap:8px;flex:1">
+          <div style="background:#F8FAFC;border-radius:8px;flex:1;border:1px solid #E2E8F0"></div>
+          <div style="background:#F8FAFC;border-radius:8px;flex:1;border:1px solid #E2E8F0"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Keep current — modest rounding, no outer panel</h3>
+      <p>Cards as today (~<code>rounded-xl</code>). No outer wrap-panel. Less faithful but smaller change.</p>
+    </div>
+  </div>
+</div>

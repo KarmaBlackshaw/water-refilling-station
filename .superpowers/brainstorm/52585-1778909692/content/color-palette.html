@@ -1,0 +1,112 @@
+<h2>Which color direction for the redesign?</h2>
+<p class="subtitle">The Donezo reference uses dark green. Your current app uses teal (#00C9F0). Pick a direction.</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="dark-green" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#1a2e1a; padding:16px; display:flex; flex-direction:column; gap:10px;">
+      <!-- Mini sidebar -->
+      <div style="display:flex; gap:10px; height:80px;">
+        <div style="background:#243824; width:90px; border-radius:8px; padding:8px; display:flex; flex-direction:column; gap:6px;">
+          <div style="background:#3d6b3d; border-radius:4px; height:8px; width:60%;"></div>
+          <div style="background:#2d5a2d; border-radius:4px; height:6px; width:80%;"></div>
+          <div style="background:#2d5a2d; border-radius:4px; height:6px; width:70%;"></div>
+          <div style="background:#4CAF50; border-radius:4px; height:6px; width:80%;"></div>
+          <div style="background:#2d5a2d; border-radius:4px; height:6px; width:65%;"></div>
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+          <div style="background:#2d5a2d; border-radius:4px; height:24px; display:flex; align-items:center; padding:0 8px;">
+            <div style="background:#4CAF50; border-radius:2px; height:8px; width:50%;"></div>
+          </div>
+          <div style="display:flex; gap:6px; flex:1;">
+            <div style="background:#4CAF50; border-radius:6px; flex:1;"></div>
+            <div style="background:#2d5a2d; border-radius:6px; flex:1;"></div>
+            <div style="background:#2d5a2d; border-radius:6px; flex:1;"></div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; justify-content:center; margin-top:4px;">
+        <div style="width:20px; height:20px; background:#1b5e20; border-radius:50%;"></div>
+        <div style="width:20px; height:20px; background:#2e7d32; border-radius:50%;"></div>
+        <div style="width:20px; height:20px; background:#4CAF50; border-radius:50%;"></div>
+        <div style="width:20px; height:20px; background:#81c784; border-radius:50%;"></div>
+        <div style="width:20px; height:20px; background:#c8e6c9; border-radius:50%;"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Dark Green (Donezo-style)</h3>
+      <p>Deep forest green sidebar, light content area. Earthy, professional, matches the reference design exactly.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="keep-teal" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#F1F5F9; padding:16px; display:flex; flex-direction:column; gap:10px;">
+      <div style="display:flex; gap:10px; height:80px;">
+        <div style="background:#fff; width:90px; border-radius:8px; padding:8px; border:1px solid #E2E8F0; display:flex; flex-direction:column; gap:6px;">
+          <div style="background:rgba(0,201,240,0.3); border-radius:4px; height:8px; width:60%;"></div>
+          <div style="background:#f1f5f9; border-radius:4px; height:6px; width:80%;"></div>
+          <div style="background:#f1f5f9; border-radius:4px; height:6px; width:70%;"></div>
+          <div style="background:#00C9F0; border-radius:4px; height:6px; width:80%;"></div>
+          <div style="background:#f1f5f9; border-radius:4px; height:6px; width:65%;"></div>
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+          <div style="background:#fff; border-radius:4px; height:24px; border:1px solid #E2E8F0; display:flex; align-items:center; padding:0 8px;">
+            <div style="background:#00C9F0; border-radius:2px; height:8px; width:50%;"></div>
+          </div>
+          <div style="display:flex; gap:6px; flex:1;">
+            <div style="background:#00C9F0; border-radius:6px; flex:1;"></div>
+            <div style="background:#fff; border-radius:6px; flex:1; border:1px solid #E2E8F0;"></div>
+            <div style="background:#fff; border-radius:6px; flex:1; border:1px solid #E2E8F0;"></div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; justify-content:center; margin-top:4px;">
+        <div style="width:20px; height:20px; background:#0284c7; border-radius:50%;"></div>
+        <div style="width:20px; height:20px; background:#00C9F0; border-radius:50%;"></div>
+        <div style="width:20px; height:20px; background:#33D4F5; border-radius:50%;"></div>
+        <div style="width:20px; height:20px; background:#a5f3fc; border-radius:50%;"></div>
+        <div style="width:20px; height:20px; background:#f0fdff; border-radius:50%;"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Keep Teal (Current Brand)</h3>
+      <p>Light sidebar with teal (#00C9F0) accent. Apply Donezo's layout/structure but keep existing brand color.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="dark-sidebar-teal" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#F1F5F9; padding:16px; display:flex; flex-direction:column; gap:10px;">
+      <div style="display:flex; gap:10px; height:80px;">
+        <div style="background:#0A0E1A; width:90px; border-radius:8px; padding:8px; display:flex; flex-direction:column; gap:6px;">
+          <div style="background:rgba(0,201,240,0.4); border-radius:4px; height:8px; width:60%;"></div>
+          <div style="background:#1e2535; border-radius:4px; height:6px; width:80%;"></div>
+          <div style="background:#1e2535; border-radius:4px; height:6px; width:70%;"></div>
+          <div style="background:#00C9F0; border-radius:4px; height:6px; width:80%;"></div>
+          <div style="background:#1e2535; border-radius:4px; height:6px; width:65%;"></div>
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+          <div style="background:#fff; border-radius:4px; height:24px; border:1px solid #E2E8F0; display:flex; align-items:center; padding:0 8px;">
+            <div style="background:#00C9F0; border-radius:2px; height:8px; width:50%;"></div>
+          </div>
+          <div style="display:flex; gap:6px; flex:1;">
+            <div style="background:#00C9F0; border-radius:6px; flex:1;"></div>
+            <div style="background:#fff; border-radius:6px; flex:1; border:1px solid #E2E8F0;"></div>
+            <div style="background:#fff; border-radius:6px; flex:1; border:1px solid #E2E8F0;"></div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; justify-content:center; margin-top:4px;">
+        <div style="width:20px; height:20px; background:#0A0E1A; border-radius:50%;"></div>
+        <div style="width:20px; height:20px; background:#1e2535; border-radius:50%;"></div>
+        <div style="width:20px; height:20px; background:#00C9F0; border-radius:50%;"></div>
+        <div style="width:20px; height:20px; background:#33D4F5; border-radius:50%;"></div>
+        <div style="width:20px; height:20px; background:#f0fdff; border-radius:50%;"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Dark Sidebar + Teal Accent</h3>
+      <p>Dark navy/charcoal sidebar like Donezo's structure, but teal accent instead of green. Best of both worlds.</p>
+    </div>
+  </div>
+
+</div>

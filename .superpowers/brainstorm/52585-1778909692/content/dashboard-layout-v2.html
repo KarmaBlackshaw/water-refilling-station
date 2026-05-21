@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WRS Dashboard Redesign — Layout Preview v2</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: Inter, system-ui, sans-serif; }
+  body { background: #e2e8f0; display: flex; flex-direction: column; align-items: center; padding: 24px 16px; min-height: 100vh; }
+  h1 { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #64748b; margin-bottom: 20px; }
+
+  .shell {
+    width: 100%; max-width: 1100px; height: 620px;
+    background: #f1f5f9; border-radius: 16px; overflow: hidden;
+    display: flex; box-shadow: 0 8px 32px rgba(0,0,0,0.15); border: 1px solid #cbd5e1;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 210px; flex-shrink: 0;
+    background: #ffffff; border-right: 1px solid #e2e8f0;
+    display: flex; flex-direction: column;
+  }
+  .sidebar-header {
+    padding: 16px 14px 14px; border-bottom: 1px solid #e2e8f0;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .logo-mark {
+    width: 30px; height: 30px;
+    background: linear-gradient(135deg, #00C9F0, #0284c7);
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 800; color: white; letter-spacing: -0.5px;
+  }
+  .logo-text { display: flex; flex-direction: column; line-height: 1.1; }
+  .logo-name { font-size: 13px; font-weight: 700; color: #0a0e1a; }
+  .logo-sub { font-size: 9px; color: #94a3b8; letter-spacing: 1px; text-transform: uppercase; }
+  .nav-section { padding: 10px 10px 4px; }
+  .nav-label { font-size: 9px; font-weight: 600; color: #94a3b8; letter-spacing: 1.5px; text-transform: uppercase; padding: 0 6px; margin-bottom: 4px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 8px; border-radius: 10px;
+    font-size: 12px; color: #64748b; cursor: pointer; margin-bottom: 1px;
+  }
+  /* Active: NO border, just bg + color */
+  .nav-item.active {
+    background: rgba(0,201,240,0.10);
+    color: #00C9F0;
+    font-weight: 600;
+  }
+  .nav-dot { width: 14px; height: 14px; border-radius: 3px; background: currentColor; opacity: 0.5; flex-shrink: 0; }
+  .nav-dot.active { opacity: 1; }
+  .sidebar-footer { margin-top: auto; padding: 10px 14px; border-top: 1px solid #e2e8f0; font-size: 10px; color: #94a3b8; }
+
+  /* ── Main ── */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar {
+    height: 52px; flex-shrink: 0; background: #fff; border-bottom: 1px solid #e2e8f0;
+    display: flex; align-items: center; gap: 10px; padding: 0 16px;
+  }
+  .search-bar {
+    flex: 1; max-width: 260px; background: #f8fafc; border: 1px solid #e2e8f0;
+    border-radius: 8px; height: 30px; display: flex; align-items: center;
+    gap: 6px; padding: 0 10px; font-size: 11px; color: #94a3b8;
+  }
+  .topbar-spacer { flex: 1; }
+  .topbar-icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: #f1f5f9; border: 1px solid #e2e8f0;
+    display: flex; align-items: center; justify-content: center; font-size: 12px;
+  }
+  .avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: linear-gradient(135deg, #00C9F0, #0284c7);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: white;
+  }
+  .user-info { display: flex; flex-direction: column; line-height: 1.2; }
+  .user-name { font-size: 11px; font-weight: 600; color: #0a0e1a; }
+  .user-role { font-size: 9px; color: #94a3b8; }
+
+  .content { flex: 1; display: flex; gap: 0; overflow: hidden; }
+  .content-main { flex: 1; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+  .content-right { width: 200px; flex-shrink: 0; background: #fff; border-left: 1px solid #e2e8f0; padding: 12px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+
+  .page-header { display: flex; align-items: center; justify-content: space-between; }
+  .page-title { font-size: 18px; font-weight: 700; color: #0a0e1a; }
+  .page-sub { font-size: 10px; color: #94a3b8; margin-top: 1px; }
+  .btn-group { display: flex; gap: 6px; }
+  .btn { padding: 5px 12px; border-radius: 8px; font-size: 10px; font-weight: 600; border: none; cursor: pointer; }
+  .btn-primary { background: #00C9F0; color: white; }
+  .btn-secondary { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .kpi-card { background: #fff; border-radius: 12px; padding: 10px 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .kpi-card.hero { background: linear-gradient(135deg, #00C9F0, #0284c7); border: none; }
+  .kpi-icon { width: 28px; height: 28px; border-radius: 7px; background: rgba(0,201,240,0.12); margin-bottom: 8px; }
+  .kpi-card.hero .kpi-icon { background: rgba(255,255,255,0.2); }
+  .kpi-label { font-size: 9px; color: #94a3b8; font-weight: 500; }
+  .kpi-card.hero .kpi-label { color: rgba(255,255,255,0.7); }
+  .kpi-value { font-size: 20px; font-weight: 700; color: #0a0e1a; margin: 2px 0; }
+  .kpi-card.hero .kpi-value { color: white; }
+  .kpi-sub { font-size: 9px; color: #94a3b8; }
+  .kpi-card.hero .kpi-sub { color: rgba(255,255,255,0.6); }
+
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .chart-card { background: #fff; border-radius: 12px; padding: 10px 12px; border: 1px solid #e2e8f0; }
+  .chart-title { font-size: 11px; font-weight: 600; color: #0a0e1a; margin-bottom: 8px; }
+  .chart-bars { display: flex; align-items: flex-end; gap: 4px; height: 60px; }
+  .bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .bar { width: 100%; border-radius: 3px 3px 0 0; background: rgba(0,201,240,0.3); }
+  .bar.highlight { background: #00C9F0; }
+  .bar-label { font-size: 8px; color: #94a3b8; }
+  .donut-wrap { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 4px 0; }
+  .donut { width: 56px; height: 56px; border-radius: 50%; background: conic-gradient(#00C9F0 0% 65%, #f59e0b 65% 80%, #e2e8f0 80% 100%); display: flex; align-items: center; justify-content: center; position: relative; }
+  .donut::after { content: ''; width: 36px; height: 36px; background: white; border-radius: 50%; position: absolute; }
+  .donut-pct { position: relative; z-index: 2; font-size: 9px; font-weight: 700; color: #0a0e1a; }
+  .donut-legend { display: flex; flex-direction: column; gap: 5px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 9px; color: #64748b; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  .lists-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .list-card { background: #fff; border-radius: 12px; padding: 10px 12px; border: 1px solid #e2e8f0; }
+  .list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .list-title { font-size: 11px; font-weight: 600; color: #0a0e1a; }
+  .list-link { font-size: 9px; color: #00C9F0; }
+  .list-item { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #f1f5f9; }
+  .list-item:last-child { border-bottom: none; }
+  .list-name { font-size: 10px; color: #0a0e1a; font-weight: 500; }
+  .list-sub { font-size: 9px; color: #94a3b8; }
+  .badge { font-size: 8px; padding: 2px 6px; border-radius: 999px; font-weight: 600; }
+  .badge-warn { background: rgba(245,158,11,0.12); color: #d97706; }
+  .badge-ok { background: rgba(16,185,129,0.12); color: #059669; }
+  .badge-info { background: rgba(0,201,240,0.12); color: #0284c7; }
+
+  .panel-title { font-size: 10px; font-weight: 700; color: #0a0e1a; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+  .route-item { padding: 6px 8px; background: #f8fafc; border-radius: 8px; margin-bottom: 5px; }
+  .rider-name { font-size: 10px; font-weight: 600; color: #0a0e1a; }
+  .rider-stops { font-size: 9px; color: #94a3b8; margin-top: 1px; }
+  .rider-bar { margin-top: 5px; background: #e2e8f0; border-radius: 999px; height: 4px; }
+  .rider-fill { background: #00C9F0; border-radius: 999px; height: 4px; }
+  .quick-actions { display: flex; flex-direction: column; gap: 5px; }
+  .qa-btn { padding: 7px 10px; border-radius: 8px; font-size: 10px; font-weight: 600; background: rgba(0,201,240,0.10); color: #0284c7; border: 1px solid rgba(0,201,240,0.2); cursor: pointer; text-align: left; }
+  .qa-btn.primary { background: #00C9F0; color: white; border-color: #00C9F0; }
+  .new-tag { font-size: 8px; background: #00C9F0; color: white; border-radius: 4px; padding: 1px 4px; margin-left: 4px; font-weight: 700; }
+
+  .change-note { margin-top: 14px; font-size: 11px; color: #0284c7; background: rgba(0,201,240,0.08); border: 1px solid rgba(0,201,240,0.2); border-radius: 8px; padding: 8px 12px; max-width: 1100px; width: 100%; }
+</style>
+</head>
+<body>
+  <h1>WRS Admin — Redesign Preview v2</h1>
+  <p class="subtitle">Active nav: no border indicator, background + color only</p>
+
+  <div class="shell">
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-mark">WRS</div>
+        <div class="logo-text">
+          <span class="logo-name">WRS</span>
+          <span class="logo-sub">Admin Portal</span>
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Menu</div>
+        <div class="nav-item active"><div class="nav-dot active"></div> Dashboard</div>
+        <div class="nav-item"><div class="nav-dot"></div> Customers <span class="new-tag">12</span></div>
+        <div class="nav-item"><div class="nav-dot"></div> Sales</div>
+        <div class="nav-item"><div class="nav-dot"></div> Deliveries</div>
+        <div class="nav-item"><div class="nav-dot"></div> Bookings</div>
+        <div class="nav-item"><div class="nav-dot"></div> Products</div>
+        <div class="nav-item"><div class="nav-dot"></div> Areas</div>
+        <div class="nav-item"><div class="nav-dot"></div> Employees</div>
+        <div class="nav-item"><div class="nav-dot"></div> Maintenance</div>
+        <div class="nav-item"><div class="nav-dot"></div> Vehicles</div>
+        <div class="nav-item"><div class="nav-dot"></div> Expenses</div>
+      </div>
+      <div class="nav-section" style="margin-top:4px;">
+        <div class="nav-label">General</div>
+        <div class="nav-item"><div class="nav-dot"></div> Settings</div>
+      </div>
+      <div class="sidebar-footer">v0.1.0</div>
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <div class="search-bar">🔍 Search... <span style="margin-left:auto;background:#e2e8f0;border-radius:4px;padding:1px 5px;font-size:9px;">⌘F</span></div>
+        <div class="topbar-spacer"></div>
+        <div class="topbar-icon">✉</div>
+        <div class="topbar-icon">🔔</div>
+        <div class="avatar">A</div>
+        <div class="user-info">
+          <span class="user-name">Admin</span>
+          <span class="user-role">admin@wrs.ph</span>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="content-main">
+          <div class="page-header">
+            <div>
+              <div class="page-title">Dashboard</div>
+              <div class="page-sub">Friday, May 16, 2025 · Manage your operations at a glance</div>
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-primary">+ New Sale</button>
+              <button class="btn btn-secondary">View Deliveries</button>
+            </div>
+          </div>
+
+          <div class="kpi-row">
+            <div class="kpi-card hero">
+              <div class="kpi-icon"></div>
+              <div class="kpi-label">Today's Revenue</div>
+              <div class="kpi-value">₱4,200</div>
+              <div class="kpi-sub">Completed sales today</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-icon"></div>
+              <div class="kpi-label">Pending Deliveries</div>
+              <div class="kpi-value" style="color:#f59e0b;">3</div>
+              <div class="kpi-sub">Awaiting delivery today</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-icon"></div>
+              <div class="kpi-label">Upcoming Bookings</div>
+              <div class="kpi-value">7</div>
+              <div class="kpi-sub">Bookings in next 3 days</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-icon"></div>
+              <div class="kpi-label">Maintenance Alerts</div>
+              <div class="kpi-value" style="color:#ef4444;">2</div>
+              <div class="kpi-sub">Tasks overdue</div>
+            </div>
+          </div>
+
+          <div class="charts-row">
+            <div class="chart-card">
+              <div class="chart-title">Revenue — Past 7 Days</div>
+              <div class="chart-bars">
+                <div class="bar-wrap"><div class="bar" style="height:30px;"></div><div class="bar-label">M</div></div>
+                <div class="bar-wrap"><div class="bar" style="height:45px;"></div><div class="bar-label">T</div></div>
+                <div class="bar-wrap"><div class="bar" style="height:28px;"></div><div class="bar-label">W</div></div>
+                <div class="bar-wrap"><div class="bar highlight" style="height:55px;"></div><div class="bar-label">T</div></div>
+                <div class="bar-wrap"><div class="bar" style="height:38px;"></div><div class="bar-label">F</div></div>
+                <div class="bar-wrap"><div class="bar" style="height:22px;"></div><div class="bar-label">S</div></div>
+                <div class="bar-wrap"><div class="bar" style="height:10px;"></div><div class="bar-label">S</div></div>
+              </div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-title">Deliveries — Past 7 Days</div>
+              <div class="donut-wrap">
+                <div class="donut"><div class="donut-pct">65%</div></div>
+                <div class="donut-legend">
+                  <div class="legend-item"><div class="legend-dot" style="background:#00C9F0;"></div> Completed (13)</div>
+                  <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;"></div> Pending (4)</div>
+                  <div class="legend-item"><div class="legend-dot" style="background:#e2e8f0;"></div> Void (3)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="lists-row">
+            <div class="list-card">
+              <div class="list-header"><span class="list-title">Today's Deliveries</span><span class="list-link">View all →</span></div>
+              <div class="list-item"><div><div class="list-name">Juan dela Cruz</div><div class="list-sub">· Rider: Marco</div></div><span class="badge badge-warn">Pending</span></div>
+              <div class="list-item"><div><div class="list-name">Maria Santos</div><div class="list-sub">· Rider: Paolo</div></div><span class="badge badge-ok">Delivered</span></div>
+              <div class="list-item"><div><div class="list-name">Jose Reyes</div><div class="list-sub">· Unassigned</div></div><span class="badge badge-warn">Pending</span></div>
+              <div class="list-item"><div><div class="list-name">Ana Lim</div><div class="list-sub">· Rider: Marco</div></div><span class="badge badge-info">Fulfilled</span></div>
+            </div>
+            <div class="list-card">
+              <div class="list-header"><span class="list-title">Upcoming Bookings</span><span class="list-link">View all →</span></div>
+              <div class="list-item"><div><div class="list-name" style="font-size:9px;color:#94a3b8;">May 16 · <span style="color:#0a0e1a;font-size:10px;">Juan dela Cruz</span></div><div class="list-sub">· Marco</div></div><span class="badge badge-warn">Pending</span></div>
+              <div class="list-item"><div><div class="list-name" style="font-size:9px;color:#94a3b8;">May 17 · <span style="color:#0a0e1a;font-size:10px;">Maria Santos</span></div><div class="list-sub">· Paolo</div></div><span class="badge badge-warn">Pending</span></div>
+              <div class="list-item"><div><div class="list-name" style="font-size:9px;color:#94a3b8;">May 18 · <span style="color:#0a0e1a;font-size:10px;">Jose Reyes</span></div><div class="list-sub">· Unassigned</div></div><span class="badge badge-warn">Pending</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="content-right">
+          <div>
+            <div class="panel-title">Today's Routes</div>
+            <div class="route-item">
+              <div class="rider-name">Marco P.</div>
+              <div class="rider-stops">5 stops · 3 done</div>
+              <div class="rider-bar"><div class="rider-fill" style="width:60%;"></div></div>
+            </div>
+            <div class="route-item">
+              <div class="rider-name">Paolo M.</div>
+              <div class="rider-stops">4 stops · 4 done</div>
+              <div class="rider-bar"><div class="rider-fill" style="width:100%;"></div></div>
+            </div>
+            <div class="route-item">
+              <div class="rider-name">Unassigned</div>
+              <div class="rider-stops">2 stops · 0 done</div>
+              <div class="rider-bar"><div class="rider-fill" style="width:0%;"></div></div>
+            </div>
+          </div>
+          <div>
+            <div class="panel-title">Quick Actions</div>
+            <div class="quick-actions">
+              <button class="qa-btn primary">+ New Sale</button>
+              <button class="qa-btn">+ Add Booking</button>
+              <button class="qa-btn">+ Log Expense</button>
+              <button class="qa-btn">→ Deliveries</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="change-note">
+    ✓ Changed: active nav item no longer has a left border — just teal background + teal text.
+  </div>
+</body>
+</html>
