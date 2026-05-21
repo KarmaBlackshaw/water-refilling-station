@@ -18,7 +18,6 @@ function resolvePrice(productId: string, containerTypeId: string, isNewContainer
   return resolvePriceFn(pricingData.value, productId, containerTypeId, isNewContainer);
 }
 
-// ── Sales List ─────────────────────────────────────────────────────────────
 
 type SaleRow = Sale & {
   customer?: { name: string } | null;
@@ -115,7 +114,6 @@ function statusLabel(status: string) {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
-// ── Void ──────────────────────────────────────────────────────────────────
 
 const voidTarget = ref<SaleRow | null>(null);
 const voiding = ref(false);
@@ -138,7 +136,6 @@ async function confirmVoid() {
   }
 }
 
-// ── Sale Detail Modal ──────────────────────────────────────────────────────
 
 const detailOpen = ref(false);
 const detailSale = ref<(Sale & { customer?: { name: string } | null }) | null>(null);
@@ -164,7 +161,6 @@ async function openDetail(sale: SaleRow) {
 
 const detailTotal = computed(() => detailPayments.value.reduce((s, p) => s + p.amount_centavos, 0));
 
-// ── New Walk-in Sale Modal ────────────────────────────────────────────────
 
 const posOpen = ref(false);
 const saving = ref(false);

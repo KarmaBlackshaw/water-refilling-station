@@ -2,16 +2,12 @@
 import type { ExpenseCategory } from '@/types/database';
 import { formatMoney } from '@/helpers/money';
 
-// ────────────────────────────────────────────────────────────
 // Auth / tenant context
-// ────────────────────────────────────────────────────────────
 const auth = useAuthStore();
 const tenantId = computed(() => auth.tenantId ?? '');
 const branchId = computed(() => auth.branchId ?? '');
 
-// ────────────────────────────────────────────────────────────
 // Category metadata
-// ────────────────────────────────────────────────────────────
 type BadgeVariant = 'default' | 'success' | 'warning' | 'danger' | 'info';
 
 const CATEGORIES: ExpenseCategory[] = ['gasoline', 'parts', 'supplies', 'utilities', 'other'];
@@ -32,18 +28,14 @@ const CATEGORY_VARIANT: Record<ExpenseCategory, BadgeVariant> = {
   other: 'default',
 };
 
-// ────────────────────────────────────────────────────────────
 // Filters
-// ────────────────────────────────────────────────────────────
 const filterFrom = ref(startOfMonth());
 const filterTo = ref(today());
 const filterCategory = ref('');
 
 const categoryOptions = computed(() => [{ label: 'All Categories', value: '' }, ...CATEGORIES.map((c) => ({ label: CATEGORY_LABEL[c], value: c }))]);
 
-// ────────────────────────────────────────────────────────────
 // Data
-// ────────────────────────────────────────────────────────────
 type ExpenseRow = Awaited<ReturnType<typeof listExpenses>>[number];
 
 const {
@@ -71,9 +63,7 @@ const {
   },
 );
 
-// ────────────────────────────────────────────────────────────
 // Summary
-// ────────────────────────────────────────────────────────────
 const totalCentavos = computed(() => expenses.value.reduce((s, e) => s + e.amount_centavos, 0));
 
 const byCategory = computed(() => {
@@ -85,9 +75,7 @@ const byCategory = computed(() => {
   return map;
 });
 
-// ────────────────────────────────────────────────────────────
 // Employees (for payee select)
-// ────────────────────────────────────────────────────────────
 type EmployeeOption = { id: string; full_name: string };
 
 const { data: employees } = useAsync<EmployeeOption[]>(
@@ -109,9 +97,7 @@ const { data: employees } = useAsync<EmployeeOption[]>(
 
 const employeeOptions = computed(() => [{ label: 'None / External', value: '' }, ...employees.value.map((e) => ({ label: e.full_name, value: e.id }))]);
 
-// ────────────────────────────────────────────────────────────
 // Modal state
-// ────────────────────────────────────────────────────────────
 const modalOpen = ref(false);
 const editingExpense = ref<ExpenseRow | null>(null);
 const saving = ref(false);
@@ -177,9 +163,7 @@ async function saveExpense() {
   }
 }
 
-// ────────────────────────────────────────────────────────────
 // Delete
-// ────────────────────────────────────────────────────────────
 const deleteTarget = ref<ExpenseRow | null>(null);
 const deleting = ref(false);
 

@@ -7,7 +7,6 @@ const tenantId = computed(() => auth.tenantId ?? '');
 const branchId = computed(() => auth.branchId ?? '');
 const toast = useToast();
 
-// ─── Shared data ──────────────────────────────────────────────────────────────
 
 const customers = ref<Customer[]>([]);
 const riders = ref<Pick<User, 'id' | 'full_name'>[]>([]);
@@ -33,7 +32,6 @@ async function loadShared() {
   containerTypes.value = (ctRes.data ?? []) as ContainerType[];
 }
 
-// ─── Tabs ─────────────────────────────────────────────────────────────────────
 
 const activeTab = ref('bookings');
 const tabs = [
@@ -41,7 +39,6 @@ const tabs = [
   { key: 'templates', label: 'Templates' },
 ];
 
-// ─── TAB 1: Upcoming Bookings ─────────────────────────────────────────────────
 
 const bookingFilter = reactive({
   from: today(),
@@ -91,7 +88,6 @@ function itemsSummary(items: BookingRow['items'] | TemplateRow['items']): string
   return items.map((i) => `${i.quantity}× ${i.container_type?.name ?? '?'} ${i.product?.name ?? '?'}`).join(', ');
 }
 
-// ─── Generate modal ───────────────────────────────────────────────────────────
 
 const generateConfirmOpen = ref(false);
 const generateLoading = ref(false);
@@ -111,7 +107,6 @@ async function handleGenerate() {
   }
 }
 
-// ─── New Booking modal ────────────────────────────────────────────────────────
 
 const newBookingOpen = ref(false);
 const newBookingSaving = ref(false);
@@ -201,7 +196,6 @@ async function saveNewBooking() {
   }
 }
 
-// ─── Cancel booking ───────────────────────────────────────────────────────────
 
 const cancelTarget = ref<BookingRow | null>(null);
 const cancelLoading = ref(false);
@@ -224,7 +218,6 @@ async function handleCancelBooking() {
   }
 }
 
-// ─── Fulfill modal ────────────────────────────────────────────────────────────
 
 const fulfillTarget = ref<BookingRow | null>(null);
 const fulfillLoading = ref(false);
@@ -308,7 +301,6 @@ function centavosFromDisplay(display: string): number {
   return isNaN(n) ? 0 : Math.round(n * 100);
 }
 
-// ─── TAB 2: Templates ─────────────────────────────────────────────────────────
 
 const {
   data: templates,
@@ -342,7 +334,6 @@ function dayLabel(d: number): string {
   return dayOptions.find((o) => o.value === d)?.label ?? String(d);
 }
 
-// ─── Template modal (add/edit) ────────────────────────────────────────────────
 
 const templateModalOpen = ref(false);
 const templateSaving = ref(false);
@@ -462,7 +453,6 @@ async function saveTemplate() {
   }
 }
 
-// ─── Delete template ──────────────────────────────────────────────────────────
 
 const deleteTemplateTarget = ref<TemplateRow | null>(null);
 const deleteTemplateLoading = ref(false);
@@ -485,7 +475,6 @@ async function handleDeleteTemplate() {
   }
 }
 
-// ─── Init ─────────────────────────────────────────────────────────────────────
 
 onMounted(loadShared);
 </script>

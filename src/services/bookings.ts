@@ -3,7 +3,6 @@ import { supabase, getCurrentUserId } from '@/helpers/supabase';
 import type { Booking, BookingTemplate, BookingTemplateItem, BookingItem } from '@/types/database';
 import type { Dayjs } from 'dayjs';
 
-// ─── Extended row types ───────────────────────────────────────────────────────
 
 export interface BookingRow extends Booking {
   customer: { name: string } | null;
@@ -23,7 +22,6 @@ export interface TemplateRow extends BookingTemplate {
   })[];
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 // Day-of-week mapping: 0=Mon..5=Sat (no Sunday)
 function jsToMon0(jsDay: number): number {
@@ -61,7 +59,6 @@ function matchesCadence(template: TemplateRow, date: Dayjs, from: Dayjs): boolea
   return false;
 }
 
-// ─── List bookings ────────────────────────────────────────────────────────────
 
 export async function listBookings(params?: { from?: string; to?: string; status?: string; customerId?: string }): Promise<BookingRow[]> {
   const start = today();
@@ -99,7 +96,6 @@ export async function listBookings(params?: { from?: string; to?: string; status
   return (data ?? []) as BookingRow[];
 }
 
-// ─── List templates ───────────────────────────────────────────────────────────
 
 export async function listTemplates(): Promise<TemplateRow[]> {
   const { data, error } = await supabase
@@ -117,7 +113,6 @@ export async function listTemplates(): Promise<TemplateRow[]> {
   return (data ?? []) as TemplateRow[];
 }
 
-// ─── Create template ──────────────────────────────────────────────────────────
 
 export async function createTemplate(
   tenantId: string,
@@ -175,7 +170,6 @@ export async function createTemplate(
   return template as BookingTemplate;
 }
 
-// ─── Update template ──────────────────────────────────────────────────────────
 
 export async function updateTemplate(
   id: string,
@@ -196,7 +190,6 @@ export async function updateTemplate(
   return template as BookingTemplate;
 }
 
-// ─── Delete template (soft) ───────────────────────────────────────────────────
 
 export async function deleteTemplate(id: string): Promise<void> {
   const userId = await getCurrentUserId();
@@ -214,7 +207,6 @@ export async function deleteTemplate(id: string): Promise<void> {
   }
 }
 
-// ─── Create one-off booking ───────────────────────────────────────────────────
 
 export async function createBooking(
   tenantId: string,
@@ -273,7 +265,6 @@ export async function createBooking(
   return booking as Booking;
 }
 
-// ─── Cancel booking ───────────────────────────────────────────────────────────
 
 export async function cancelBooking(id: string): Promise<void> {
   const userId = await getCurrentUserId();
@@ -291,7 +282,6 @@ export async function cancelBooking(id: string): Promise<void> {
   }
 }
 
-// ─── Materialize bookings from templates ──────────────────────────────────────
 
 export async function materializeBookings(tenantId: string, branchId: string, from: string, to: string): Promise<number> {
   // Load all active templates with their items
@@ -422,7 +412,6 @@ export async function materializeBookings(tenantId: string, branchId: string, fr
   return toCreate.length;
 }
 
-// ─── Fulfill booking ──────────────────────────────────────────────────────────
 
 export async function fulfillBooking(
   tenantId: string,

@@ -14,13 +14,9 @@ function monthRange(): { from: string; to: string } {
   return { from: startOfMonth(todayDate), to: endOfMonth(todayDate) };
 }
 
-// ── State ────────────────────────────────────────────────────────────────────
 const counters = useDashboardCounters();
 
-const {
-  data: weeklyRevenueResult,
-  loading: loadingWeeklyRevenue,
-} = useAsync<{ labels: string[]; data: number[] }>(
+const { data: weeklyRevenueResult, loading: loadingWeeklyRevenue } = useAsync<{ labels: string[]; data: number[] }>(
   async () => {
     const days = getPast7Days();
     const { data: sales } = await supabase
@@ -62,10 +58,7 @@ const {
 const weeklyRevenueLabels = computed(() => weeklyRevenueResult.value?.labels ?? []);
 const weeklyRevenueData = computed(() => weeklyRevenueResult.value?.data ?? []);
 
-const {
-  data: weeklyByDay,
-  loading: loadingWeeklyDeliveries,
-} = useAsync<Record<string, { completed: number; pending: number; void: number }>>(
+const { data: weeklyByDay, loading: loadingWeeklyDeliveries } = useAsync<Record<string, { completed: number; pending: number; void: number }>>(
   async () => {
     const days = getPast7Days();
     const results = await Promise.all(days.map((d) => listDeliverySales(d)));
@@ -90,34 +83,19 @@ const {
   },
 );
 
-const {
-  data: deliveries,
-  loading: loadingDeliveries,
-} = useAsync<DeliverySaleRow[]>(
-  () => listDeliverySales(todayDate),
-  {
-    immediate: true,
-    defaultValue: [],
-    disableResetValue: true,
-  },
-);
+const { data: deliveries, loading: loadingDeliveries } = useAsync<DeliverySaleRow[]>(() => listDeliverySales(todayDate), {
+  immediate: true,
+  defaultValue: [],
+  disableResetValue: true,
+});
 
-const {
-  data: bookings,
-  loading: loadingBookings,
-} = useAsync<BookingRow[]>(
-  () => listBookings({ from: todayDate, to: todayPlus3Date, status: 'pending' }),
-  {
-    immediate: true,
-    defaultValue: [],
-    disableResetValue: true,
-  },
-);
+const { data: bookings, loading: loadingBookings } = useAsync<BookingRow[]>(() => listBookings({ from: todayDate, to: todayPlus3Date, status: 'pending' }), {
+  immediate: true,
+  defaultValue: [],
+  disableResetValue: true,
+});
 
-const {
-  data: topPerformers,
-  loading: loadingTopPerformers,
-} = useAsync<TopRiderRow[]>(
+const { data: topPerformers, loading: loadingTopPerformers } = useAsync<TopRiderRow[]>(
   () => {
     const { from, to } = monthRange();
 
@@ -131,15 +109,9 @@ const {
 );
 
 const loading = computed(
-  () =>
-    loadingWeeklyRevenue.value ||
-    loadingWeeklyDeliveries.value ||
-    loadingDeliveries.value ||
-    loadingBookings.value ||
-    loadingTopPerformers.value,
+  () => loadingWeeklyRevenue.value || loadingWeeklyDeliveries.value || loadingDeliveries.value || loadingBookings.value || loadingTopPerformers.value,
 );
 
-// ── Computed ─────────────────────────────────────────────────────────────────
 const pendingDeliveries = computed(() => (deliveries.value ?? []).filter((d) => d.status === 'pending_delivery'));
 
 const deliveryCompletionPct = computed(() => {

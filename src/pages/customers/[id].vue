@@ -77,7 +77,6 @@ const sales = computed(() => pageData.value?.sales ?? []);
 const containerBalance = computed(() => pageData.value?.containerBalance ?? {});
 const arBalance = computed(() => pageData.value?.arBalance ?? 0);
 
-// ─── Address modal ────────────────────────────────────────────────────────────
 const addrModalOpen = ref(false);
 const editingAddr = ref<CustomerAddress | null>(null);
 const addrForm = reactive({ label: '', address_line: '', is_default: false });
@@ -138,7 +137,6 @@ async function confirmDeleteAddr() {
   await load();
 }
 
-// ─── Price override modal ─────────────────────────────────────────────────────
 const overrideModalOpen = ref(false);
 const overrideSaving = ref(false);
 const deleteOverrideConfirm = ref<PriceOverrideWithRels | null>(null);

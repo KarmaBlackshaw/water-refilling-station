@@ -1,19 +1,12 @@
 <script setup lang="ts">
 import type { MaintenanceTask, MaintenanceScope, ScheduleKind, Vehicle } from '@/types/database';
 
-// ── Auth ──────────────────────────────────────────────────────────────────────
-const auth = useAuthStore();
-const tenantId = computed(() => auth.tenantId ?? '');
-const branchId = computed(() => auth.branchId ?? '');
-
-// ── Tabs ──────────────────────────────────────────────────────────────────────
 const tabs = [
   { key: 'water_plant', label: 'Water Plant' },
   { key: 'vehicle', label: 'Vehicles' },
 ];
 const activeTab = ref<'water_plant' | 'vehicle'>('water_plant');
 
-// ── Task list ─────────────────────────────────────────────────────────────────
 const {
   data: tasks,
   loading,
@@ -25,14 +18,12 @@ const {
   watch: activeTab,
 });
 
-// ── Stats ─────────────────────────────────────────────────────────────────────
 const todayIso = today();
 const weekEnd = addDays(todayIso, 7);
 
 const overdueCount = computed(() => (tasks.value ?? []).filter((t) => t.next_due_at && t.next_due_at < todayIso).length);
 const dueThisWeekCount = computed(() => (tasks.value ?? []).filter((t) => t.next_due_at && t.next_due_at >= todayIso && t.next_due_at <= weekEnd).length);
 
-// ── Status badge helper ───────────────────────────────────────────────────────
 type BadgeVariant = 'default' | 'success' | 'warning' | 'danger' | 'info';
 
 function taskStatus(task: MaintenanceTask): { label: string; variant: BadgeVariant } {
@@ -73,7 +64,6 @@ function scheduleLabel(task: MaintenanceTask): string {
   return task.schedule_kind === 'time' ? 'Time-based' : 'Usage-based';
 }
 
-// ── Vehicles for select ───────────────────────────────────────────────────────
 const vehicles = ref<Vehicle[]>([]);
 const vehicleOptions = computed(() => [
   { label: '— None —', value: '' },
@@ -89,7 +79,6 @@ async function ensureVehicles() {
   }
 }
 
-// ── Task modal ────────────────────────────────────────────────────────────────
 const taskModalOpen = ref(false);
 const editingTask = ref<MaintenanceTask | null>(null);
 const saving = ref(false);
@@ -182,7 +171,6 @@ async function saveTask() {
   saving.value = false;
 }
 
-// ── Deactivate (soft disable) ─────────────────────────────────────────────────
 const deactivateConfirm = ref<MaintenanceTask | null>(null);
 
 async function confirmDeactivate() {
@@ -195,7 +183,6 @@ async function confirmDeactivate() {
   await load();
 }
 
-// ── Log modal ─────────────────────────────────────────────────────────────────
 const logModalOpen = ref(false);
 const loggingTask = ref<MaintenanceTask | null>(null);
 const loggingSaving = ref(false);
