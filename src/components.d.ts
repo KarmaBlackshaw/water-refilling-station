@@ -55,6 +55,7 @@ declare module 'vue' {
     IconBookings: typeof import('./components/Icon/IconBookings.vue')['default']
     IconBuilding: typeof import('./components/Icon/IconBuilding.vue')['default']
     IconCheck: typeof import('./components/Icon/IconCheck.vue')['default']
+    IconChevronDown: typeof import('./components/Icon/IconChevronDown.vue')['default']
     IconChevronRight: typeof import('./components/Icon/IconChevronRight.vue')['default']
     IconClose: typeof import('./components/Icon/IconClose.vue')['default']
     IconCustomers: typeof import('./components/Icon/IconCustomers.vue')['default']

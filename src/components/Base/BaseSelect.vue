@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import debounce from 'lodash/debounce';
+
 const model = defineModel<string | number | null>({ required: true });
 
 const {
@@ -11,6 +13,9 @@ const {
   disabled = false,
   required = false,
   searchable = false,
+  remote = false,
+  loading = false,
+  searchDebounce = 300,
   id,
 } = defineProps<{
   options: Array<{ label: string; value: string | number }>;
@@ -22,7 +27,14 @@ const {
   disabled?: boolean;
   required?: boolean;
   searchable?: boolean;
+  remote?: boolean;
+  loading?: boolean;
+  searchDebounce?: number;
   id?: string;
+}>();
+
+const emit = defineEmits<{
+  search: [query: string];
 }>();
 
 const { BUTTON_REF, POPPER_REF, show, hide, toggle, isVisible } = useFloat({
@@ -39,7 +51,7 @@ const searchQuery = ref('');
 const searchInputRef = ref<HTMLInputElement | null>(null);
 
 const filteredOptions = computed(() => {
-  if (!searchable) {
+  if (!searchable || remote) {
     return options;
   }
 
@@ -54,10 +66,13 @@ const filteredOptions = computed(() => {
 
 const activeIndex = ref(-1);
 
+const debouncedEmitSearch = debounce((q: string) => emit('search', q), searchDebounce);
+
 watch(isVisible, async (open) => {
   if (!open) {
     activeIndex.value = -1;
     searchQuery.value = '';
+    debouncedEmitSearch.cancel();
     return;
   }
 
@@ -65,14 +80,21 @@ watch(isVisible, async (open) => {
 
   activeIndex.value = current >= 0 ? current : 0;
 
+  if (remote) {
+    emit('search', '');
+  }
+
   if (searchable) {
     await nextTick();
     searchInputRef.value?.focus();
   }
 });
 
-watch(searchQuery, () => {
+watch(searchQuery, (q) => {
   activeIndex.value = filteredOptions.value.length > 0 ? 0 : -1;
+  if (remote) {
+    debouncedEmitSearch(q);
+  }
 });
 
 function selectAt(index: number) {
@@ -214,25 +236,13 @@ function onTriggerClick() {
         <span :class="['truncate', selectedLabel ? '' : 'text-oslo']">
           {{ selectedLabel || placeholder }}
         </span>
-        <svg
-          class="h-4 w-4 shrink-0 text-oslo transition-transform"
-          :class="isVisible ? 'rotate-180' : ''"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.39a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z"
-            clip-rule="evenodd"
-          />
-        </svg>
+        <IconChevronDown class="size-4 shrink-0 text-oslo transition-transform" :class="isVisible ? 'rotate-180' : ''" />
       </button>
 
       <div :ref="POPPER_REF" class="rounded-md border border-sparkling-silver bg-full-white text-sm shadow-lg">
         <div v-if="searchable" class="border-b border-sparkling-silver p-1">
           <input
-            :ref="(el) => (searchInputRef = el as HTMLInputElement | null)"
+            ref="searchInputRef"
             v-model="searchQuery"
             type="search"
             :placeholder="searchPlaceholder"
@@ -241,26 +251,32 @@ function onTriggerClick() {
             @keydown="onKeydown"
           />
         </div>
-        <ul :id="`${controlId}-listbox`" role="listbox" :aria-labelledby="controlId" class="m-0 max-h-60 list-none overflow-y-auto p-1">
-          <li
-            v-for="(option, index) in filteredOptions"
-            :id="`${controlId}-option-${index}`"
-            :key="option.value"
-            role="option"
-            :aria-selected="option.value === model"
-            :class="[
-              'cursor-pointer rounded px-3 py-2 text-casual-navy',
-              index === activeIndex ? 'bg-turquoise-stone/10' : '',
-              option.value === model ? 'font-medium' : '',
-            ]"
-            @mouseenter="activeIndex = index"
-            @click="selectAt(index)"
-          >
-            {{ option.label }}
+        <ul :id="`${controlId}-listbox`" role="listbox" :aria-labelledby="controlId" :aria-busy="loading" class="m-0 max-h-60 list-none overflow-y-auto p-1">
+          <li v-if="loading" class="flex items-center gap-2 px-3 py-2 text-oslo">
+            <IconSpinner :size="16" class="animate-spin text-oslo" />
+            Loading...
           </li>
-          <li v-if="filteredOptions.length === 0" class="px-3 py-2 text-oslo">
-            {{ searchable && searchQuery ? 'No matches' : 'No options' }}
-          </li>
+          <template v-else>
+            <li
+              v-for="(option, index) in filteredOptions"
+              :id="`${controlId}-option-${index}`"
+              :key="option.value"
+              role="option"
+              :aria-selected="option.value === model"
+              :class="[
+                'cursor-pointer rounded px-3 py-2 text-casual-navy',
+                index === activeIndex ? 'bg-turquoise-stone/10' : '',
+                option.value === model ? 'font-medium' : '',
+              ]"
+              @mouseenter="activeIndex = index"
+              @click="selectAt(index)"
+            >
+              {{ option.label }}
+            </li>
+            <li v-if="filteredOptions.length === 0" class="px-3 py-2 text-oslo">
+              {{ searchable && searchQuery ? 'No matches' : 'No options' }}
+            </li>
+          </template>
         </ul>
       </div>
     </template>

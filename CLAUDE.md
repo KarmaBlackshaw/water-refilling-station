@@ -73,6 +73,32 @@ When passing `true` to a boolean prop in a template, write the attribute name al
 - Dynamic boolean stays bound: `:disabled="!form.customer_id"` — leave as-is.
 - Explicit `false` stays bound: `:open="false"` — needed since the prop default may be `true`.
 
+### No inline SVGs — use Icon components
+
+Never write raw `<svg>` markup in `.vue` files outside `src/components/Icon/`. Add a new `IconXxx.vue` under that folder and reference it.
+
+**Why:** Inline SVGs duplicate viewBox/path data, prevent reuse, and bloat component templates. The `Icon` folder is auto-registered via the index-generator barrel and auto-imported, so adding one is cheap.
+
+**How to apply:**
+- Need a glyph that doesn't exist yet → create `src/components/Icon/IconWhatever.vue` following the pattern in `IconChevronRight.vue` (single `defineProps<{ size?: number }>()` + `<svg>` with `aria-hidden="true"`).
+- Use `currentColor` for strokes/fills so the icon inherits text color via Tailwind classes.
+- Use the icon as `<IconWhatever class="size-4 text-oslo" />` — no import needed (auto-import).
+- Loading spinners → `<IconSpinner class="animate-spin" />`, never re-roll the markup.
+
+### No `any` and no type casts
+
+Do not introduce `any` and do not use `as` casts to coerce types. Fix the type at its source.
+
+**Why:** `any` and `as` both bypass the type checker — once one slips in, errors compound silently and the next reader can't trust adjacent types.
+
+**How to apply:**
+- Template refs: declare `const el = ref<HTMLInputElement | null>(null)` and bind with `ref="el"`. Do NOT write `:ref="(node) => (el = node as HTMLInputElement)"`.
+- DOM events: type the parameter (`(event: KeyboardEvent) => ...`) instead of `(event.target as HTMLInputElement).value`. If you need the input, use `event.currentTarget` with a typed listener, or read off a `ref`.
+- Caught errors: use `error instanceof Error ? error.message : String(error)`. Do NOT write `(e as Error).message`.
+- Supabase results: rely on the generated `Database` types in `src/types/database/` and let `.from('table').select()` infer. If a row really needs narrowing, add a runtime guard, not a cast.
+- Generic shims (e.g. `useAsync` internals) that genuinely cannot be typed are the only acceptable `any`, and must stay scoped to one composable.
+- Need to widen — use `unknown` plus a guard, never `any`.
+
 ### Auto-generated barrel files
 
 `plugins/index-generator.ts` regenerates `src/**/index.ts` on Vite `buildStart`. Edit the generator, not the output. Generator emits single-quoted import paths to match prettier (`singleQuote: true`).
