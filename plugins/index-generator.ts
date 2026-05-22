@@ -39,7 +39,7 @@ async function generateTsEntry(directoryPath: string) {
         .map((file) => {
           const tsPath = file.replace(directoryPath, '').replace('.ts', '')
           const relativePath = `./${tsPath}`
-          return `export * from "${relativePath}";`
+          return `export * from '${relativePath}';`
         })
         .sort()
     )
@@ -67,7 +67,7 @@ async function generateVueEntry(directoryPath: string, prefill: string[] = []) {
           const vuePath = file.replace(directoryPath, '')
           const newFileName = combinePathToName(vuePath)
           const relativePath = `./${vuePath}`
-          return `export { default as ${newFileName} } from "${relativePath}";`
+          return `export { default as ${newFileName} } from '${relativePath}';`
         })
         .sort()
     )
@@ -84,9 +84,9 @@ async function generateComponentsEntry() {
 
   const prefill = [
     '/** This file is auto generated */\n',
-    `export * from "./Base";`,
-    `export * from "./Icon";`,
-    `export * from "./The";`,
+    `export * from './Base';`,
+    `export * from './Icon';`,
+    `export * from './The';`,
     '',
   ]
 

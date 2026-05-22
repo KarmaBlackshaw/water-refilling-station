@@ -3,8 +3,9 @@ import { VueDatePicker } from '@vuepic/vue-datepicker';
 
 type DateValue = Date | string | null;
 
+const model = defineModel<DateValue>({ required: true });
+
 defineProps<{
-  modelValue: DateValue;
   label?: string;
   placeholder?: string;
   error?: string;
@@ -20,18 +21,14 @@ defineProps<{
   range?: boolean;
   clearable?: boolean;
 }>();
-
-defineEmits<{
-  'update:modelValue': [value: DateValue];
-}>();
 </script>
 
 <template>
   <BaseFormField :id="id" :label="label" :error="error" :helper-text="helperText" :required="required">
     <template #default="{ controlId, describedBy, hasError }">
       <VueDatePicker
+        v-model="model"
         :uid="controlId"
-        :model-value="modelValue"
         :placeholder="placeholder"
         :disabled="disabled"
         :required="required"
@@ -46,7 +43,6 @@ defineEmits<{
         :class="['base-datepicker', hasError ? 'base-datepicker--error' : '', disabled ? 'base-datepicker--disabled' : '']"
         :aria-invalid="hasError"
         :aria-describedby="describedBy"
-        @update:model-value="$emit('update:modelValue', $event)"
       />
     </template>
   </BaseFormField>

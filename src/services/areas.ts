@@ -2,7 +2,7 @@ import { nowISO } from '@/helpers/date';
 import { supabase } from '@/helpers/supabase';
 import type { Area } from '@/types/database';
 
-export async function listAreas(tenantId: string, branchId: string) {
+export function listAreas(tenantId: string, branchId: string) {
   return supabase
     .from('areas')
     .select('*, primary_rider:users!primary_rider_id(id, full_name)')
@@ -12,20 +12,20 @@ export async function listAreas(tenantId: string, branchId: string) {
     .order('name');
 }
 
-export async function createArea(data: { tenant_id: string; branch_id: string; name: string; notes?: string | null; primary_rider_id?: string | null }) {
+export function createArea(data: { tenant_id: string; branch_id: string; name: string; notes?: string | null; primary_rider_id?: string | null }) {
   return supabase.from('areas').insert(data).select().single();
 }
 
-export async function updateArea(id: string, data: Partial<Pick<Area, 'name' | 'notes' | 'primary_rider_id'>>) {
+export function updateArea(id: string, data: Partial<Pick<Area, 'name' | 'notes' | 'primary_rider_id'>>) {
   return supabase.from('areas').update(data).eq('id', id).select().single();
 }
 
-export async function softDeleteArea(id: string, deletedBy: string) {
+export function softDeleteArea(id: string, deletedBy: string) {
   return supabase.from('areas').update({ deleted_at: nowISO(), deleted_by: deletedBy }).eq('id', id);
 }
 
 // Coverage records
-export async function listCoverageRecords(areaId: string) {
+export function listCoverageRecords(areaId: string) {
   return supabase
     .from('area_coverage_records')
     .select('*, covering_rider:users!covering_rider_id(id, full_name)')
@@ -34,7 +34,7 @@ export async function listCoverageRecords(areaId: string) {
     .order('starts_on', { ascending: false });
 }
 
-export async function createCoverageRecord(data: {
+export function createCoverageRecord(data: {
   tenant_id: string;
   branch_id: string;
   area_id: string;
@@ -45,11 +45,11 @@ export async function createCoverageRecord(data: {
   return supabase.from('area_coverage_records').insert(data).select().single();
 }
 
-export async function endCoverageRecord(id: string, endsOn: string) {
+export function endCoverageRecord(id: string, endsOn: string) {
   return supabase.from('area_coverage_records').update({ ends_on: endsOn }).eq('id', id).select().single();
 }
 
-export async function softDeleteCoverageRecord(id: string, deletedBy: string) {
+export function softDeleteCoverageRecord(id: string, deletedBy: string) {
   return supabase.from('area_coverage_records').update({ deleted_at: nowISO(), deleted_by: deletedBy }).eq('id', id);
 }
 
@@ -77,7 +77,7 @@ export async function getActiveRiderForArea(areaId: string, date: string): Promi
 }
 
 // List riders (users with role 'rider') for a tenant
-export async function listRiders(tenantId: string, branchId: string) {
+export function listRiders(tenantId: string, branchId: string) {
   return supabase
     .from('users')
     .select('id, full_name, role')

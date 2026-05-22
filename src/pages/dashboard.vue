@@ -89,7 +89,7 @@ const { data: deliveries, loading: loadingDeliveries } = useAsync<DeliverySaleRo
   disableResetValue: true,
 });
 
-const { data: bookings, loading: loadingBookings } = useAsync<BookingRow[]>(() => listBookings({ from: todayDate, to: todayPlus3Date, status: 'pending' }), {
+const { loading: loadingBookings } = useAsync<BookingRow[]>(() => listBookings({ from: todayDate, to: todayPlus3Date, status: 'pending' }), {
   immediate: true,
   defaultValue: [],
   disableResetValue: true,

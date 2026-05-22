@@ -1,11 +1,8 @@
 <script setup lang="ts">
-defineProps<{
-  modelValue: string;
-  tabs: Array<{ key: string; label: string }>;
-}>();
+const model = defineModel<string>({ required: true });
 
-defineEmits<{
-  'update:modelValue': [key: string];
+defineProps<{
+  tabs: Array<{ key: string; label: string }>;
 }>();
 </script>
 
@@ -15,12 +12,12 @@ defineEmits<{
       v-for="tab in tabs"
       :key="tab.key"
       role="tab"
-      :aria-selected="modelValue === tab.key"
+      :aria-selected="model === tab.key"
       :class="[
         'px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-turquoise-stone',
-        modelValue === tab.key ? 'text-turquoise-stone border-b-2 border-turquoise-stone -mb-px' : 'text-independence hover:text-casual-navy',
+        model === tab.key ? 'text-turquoise-stone border-b-2 border-turquoise-stone -mb-px' : 'text-independence hover:text-casual-navy',
       ]"
-      @click="$emit('update:modelValue', tab.key)"
+      @click="model = tab.key"
     >
       {{ tab.label }}
     </button>

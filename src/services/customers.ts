@@ -2,15 +2,15 @@ import { dayjs, nowISO } from '@/helpers/date';
 import { supabase } from '@/helpers/supabase';
 import type { Customer, CustomerAddress, CustomerPriceOverride, CustomerType } from '@/types/database';
 
-export async function listCustomers(tenantId: string, branchId: string) {
+export function listCustomers(tenantId: string, branchId: string) {
   return supabase.from('customers').select('*, area:areas(id, name)').eq('tenant_id', tenantId).eq('branch_id', branchId).is('deleted_at', null).order('name');
 }
 
-export async function getCustomer(id: string) {
+export function getCustomer(id: string) {
   return supabase.from('customers').select('*, area:areas(id, name)').eq('id', id).single();
 }
 
-export async function createCustomer(data: {
+export function createCustomer(data: {
   tenant_id: string;
   branch_id: string;
   name: string;
@@ -22,20 +22,20 @@ export async function createCustomer(data: {
   return supabase.from('customers').insert(data).select().single();
 }
 
-export async function updateCustomer(id: string, data: Partial<Pick<Customer, 'name' | 'phone' | 'type' | 'area_id' | 'notes' | 'active'>>) {
+export function updateCustomer(id: string, data: Partial<Pick<Customer, 'name' | 'phone' | 'type' | 'area_id' | 'notes' | 'active'>>) {
   return supabase.from('customers').update(data).eq('id', id).select().single();
 }
 
-export async function softDeleteCustomer(id: string, deletedBy: string) {
+export function softDeleteCustomer(id: string, deletedBy: string) {
   return supabase.from('customers').update({ deleted_at: nowISO(), deleted_by: deletedBy }).eq('id', id);
 }
 
 // Addresses
-export async function listAddresses(customerId: string) {
+export function listAddresses(customerId: string) {
   return supabase.from('customer_addresses').select('*').eq('customer_id', customerId).is('deleted_at', null).order('is_default', { ascending: false });
 }
 
-export async function createAddress(data: {
+export function createAddress(data: {
   tenant_id: string;
   branch_id: string;
   customer_id: string;
@@ -48,16 +48,16 @@ export async function createAddress(data: {
   return supabase.from('customer_addresses').insert(data).select().single();
 }
 
-export async function updateAddress(id: string, data: Partial<Pick<CustomerAddress, 'label' | 'address_line' | 'lat' | 'lng' | 'is_default'>>) {
+export function updateAddress(id: string, data: Partial<Pick<CustomerAddress, 'label' | 'address_line' | 'lat' | 'lng' | 'is_default'>>) {
   return supabase.from('customer_addresses').update(data).eq('id', id).select().single();
 }
 
-export async function softDeleteAddress(id: string, deletedBy: string) {
+export function softDeleteAddress(id: string, deletedBy: string) {
   return supabase.from('customer_addresses').update({ deleted_at: nowISO(), deleted_by: deletedBy }).eq('id', id);
 }
 
 // Price overrides
-export async function listPriceOverrides(customerId: string) {
+export function listPriceOverrides(customerId: string) {
   return supabase
     .from('customer_price_overrides')
     .select('*, product:products(name), container_type:container_types(name)')
@@ -65,7 +65,7 @@ export async function listPriceOverrides(customerId: string) {
     .is('deleted_at', null);
 }
 
-export async function upsertPriceOverride(data: {
+export function upsertPriceOverride(data: {
   tenant_id: string;
   branch_id: string;
   customer_id: string;
@@ -77,7 +77,7 @@ export async function upsertPriceOverride(data: {
   return supabase.from('customer_price_overrides').upsert(data, { onConflict: 'customer_id,product_id,container_type_id' }).select().single();
 }
 
-export async function softDeletePriceOverride(id: string, deletedBy: string) {
+export function softDeletePriceOverride(id: string, deletedBy: string) {
   return supabase.from('customer_price_overrides').update({ deleted_at: nowISO(), deleted_by: deletedBy }).eq('id', id);
 }
 
@@ -132,7 +132,7 @@ export async function getLastOrderDate(customerId: string): Promise<string | nul
 }
 
 // List sales for a customer
-export async function listCustomerSales(customerId: string) {
+export function listCustomerSales(customerId: string) {
   return supabase
     .from('sales')
     .select('*, sale_lines(*), sale_payments(*)')

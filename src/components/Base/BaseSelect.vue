@@ -1,6 +1,7 @@
 <script setup lang="ts">
+const model = defineModel<string | number | null>({ required: true });
+
 const {
-  modelValue,
   options,
   label,
   placeholder = 'Select...',
@@ -10,7 +11,6 @@ const {
   required = false,
   id,
 } = defineProps<{
-  modelValue: string | number | null;
   options: Array<{ label: string; value: string | number }>;
   label?: string;
   placeholder?: string;
@@ -21,16 +21,12 @@ const {
   id?: string;
 }>();
 
-const emit = defineEmits<{
-  'update:modelValue': [value: string | number];
-}>();
-
 const { BUTTON_REF, POPPER_REF, show, hide, toggle, isVisible } = useFloat({
   placement: 'bottom-start',
 });
 
 const selectedLabel = computed(() => {
-  const match = options.find((o) => o.value === modelValue);
+  const match = options.find((o) => o.value === model.value);
 
   return match?.label ?? '';
 });
@@ -43,7 +39,7 @@ watch(isVisible, (open) => {
     return;
   }
 
-  const current = options.findIndex((o) => o.value === modelValue);
+  const current = options.findIndex((o) => o.value === model.value);
 
   activeIndex.value = current >= 0 ? current : 0;
 });
@@ -55,7 +51,7 @@ function selectAt(index: number) {
     return;
   }
 
-  emit('update:modelValue', option.value);
+  model.value = option.value;
   hide();
 }
 
@@ -200,11 +196,11 @@ function onTriggerClick() {
           :id="`${controlId}-option-${index}`"
           :key="option.value"
           role="option"
-          :aria-selected="option.value === modelValue"
+          :aria-selected="option.value === model"
           :class="[
             'cursor-pointer rounded px-3 py-2 text-casual-navy',
             index === activeIndex ? 'bg-turquoise-stone/10' : '',
-            option.value === modelValue ? 'font-medium' : '',
+            option.value === model ? 'font-medium' : '',
           ]"
           @mouseenter="activeIndex = index"
           @click="selectAt(index)"

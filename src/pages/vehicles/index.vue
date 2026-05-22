@@ -3,8 +3,6 @@ import type { Vehicle, MaintenanceTask } from '@/types/database';
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
 
-const auth = useAuthStore();
-
 type VehicleWithTasks = { vehicles: Vehicle[]; allTasks: MaintenanceTask[] };
 
 const {
