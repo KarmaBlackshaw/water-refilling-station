@@ -19,8 +19,7 @@ const { confirm } = useConfirm();
 
 const activeTab = ref<'products' | 'containers'>('products');
 
-const tenantId = computed(() => auth.tenantId ?? '');
-const branchId = computed(() => auth.branchId ?? '');
+const { tenantId, branchId } = storeToRefs(auth);
 
 const {
   data: productsRes,

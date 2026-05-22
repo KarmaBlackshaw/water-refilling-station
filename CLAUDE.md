@@ -146,6 +146,27 @@ Do not introduce `any` and do not use `as` casts to coerce types. Fix the type a
 - Generic shims (e.g. `useAsync` internals) that genuinely cannot be typed are the only acceptable `any`, and must stay scoped to one composable.
 - Need to widen — use `unknown` plus a guard, never `any`.
 
+### Prefer `storeToRefs` over per-ref `computed` wrappers
+
+When consuming Pinia store state in a component, destructure with `storeToRefs(store)` instead of writing `computed(() => store.x)` for each field.
+
+**Why:** `storeToRefs` keeps state reactive without losing the binding to the store, and avoids N hand-rolled `computed` wrappers that all do the same thing. Plain destructure (`const { x } = store`) breaks reactivity — `storeToRefs` is the canonical fix.
+
+**How to apply:**
+```ts
+// good
+const auth = useAuthStore();
+const { tenantId, branchId } = storeToRefs(auth);
+
+// bad — manual computed per field
+const auth = useAuthStore();
+const tenantId = computed(() => auth.tenantId);
+const branchId = computed(() => auth.branchId);
+```
+
+- Use `storeToRefs` only for state + getters. Actions stay on the store: `const { login } = auth` (or call `auth.login(...)` directly).
+- Mixing both is fine: `const { tenantId } = storeToRefs(auth)` for state, `auth.signOut()` for actions.
+
 ### Auto-generated barrel files
 
 `plugins/index-generator.ts` regenerates `src/**/index.ts` on Vite `buildStart`. Edit the generator, not the output. Generator emits single-quoted import paths to match prettier (`singleQuote: true`).

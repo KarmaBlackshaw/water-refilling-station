@@ -60,8 +60,8 @@ const { loading: saving, run: submit } = useAsync(async () => {
   await reconcileDelivery({
     saleId: currentSale.id,
     customerId: currentSale.customer_id,
-    tenantId: auth.tenantId ?? '',
-    branchId: auth.branchId ?? '',
+    tenantId: auth.tenantId,
+    branchId: auth.branchId,
     containersReturned: returns.value.map((r) => ({
       container_type_id: r.container_type_id,
       quantity: r.qty,

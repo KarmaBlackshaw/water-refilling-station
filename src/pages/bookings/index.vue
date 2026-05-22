@@ -5,8 +5,7 @@ import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
 
 const auth = useAuthStore();
-const tenantId = computed(() => auth.tenantId ?? '');
-const branchId = computed(() => auth.branchId ?? '');
+const { tenantId, branchId } = storeToRefs(auth);
 const toast = useToast();
 const { confirm } = useConfirm();
 

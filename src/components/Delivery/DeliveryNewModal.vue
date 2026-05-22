@@ -50,16 +50,16 @@ function removeLine(idx: number) {
   lines.value.splice(idx, 1);
 }
 
-const { data: customersRes, run: loadCustomers } = useAsync(() => listCustomers(auth.tenantId ?? '', auth.branchId ?? ''));
+const { data: customersRes, run: loadCustomers } = useAsync(() => listCustomers(auth.tenantId, auth.branchId));
 const customers = computed(() => customersRes.value?.data ?? []);
 
-const { data: ridersRes, run: loadRiders } = useAsync(() => listRiders(auth.tenantId ?? '', auth.branchId ?? ''));
+const { data: ridersRes, run: loadRiders } = useAsync(() => listRiders(auth.tenantId, auth.branchId));
 const riders = computed(() => ridersRes.value?.data ?? []);
 
-const { data: productsRes, run: loadProducts } = useAsync(() => listProducts(auth.tenantId ?? '', auth.branchId ?? ''));
+const { data: productsRes, run: loadProducts } = useAsync(() => listProducts(auth.tenantId, auth.branchId));
 const products = computed(() => productsRes.value?.data ?? []);
 
-const { data: containerTypesRes, run: loadContainerTypes } = useAsync(() => listContainerTypes(auth.tenantId ?? '', auth.branchId ?? ''));
+const { data: containerTypesRes, run: loadContainerTypes } = useAsync(() => listContainerTypes(auth.tenantId, auth.branchId));
 const containerTypes = computed(() => containerTypesRes.value?.data ?? []);
 
 const { data: customerAddressesRes } = useAsync(
@@ -114,8 +114,8 @@ const { loading: saving, run: submit } = useAsync(async () => {
   const amountCentavos = Math.round(parseFloat(form.payment_amount || '0') * 100);
 
   await createDeliverySale({
-    tenant_id: auth.tenantId ?? '',
-    branch_id: auth.branchId ?? '',
+    tenant_id: auth.tenantId,
+    branch_id: auth.branchId,
     customer_id: form.customer_id,
     address_id: form.address_id || null,
     rider_id: form.rider_id || null,

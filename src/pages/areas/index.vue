@@ -3,8 +3,7 @@ import type { Area, User } from '@/types/database';
 
 const auth = useAuthStore();
 const { confirm } = useConfirm();
-const tenantId = computed(() => auth.tenantId ?? '');
-const branchId = computed(() => auth.branchId ?? '');
+const { tenantId, branchId } = storeToRefs(auth);
 
 // Areas list
 const areas = ref<Array<Area & { primary_rider: { id: string; full_name: string } | null }>>([]);

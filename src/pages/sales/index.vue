@@ -5,8 +5,7 @@ import IconTrash from '@/components/Icon/IconTrash.vue';
 
 const auth = useAuthStore();
 const { confirm } = useConfirm();
-const tenantId = computed(() => auth.tenantId ?? '');
-const branchId = computed(() => auth.branchId ?? '');
+const { tenantId, branchId } = storeToRefs(auth);
 const { success: toastSuccess, error: toastError } = useToast();
 
 type SaleRow = Sale & {

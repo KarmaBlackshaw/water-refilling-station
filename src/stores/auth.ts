@@ -75,8 +75,8 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const isAuthenticated = computed(() => session.value !== null);
-  const tenantId = computed(() => profile.value?.tenant_id ?? null);
-  const branchId = computed(() => profile.value?.branch_id ?? null);
+  const tenantId = computed(() => profile.value?.tenant_id ?? '');
+  const branchId = computed(() => profile.value?.branch_id ?? '');
   const userRole = computed(() => profile.value?.role ?? null);
 
   return {

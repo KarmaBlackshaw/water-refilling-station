@@ -5,8 +5,7 @@ import type { Employee, EmployeeAttendance, SalaryRecord } from '@/types/databas
 
 const route = useRoute();
 const auth = useAuthStore();
-const tenantId = computed(() => auth.tenantId ?? '');
-const branchId = computed(() => auth.branchId ?? '');
+const { tenantId, branchId } = storeToRefs(auth);
 
 type EmployeePageData = {
   employee: Employee | null;
