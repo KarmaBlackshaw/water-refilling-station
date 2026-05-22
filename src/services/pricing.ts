@@ -12,9 +12,19 @@ export async function loadPricing(customerId?: string | null): Promise<PricingDa
 
   const [overridesRes, pricingRes] = await Promise.all([
     customerId
-      ? supabase.from('customer_price_overrides').select('*').eq('customer_id', customerId).is('deleted_at', null).returns<CustomerPriceOverride[]>()
+      ? supabase
+          .from('customer_price_overrides')
+          .select('*')
+          .eq('customer_id', customerId)
+          .is('deleted_at', null)
+          .overrideTypes<CustomerPriceOverride[], { merge: false }>()
       : Promise.resolve<{ data: CustomerPriceOverride[]; error: null }>({ data: [], error: null }),
-    supabase.from('product_pricing').select('*').lte('effective_from', todayISO).order('effective_from', { ascending: false }).returns<ProductPricing[]>(),
+    supabase
+      .from('product_pricing')
+      .select('*')
+      .lte('effective_from', todayISO)
+      .order('effective_from', { ascending: false })
+      .overrideTypes<ProductPricing[], { merge: false }>(),
   ]);
 
   return {

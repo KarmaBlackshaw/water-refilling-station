@@ -35,7 +35,7 @@ const {
   data: sales,
   loading: loadingSales,
   run: loadSales,
-} = useAsync<SaleRow[]>(
+} = useAsync(
   () =>
     listSales({
       source: filterSource.value || undefined,

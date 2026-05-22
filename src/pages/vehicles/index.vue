@@ -1,17 +1,15 @@
 <script setup lang="ts">
-import type { Vehicle, MaintenanceTask } from '@/types/database';
+import type { Vehicle } from '@/types/database';
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
 
 const { confirm } = useConfirm();
 
-type VehicleWithTasks = { vehicles: Vehicle[]; allTasks: MaintenanceTask[] };
-
 const {
   data: vehicleData,
   loading,
   run: load,
-} = useAsync<VehicleWithTasks>(
+} = useAsync(
   async () => {
     const rows = await listVehicles();
     const tasks = rows.length > 0 ? await listVehicleMaintenanceTasks(rows.map((v) => v.id)) : [];

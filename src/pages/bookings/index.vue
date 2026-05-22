@@ -44,7 +44,7 @@ const {
   data: bookings,
   loading: bookingsLoading,
   run: loadBookings,
-} = useAsync<BookingRow[]>(
+} = useAsync(
   () =>
     listBookings({
       from: bookingFilter.from,
@@ -153,7 +153,7 @@ const {
   data: templates,
   loading: templatesLoading,
   run: loadTemplates,
-} = useAsync<TemplateRow[]>(() => listTemplates(), {
+} = useAsync(() => listTemplates(), {
   immediate: true,
   defaultValue: [],
   disableResetValue: true,

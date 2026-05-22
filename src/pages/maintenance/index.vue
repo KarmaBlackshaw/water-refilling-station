@@ -15,7 +15,7 @@ const {
   data: tasks,
   loading,
   run: load,
-} = useAsync<(MaintenanceTask & { vehicles?: { brand_model: string | null; plate_number: string | null } | null })[]>(() => listTasks(activeTab.value), {
+} = useAsync(() => listTasks(activeTab.value), {
   immediate: true,
   defaultValue: [],
   disableResetValue: true,

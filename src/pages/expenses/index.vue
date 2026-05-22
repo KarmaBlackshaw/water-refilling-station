@@ -46,7 +46,7 @@ const {
   data: expenses,
   loading,
   run: load,
-} = useAsync<ExpenseRow[]>(
+} = useAsync(
   () => {
     if (!tenantId.value || !branchId.value) {
       return Promise.resolve([]);

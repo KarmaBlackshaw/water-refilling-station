@@ -17,7 +17,7 @@ const defaultCounters: Counters = {
 let singleton: ReturnType<typeof buildComposable> | null = null;
 
 function buildComposable() {
-  const { data, loading, run } = useAsync<Counters>(
+  const { data, loading, run } = useAsync(
     async () => {
       const [active, pending, upcoming, alerts] = await Promise.all([
         getActiveCustomerCount(),

@@ -21,7 +21,7 @@ export function updatePassword(newPassword: string) {
 }
 
 export async function fetchProfile(userId: string): Promise<{ data: User | null; error: unknown }> {
-  const { data, error } = await supabase.from('users').select('*').eq('id', userId).single().returns<User>();
+  const { data, error } = await supabase.from('users').select('*').eq('id', userId).single().overrideTypes<User, { merge: false }>();
 
   return { data, error };
 }

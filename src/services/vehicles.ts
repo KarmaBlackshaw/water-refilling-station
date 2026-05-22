@@ -4,7 +4,7 @@ import { getCurrentUserId } from '@/helpers/supabase';
 import type { Vehicle, MaintenanceTask } from '@/types/database';
 
 export async function listVehicles(): Promise<Vehicle[]> {
-  const { data, error } = await supabase.from('vehicles').select('*').is('deleted_at', null).order('brand_model').returns<Vehicle[]>();
+  const { data, error } = await supabase.from('vehicles').select('*').is('deleted_at', null).order('brand_model').overrideTypes<Vehicle[], { merge: false }>();
 
   if (error) {
     throw error;
@@ -25,7 +25,7 @@ export async function listVehicleMaintenanceTasks(vehicleIds: string[]): Promise
     .in('vehicle_id', vehicleIds)
     .eq('active', true)
     .is('deleted_at', null)
-    .returns<MaintenanceTask[]>();
+    .overrideTypes<MaintenanceTask[], { merge: false }>();
 
   if (error) {
     throw error;
@@ -41,7 +41,7 @@ export async function createVehicle(data: {
   year?: number | null;
   notes?: string | null;
 }): Promise<Vehicle> {
-  const { data: row, error } = await supabase.from('vehicles').insert(data).select().single().returns<Vehicle>();
+  const { data: row, error } = await supabase.from('vehicles').insert(data).select().single().overrideTypes<Vehicle, { merge: false }>();
 
   if (error) {
     throw error;
@@ -60,7 +60,7 @@ export async function updateVehicle(
     notes?: string | null;
   },
 ): Promise<Vehicle> {
-  const { data: row, error } = await supabase.from('vehicles').update(data).eq('id', id).select().single().returns<Vehicle>();
+  const { data: row, error } = await supabase.from('vehicles').update(data).eq('id', id).select().single().overrideTypes<Vehicle, { merge: false }>();
 
   if (error) {
     throw error;

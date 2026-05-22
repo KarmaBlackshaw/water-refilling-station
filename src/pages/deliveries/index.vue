@@ -20,7 +20,7 @@ const {
   data: deliveriesData,
   loading: boardLoading,
   run: loadDeliveries,
-} = useAsync<DeliverySaleRow[]>(() => listDeliverySales(selectedDate.value), {
+} = useAsync(() => listDeliverySales(selectedDate.value), {
   immediate: true,
   defaultValue: [],
   watch: selectedDate,

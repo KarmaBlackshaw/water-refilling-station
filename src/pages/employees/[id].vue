@@ -1,23 +1,17 @@
 <script setup lang="ts">
 import { formatMoney } from '@/helpers/money';
 import { computeIncome, getPeriodDates } from '@/services/payroll';
-import type { Employee, EmployeeAttendance, SalaryRecord } from '@/types/database';
+import type { SalaryRecord } from '@/types/database';
 
 const route = useRoute();
 const auth = useAuthStore();
 const { tenantId, branchId } = storeToRefs(auth);
 
-type EmployeePageData = {
-  employee: Employee | null;
-  attendance: EmployeeAttendance[];
-  salaryRecords: SalaryRecord[];
-};
-
 const {
   data,
   loading,
   run: load,
-} = useAsync<EmployeePageData>(
+} = useAsync(
   async () => {
     const id = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id;
     const [empRes, attRes, salRes] = await Promise.all([getEmployee(id), listAttendanceForMonth(id, currentYear(), currentMonth()), listSalaryRecords(id)]);

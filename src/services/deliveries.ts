@@ -44,7 +44,7 @@ export async function listDeliverySales(date?: string): Promise<DeliverySaleRow[
     .is('deleted_at', null)
     .eq('sale_date', targetDate)
     .order('created_at', { ascending: true })
-    .returns<DeliverySaleRow[]>();
+    .overrideTypes<DeliverySaleRow[], { merge: false }>();
 
   if (error) {
     throw error;
@@ -89,7 +89,7 @@ export async function createDeliverySale(data: {
     })
     .select()
     .single()
-    .returns<Sale>();
+    .overrideTypes<Sale, { merge: false }>();
 
   if (saleError) {
     throw saleError;
@@ -152,7 +152,7 @@ export async function listTopRiders(from: string, to: string, limit = 4): Promis
     .lte('sale_date', to)
     .not('rider_id', 'is', null)
     .is('deleted_at', null)
-    .returns<RiderQueryRow[]>();
+    .overrideTypes<RiderQueryRow[], { merge: false }>();
 
   if (error) {
     throw error;

@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { supabase } from '@/helpers/supabase';
-import type { DeliverySaleRow, TopRiderRow } from '@/services/deliveries';
-import type { BookingRow } from '@/services/bookings';
 
 const todayDate = today();
 const todayPlus3Date = addDays(todayDate, 3);
@@ -16,7 +14,7 @@ function monthRange(): { from: string; to: string } {
 
 const counters = useDashboardCounters();
 
-const { data: weeklyRevenueResult, loading: loadingWeeklyRevenue } = useAsync<{ labels: string[]; data: number[] }>(
+const { data: weeklyRevenueResult, loading: loadingWeeklyRevenue } = useAsync(
   async () => {
     const days = getPast7Days();
     const { data: sales } = await supabase
@@ -62,7 +60,7 @@ const { data: weeklyRevenueResult, loading: loadingWeeklyRevenue } = useAsync<{ 
 const weeklyRevenueLabels = computed(() => weeklyRevenueResult.value?.labels ?? []);
 const weeklyRevenueData = computed(() => weeklyRevenueResult.value?.data ?? []);
 
-const { data: weeklyByDay, loading: loadingWeeklyDeliveries } = useAsync<Record<string, { completed: number; pending: number; void: number }>>(
+const { data: weeklyByDay, loading: loadingWeeklyDeliveries } = useAsync(
   async () => {
     const days = getPast7Days();
     const results = await Promise.all(days.map((d) => listDeliverySales(d)));
@@ -87,19 +85,19 @@ const { data: weeklyByDay, loading: loadingWeeklyDeliveries } = useAsync<Record<
   },
 );
 
-const { data: deliveries, loading: loadingDeliveries } = useAsync<DeliverySaleRow[]>(() => listDeliverySales(todayDate), {
+const { data: deliveries, loading: loadingDeliveries } = useAsync(() => listDeliverySales(todayDate), {
   immediate: true,
   defaultValue: [],
   disableResetValue: true,
 });
 
-const { loading: loadingBookings } = useAsync<BookingRow[]>(() => listBookings({ from: todayDate, to: todayPlus3Date, status: 'pending' }), {
+const { loading: loadingBookings } = useAsync(() => listBookings({ from: todayDate, to: todayPlus3Date, status: 'pending' }), {
   immediate: true,
   defaultValue: [],
   disableResetValue: true,
 });
 
-const { data: topPerformers, loading: loadingTopPerformers } = useAsync<TopRiderRow[]>(
+const { data: topPerformers, loading: loadingTopPerformers } = useAsync(
   () => {
     const { from, to } = monthRange();
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Customer, CustomerAddress, CustomerPriceOverride, Sale } from '@/types/database';
+import type { CustomerAddress, CustomerPriceOverride } from '@/types/database';
 import { formatMoney } from '@/helpers/money';
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
@@ -9,19 +9,9 @@ const auth = useAuthStore();
 const { confirm } = useConfirm();
 const { tenantId, branchId } = storeToRefs(auth);
 
-type CustomerWithArea = Customer & { area: { id: string; name: string } | null };
 type PriceOverrideWithRels = CustomerPriceOverride & {
   product: { name: string } | null;
   container_type: { name: string } | null;
-};
-type SaleWithLines = Sale & { sale_lines: unknown[]; sale_payments: unknown[] };
-type PageData = {
-  customer: CustomerWithArea | null;
-  addresses: CustomerAddress[];
-  priceOverrides: PriceOverrideWithRels[];
-  sales: SaleWithLines[];
-  containerBalance: Record<string, number>;
-  arBalance: number;
 };
 
 const activeTab = ref('overview');
@@ -37,7 +27,7 @@ const {
   data: pageData,
   loading,
   run: load,
-} = useAsync<PageData>(
+} = useAsync(
   async () => {
     const id = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id;
 

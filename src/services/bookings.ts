@@ -84,7 +84,7 @@ export async function listBookings(params?: { from?: string; to?: string; status
     query = query.eq('customer_id', params.customerId);
   }
 
-  const { data, error } = await query.returns<BookingRow[]>();
+  const { data, error } = await query.overrideTypes<BookingRow[], { merge: false }>();
 
   if (error) {
     throw error;
@@ -101,7 +101,7 @@ export async function listTemplates(): Promise<TemplateRow[]> {
     )
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
-    .returns<TemplateRow[]>();
+    .overrideTypes<TemplateRow[], { merge: false }>();
 
   if (error) {
     throw error;
@@ -142,7 +142,7 @@ export async function createTemplate(
     })
     .select()
     .single()
-    .returns<BookingTemplate>();
+    .overrideTypes<BookingTemplate, { merge: false }>();
 
   if (error || !template) {
     throw error ?? new Error('Failed to create template');
@@ -177,7 +177,13 @@ export async function updateTemplate(
     active?: boolean;
   },
 ): Promise<BookingTemplate> {
-  const { data: template, error } = await supabase.from('booking_templates').update(data).eq('id', id).select().single().returns<BookingTemplate>();
+  const { data: template, error } = await supabase
+    .from('booking_templates')
+    .update(data)
+    .eq('id', id)
+    .select()
+    .single()
+    .overrideTypes<BookingTemplate, { merge: false }>();
 
   if (error || !template) {
     throw error ?? new Error('Failed to update template');
@@ -235,7 +241,7 @@ export async function createBooking(
     })
     .select()
     .single()
-    .returns<Booking>();
+    .overrideTypes<Booking, { merge: false }>();
 
   if (error || !booking) {
     throw error ?? new Error('Failed to create booking');
@@ -287,7 +293,7 @@ export async function materializeBookings(tenantId: string, branchId: string, fr
     .eq('branch_id', branchId)
     .eq('active', true)
     .is('deleted_at', null)
-    .returns<TemplateRow[]>();
+    .overrideTypes<TemplateRow[], { merge: false }>();
 
   if (templatesError) {
     throw templatesError;
@@ -423,7 +429,7 @@ export async function fulfillBooking(
     .select('*, items:booking_items(*)')
     .eq('id', bookingId)
     .single()
-    .returns<BookingWithItems>();
+    .overrideTypes<BookingWithItems, { merge: false }>();
 
   if (bookingError || !booking) {
     throw bookingError ?? new Error('Booking not found');

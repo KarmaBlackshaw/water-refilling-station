@@ -22,7 +22,7 @@ export async function listExpenses(params: { tenantId: string; branchId: string;
     query = query.eq('category', params.category);
   }
 
-  const { data, error } = await query.returns<ExpenseWithPayee[]>();
+  const { data, error } = await query.overrideTypes<ExpenseWithPayee[], { merge: false }>();
 
   if (error) {
     throw error;
@@ -48,7 +48,7 @@ export async function createExpense(
     .insert({ tenant_id: tenantId, branch_id: branchId, ...data })
     .select()
     .single()
-    .returns<OperationalExpense>();
+    .overrideTypes<OperationalExpense, { merge: false }>();
 
   if (error) {
     throw error;
@@ -68,7 +68,13 @@ export async function updateExpense(
     reference_number?: string | null;
   },
 ): Promise<OperationalExpense> {
-  const { data: row, error } = await supabase.from('operational_expenses').update(data).eq('id', id).select().single().returns<OperationalExpense>();
+  const { data: row, error } = await supabase
+    .from('operational_expenses')
+    .update(data)
+    .eq('id', id)
+    .select()
+    .single()
+    .overrideTypes<OperationalExpense, { merge: false }>();
 
   if (error) {
     throw error;
