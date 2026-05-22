@@ -72,17 +72,13 @@ const byCategory = computed(() => {
   return map;
 });
 
-type EmployeeOption = { id: string; full_name: string };
-
-const { data: employees } = useAsync<EmployeeOption[]>(
-  async () => {
+const { data } = useAsync(
+  () => {
     if (!tenantId.value || !branchId.value) {
-      return [];
+      return Promise.resolve([]);
     }
 
-    const { data } = await listEmployees(tenantId.value, branchId.value);
-
-    return (data ?? []) as EmployeeOption[];
+    return getEmployees(tenantId.value, branchId.value);
   },
   {
     immediate: true,
@@ -90,6 +86,8 @@ const { data: employees } = useAsync<EmployeeOption[]>(
     disableResetValue: true,
   },
 );
+
+const employees = computed(() => data.value ?? []);
 
 const employeeOptions = computed(() => [{ label: 'None / External', value: '' }, ...employees.value.map((e) => ({ label: e.full_name, value: e.id }))]);
 

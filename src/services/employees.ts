@@ -3,8 +3,20 @@ import { supabase } from '@/helpers/supabase';
 import type { Employee, EmployeeAttendance, SalaryRecord, UserRole } from '@/types/database';
 
 // Employees
-export async function listEmployees(tenantId: string, branchId: string) {
-  return supabase.from('employees').select('*').eq('tenant_id', tenantId).eq('branch_id', branchId).is('deleted_at', null).order('full_name');
+export async function getEmployees(tenantId: string, branchId: string): Promise<Employee[]> {
+  const { data, error } = await supabase
+    .from('employees')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .eq('branch_id', branchId)
+    .is('deleted_at', null)
+    .order('full_name');
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? [];
 }
 
 export async function getEmployee(id: string) {

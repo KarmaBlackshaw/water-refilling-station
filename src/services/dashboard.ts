@@ -28,8 +28,9 @@ export async function getUpcomingBookingCount(): Promise<number> {
     .from('bookings')
     .select('id', { count: 'exact', head: true })
     .eq('status', 'pending')
-    .gte('booking_date', start)
-    .lte('booking_date', end);
+    .is('deleted_at', null)
+    .gte('scheduled_date', start)
+    .lte('scheduled_date', end);
 
   return count ?? 0;
 }

@@ -108,6 +108,7 @@ declare global {
   const getDaysSinceOrder: typeof import('./services/customers').getDaysSinceOrder
   const getDaysUntilBilling: typeof import('./helpers/date').getDaysUntilBilling
   const getEmployee: typeof import('./services/employees').getEmployee
+  const getEmployees: typeof import('./services/employees').getEmployees
   const getExpenseSummary: typeof import('./services/expenses').getExpenseSummary
   const getLastOrderDate: typeof import('./services/customers').getLastOrderDate
   const getMaintenanceAlertCount: typeof import('./services/dashboard').getMaintenanceAlertCount
@@ -141,7 +142,6 @@ declare global {
   const listCustomerSales: typeof import('./services/customers').listCustomerSales
   const listCustomers: typeof import('./services/customers').listCustomers
   const listDeliverySales: typeof import('./services/deliveries').listDeliverySales
-  const listEmployees: typeof import('./services/employees').listEmployees
   const listExpenses: typeof import('./services/expenses').listExpenses
   const listLogs: typeof import('./services/maintenance').listLogs
   const listPriceOverrides: typeof import('./services/customers').listPriceOverrides
@@ -610,6 +610,7 @@ declare module 'vue' {
     readonly getDaysSinceOrder: UnwrapRef<typeof import('./services/customers')['getDaysSinceOrder']>
     readonly getDaysUntilBilling: UnwrapRef<typeof import('./helpers/date')['getDaysUntilBilling']>
     readonly getEmployee: UnwrapRef<typeof import('./services/employees')['getEmployee']>
+    readonly getEmployees: UnwrapRef<typeof import('./services/employees')['getEmployees']>
     readonly getExpenseSummary: UnwrapRef<typeof import('./services/expenses')['getExpenseSummary']>
     readonly getLastOrderDate: UnwrapRef<typeof import('./services/customers')['getLastOrderDate']>
     readonly getMaintenanceAlertCount: UnwrapRef<typeof import('./services/dashboard')['getMaintenanceAlertCount']>
@@ -643,7 +644,6 @@ declare module 'vue' {
     readonly listCustomerSales: UnwrapRef<typeof import('./services/customers')['listCustomerSales']>
     readonly listCustomers: UnwrapRef<typeof import('./services/customers')['listCustomers']>
     readonly listDeliverySales: UnwrapRef<typeof import('./services/deliveries')['listDeliverySales']>
-    readonly listEmployees: UnwrapRef<typeof import('./services/employees')['listEmployees']>
     readonly listExpenses: UnwrapRef<typeof import('./services/expenses')['listExpenses']>
     readonly listLogs: UnwrapRef<typeof import('./services/maintenance')['listLogs']>
     readonly listPriceOverrides: UnwrapRef<typeof import('./services/customers')['listPriceOverrides']>

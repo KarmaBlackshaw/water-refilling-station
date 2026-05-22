@@ -9,14 +9,16 @@ const tenantId = computed(() => auth.tenantId ?? '');
 const branchId = computed(() => auth.branchId ?? '');
 
 const {
-  data: employees,
+  data,
   loading,
   run: load,
-} = useAsync<Employee[]>(() => listEmployees(tenantId.value, branchId.value).then((r) => (r.data ?? []) as Employee[]), {
+} = useAsync(() => getEmployees(tenantId.value, branchId.value), {
   immediate: true,
   defaultValue: [],
   disableResetValue: true,
 });
+
+const employees = computed(() => data.value ?? []);
 
 const modalOpen = ref(false);
 const editingEmployee = ref<Employee | null>(null);
