@@ -4,7 +4,7 @@ import type { Product } from '@/types/database';
 const open = defineModel<boolean>('open', { required: true });
 
 const { product, saving } = defineProps<{
-  product: Product | null;
+  product?: Product;
   saving?: boolean;
 }>();
 

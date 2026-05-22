@@ -12,7 +12,7 @@ interface ItemRow {
 const open = defineModel<boolean>('open', { required: true });
 
 const { template, customers, riders, products, containerTypes, saving } = defineProps<{
-  template: TemplateRow | null;
+  template?: TemplateRow;
   customers: Customer[];
   riders: Pick<User, 'id' | 'full_name'>[];
   products: Product[];

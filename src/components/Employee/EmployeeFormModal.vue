@@ -5,7 +5,7 @@ import { formatMoney, parseMoney } from '@/helpers/money';
 const open = defineModel<boolean>('open', { required: true });
 
 const { employee, saving } = defineProps<{
-  employee: Employee | null;
+  employee?: Employee;
   saving?: boolean;
 }>();
 

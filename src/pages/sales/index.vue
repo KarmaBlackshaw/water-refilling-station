@@ -103,7 +103,7 @@ function statusLabel(status: string) {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
-const voidTarget = ref<SaleRow | null>(null);
+const voidTarget = ref<SaleRow>();
 
 async function confirmVoid() {
   if (!voidTarget.value) {
@@ -113,7 +113,7 @@ async function confirmVoid() {
   try {
     await voidSale(voidTarget.value.id);
     toastSuccess('Sale voided');
-    voidTarget.value = null;
+    voidTarget.value = undefined;
     await loadSales();
   } catch {
     toastError('Failed to void sale');
@@ -121,7 +121,7 @@ async function confirmVoid() {
 }
 
 const detailOpen = ref(false);
-const detailSale = ref<(Sale & { customer?: { name: string } | null }) | null>(null);
+const detailSale = ref<Sale & { customer?: { name: string } | null }>();
 const detailLines = ref<(SaleLine & { product?: { name: string }; container_type?: { name: string } })[]>([]);
 const detailPayments = ref<SalePayment[]>([]);
 const loadingDetail = ref(false);
@@ -257,11 +257,11 @@ function rowMenu(row: SaleRow) {
     />
 
     <BaseConfirm
-      :open="voidTarget !== null"
+      :open="!!voidTarget"
       title="Void this sale?"
       :message="`This will void the sale from ${voidTarget?.sale_date}. This action cannot be undone.`"
       @confirm="confirmVoid"
-      @cancel="voidTarget = null"
+      @cancel="voidTarget = undefined"
     />
 
     <SaleWalkInModal

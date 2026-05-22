@@ -123,7 +123,7 @@ async function saveNewBooking(payload: {
   }
 }
 
-const cancelTarget = ref<BookingRow | null>(null);
+const cancelTarget = ref<BookingRow>();
 const cancelLoading = ref(false);
 
 async function handleCancelBooking() {
@@ -134,7 +134,7 @@ async function handleCancelBooking() {
   cancelLoading.value = true;
   try {
     await cancelBooking(cancelTarget.value.id);
-    cancelTarget.value = null;
+    cancelTarget.value = undefined;
     toast.success('Booking cancelled.');
     await loadBookings();
   } catch (e: unknown) {
@@ -144,7 +144,7 @@ async function handleCancelBooking() {
   }
 }
 
-const fulfillTarget = ref<BookingRow | null>(null);
+const fulfillTarget = ref<BookingRow>();
 const fulfillOpen = ref(false);
 const fulfillLoading = ref(false);
 
@@ -163,7 +163,7 @@ async function handleFulfill(prices: Array<{ product_id: string; container_type_
     const saleId = await fulfillBooking(tenantId.value, branchId.value, fulfillTarget.value.id, prices);
 
     fulfillOpen.value = false;
-    fulfillTarget.value = null;
+    fulfillTarget.value = undefined;
     toast.success(`Booking fulfilled. Sale ID: ${saleId.slice(0, 8)}…`);
     await loadBookings();
   } catch (e: unknown) {
@@ -207,10 +207,10 @@ function dayLabel(d: number): string {
 
 const templateModalOpen = ref(false);
 const templateSaving = ref(false);
-const editingTemplate = ref<TemplateRow | null>(null);
+const editingTemplate = ref<TemplateRow>();
 
 function openAddTemplate() {
-  editingTemplate.value = null;
+  editingTemplate.value = undefined;
   templateModalOpen.value = true;
 }
 
@@ -250,7 +250,7 @@ async function saveTemplate(payload: {
   }
 }
 
-const deleteTemplateTarget = ref<TemplateRow | null>(null);
+const deleteTemplateTarget = ref<TemplateRow>();
 const deleteTemplateLoading = ref(false);
 
 async function handleDeleteTemplate() {
@@ -261,7 +261,7 @@ async function handleDeleteTemplate() {
   deleteTemplateLoading.value = true;
   try {
     await deleteTemplate(deleteTemplateTarget.value.id);
-    deleteTemplateTarget.value = null;
+    deleteTemplateTarget.value = undefined;
     toast.success('Template deleted.');
     await loadTemplates();
   } catch (e: unknown) {
@@ -419,14 +419,14 @@ onMounted(loadShared);
     />
 
     <BaseConfirm
-      :open="cancelTarget !== null"
+      :open="!!cancelTarget"
       title="Cancel booking?"
       :message="`Cancel booking for ${cancelTarget?.customer?.name ?? 'this customer'} on ${cancelTarget?.scheduled_date ?? ''}?`"
       confirm-label="Cancel booking"
       variant="blaze-red"
       :loading="cancelLoading"
       @confirm="handleCancelBooking"
-      @cancel="cancelTarget = null"
+      @cancel="cancelTarget = undefined"
     />
 
     <BookingFulfillModal
@@ -450,14 +450,14 @@ onMounted(loadShared);
     />
 
     <BaseConfirm
-      :open="deleteTemplateTarget !== null"
+      :open="!!deleteTemplateTarget"
       title="Delete template?"
       :message="`Delete template for ${deleteTemplateTarget?.customer?.name ?? 'this customer'}? Future generated bookings won't be affected.`"
       confirm-label="Delete"
       variant="blaze-red"
       :loading="deleteTemplateLoading"
       @confirm="handleDeleteTemplate"
-      @cancel="deleteTemplateTarget = null"
+      @cancel="deleteTemplateTarget = undefined"
     />
   </div>
 </template>

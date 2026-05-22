@@ -4,7 +4,7 @@ import type { DeliverySaleRow } from '@/services/deliveries';
 const open = defineModel<boolean>({ required: true });
 
 const { sale } = defineProps<{
-  sale: DeliverySaleRow | null;
+  sale?: DeliverySaleRow;
 }>();
 
 const emit = defineEmits<{

@@ -85,12 +85,12 @@ const containerBalance = computed(() => pageData.value?.containerBalance ?? {});
 const arBalance = computed(() => pageData.value?.arBalance ?? 0);
 
 const addrModalOpen = ref(false);
-const editingAddr = ref<CustomerAddress | null>(null);
+const editingAddr = ref<CustomerAddress>();
 const addrSaving = ref(false);
-const deleteAddrConfirm = ref<CustomerAddress | null>(null);
+const deleteAddrConfirm = ref<CustomerAddress>();
 
 function openAddAddr() {
-  editingAddr.value = null;
+  editingAddr.value = undefined;
   addrModalOpen.value = true;
 }
 
@@ -127,13 +127,13 @@ async function confirmDeleteAddr() {
   }
 
   await softDeleteAddress(deleteAddrConfirm.value.id, auth.authUser.id);
-  deleteAddrConfirm.value = null;
+  deleteAddrConfirm.value = undefined;
   await load();
 }
 
 const overrideModalOpen = ref(false);
 const overrideSaving = ref(false);
-const deleteOverrideConfirm = ref<PriceOverrideWithRels | null>(null);
+const deleteOverrideConfirm = ref<PriceOverrideWithRels>();
 
 function openAddOverride() {
   overrideModalOpen.value = true;
@@ -162,11 +162,17 @@ async function confirmDeleteOverride() {
   }
 
   await softDeletePriceOverride(deleteOverrideConfirm.value.id, auth.authUser.id);
-  deleteOverrideConfirm.value = null;
+  deleteOverrideConfirm.value = undefined;
   await load();
 }
 
 const hasContainerBalance = computed(() => Object.keys(containerBalance.value).length > 0);
+
+const defaultAddress = computed(() => {
+  const live = addresses.value.filter((a) => !a.deleted_at);
+
+  return live.find((a) => a.is_default) ?? live[0] ?? null;
+});
 
 function addrMenu(addr: CustomerAddress) {
   return [
@@ -203,6 +209,16 @@ function overrideMenu(override: PriceOverrideWithRels) {
             <div class="flex justify-between">
               <dt class="text-independence">Area</dt>
               <dd class="text-casual-navy">{{ customer.area?.name ?? '—' }}</dd>
+            </div>
+            <div class="flex justify-between gap-4">
+              <dt class="text-independence">Default address</dt>
+              <dd class="max-w-[60%] text-right text-casual-navy">
+                <template v-if="defaultAddress">
+                  <span class="block">{{ defaultAddress.address_line }}</span>
+                  <span class="block text-xs text-oslo">{{ defaultAddress.label }}</span>
+                </template>
+                <template v-else>—</template>
+              </dd>
             </div>
             <div class="flex justify-between">
               <dt class="text-independence">AR Balance</dt>
@@ -309,21 +325,21 @@ function overrideMenu(override: PriceOverrideWithRels) {
     />
 
     <BaseConfirm
-      :open="deleteAddrConfirm !== null"
+      :open="!!deleteAddrConfirm"
       title="Delete address?"
       :message="`Delete '${deleteAddrConfirm?.label}'?`"
       @confirm="confirmDeleteAddr"
-      @cancel="deleteAddrConfirm = null"
+      @cancel="deleteAddrConfirm = undefined"
     />
 
     <CustomerPriceOverrideFormModal v-model:open="overrideModalOpen" :saving="overrideSaving" @submit="saveOverride" />
 
     <BaseConfirm
-      :open="deleteOverrideConfirm !== null"
+      :open="!!deleteOverrideConfirm"
       title="Remove price override?"
       :message="`Remove override for ${deleteOverrideConfirm?.product?.name ?? 'this product'}?`"
       @confirm="confirmDeleteOverride"
-      @cancel="deleteOverrideConfirm = null"
+      @cancel="deleteOverrideConfirm = undefined"
     />
   </div>
 </template>

@@ -4,7 +4,7 @@ import type { MaintenanceTask } from '@/types/database';
 const open = defineModel<boolean>('open', { required: true });
 
 const { task, saving } = defineProps<{
-  task: MaintenanceTask | null;
+  task?: MaintenanceTask;
   saving?: boolean;
 }>();
 

@@ -5,7 +5,7 @@ import { formatMoney, parseMoney } from '@/helpers/money';
 const open = defineModel<boolean>('open', { required: true });
 
 const { containerType, saving } = defineProps<{
-  containerType: ContainerType | null;
+  containerType?: ContainerType;
   saving?: boolean;
 }>();
 

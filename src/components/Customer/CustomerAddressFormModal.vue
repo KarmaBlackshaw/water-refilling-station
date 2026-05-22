@@ -4,7 +4,7 @@ import type { CustomerAddress } from '@/types/database';
 const open = defineModel<boolean>('open', { required: true });
 
 const { address, isFirstAddress, saving } = defineProps<{
-  address: CustomerAddress | null;
+  address?: CustomerAddress;
   isFirstAddress?: boolean;
   saving?: boolean;
 }>();

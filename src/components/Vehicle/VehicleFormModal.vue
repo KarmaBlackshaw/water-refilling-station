@@ -4,7 +4,7 @@ import type { Vehicle } from '@/types/database';
 const open = defineModel<boolean>('open', { required: true });
 
 const { vehicle, saving } = defineProps<{
-  vehicle: Vehicle | null;
+  vehicle?: Vehicle;
   saving?: boolean;
 }>();
 

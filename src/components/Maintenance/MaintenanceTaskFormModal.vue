@@ -4,7 +4,7 @@ import type { MaintenanceTask, MaintenanceScope, ScheduleKind } from '@/types/da
 const open = defineModel<boolean>('open', { required: true });
 
 const { task, scope, vehicleOptions, saving } = defineProps<{
-  task: MaintenanceTask | null;
+  task?: MaintenanceTask;
   scope: MaintenanceScope;
   vehicleOptions: { label: string; value: string }[];
   saving?: boolean;

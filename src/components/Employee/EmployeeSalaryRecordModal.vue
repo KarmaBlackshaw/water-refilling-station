@@ -12,7 +12,7 @@ interface InitialValues {
 const open = defineModel<boolean>('open', { required: true });
 
 const { initial, saving } = defineProps<{
-  initial: InitialValues | null;
+  initial?: InitialValues;
   saving?: boolean;
 }>();
 

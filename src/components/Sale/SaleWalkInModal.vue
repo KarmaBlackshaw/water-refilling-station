@@ -69,7 +69,7 @@ function resolvePrice(productId: string, containerTypeId: string, isNewContainer
 }
 
 const customerSearch = ref('');
-const selectedCustomer = ref<CustomerWithArea | null>(null);
+const selectedCustomer = ref<CustomerWithArea>();
 const showCustomerDropdown = ref(false);
 
 const filteredCustomers = computed(() => {
@@ -101,7 +101,7 @@ function selectCustomer(c: CustomerWithArea) {
 }
 
 function clearCustomer() {
-  selectedCustomer.value = null;
+  selectedCustomer.value = undefined;
   customerSearch.value = '';
   loadPricing(null);
 }
@@ -184,7 +184,7 @@ watch(
 
     posLines.value = [makeLine()];
     posPayments.value = [makePayment()];
-    selectedCustomer.value = null;
+    selectedCustomer.value = undefined;
     customerSearch.value = '';
     posDate.value = today();
     posNotes.value = '';

@@ -14,7 +14,7 @@ type ExpenseLike = {
 const open = defineModel<boolean>('open', { required: true });
 
 const { expense, employeeOptions, categories, categoryLabel, saving } = defineProps<{
-  expense: ExpenseLike | null;
+  expense?: ExpenseLike;
   employeeOptions: { label: string; value: string }[];
   categories: ExpenseCategory[];
   categoryLabel: Record<ExpenseCategory, string>;

@@ -82,11 +82,11 @@ async function ensureVehicles() {
 }
 
 const taskModalOpen = ref(false);
-const editingTask = ref<MaintenanceTask | null>(null);
+const editingTask = ref<MaintenanceTask>();
 const saving = ref(false);
 
 async function openAddTask() {
-  editingTask.value = null;
+  editingTask.value = undefined;
   if (activeTab.value === 'vehicle') {
     await ensureVehicles();
   }
@@ -129,7 +129,7 @@ async function saveTask(formPayload: {
   saving.value = false;
 }
 
-const deactivateConfirm = ref<MaintenanceTask | null>(null);
+const deactivateConfirm = ref<MaintenanceTask>();
 
 async function confirmDeactivate() {
   if (!deactivateConfirm.value) {
@@ -137,12 +137,12 @@ async function confirmDeactivate() {
   }
 
   await updateTask(deactivateConfirm.value.id, { active: false });
-  deactivateConfirm.value = null;
+  deactivateConfirm.value = undefined;
   await load();
 }
 
 const logModalOpen = ref(false);
-const loggingTask = ref<MaintenanceTask | null>(null);
+const loggingTask = ref<MaintenanceTask>();
 const loggingSaving = ref(false);
 
 function openLogModal(task: MaintenanceTask) {
@@ -241,11 +241,11 @@ function taskMenu(task: MaintenanceTask) {
     <MaintenanceLogModal v-model:open="logModalOpen" :task="loggingTask" :saving="loggingSaving" @submit="saveLog" />
 
     <BaseConfirm
-      :open="deactivateConfirm !== null"
+      :open="!!deactivateConfirm"
       title="Deactivate task?"
       :message="`Deactivate '${deactivateConfirm?.task_type}'? The task will be hidden but its history preserved.`"
       @confirm="confirmDeactivate"
-      @cancel="deactivateConfirm = null"
+      @cancel="deactivateConfirm = undefined"
     />
   </div>
 </template>

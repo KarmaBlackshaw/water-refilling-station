@@ -31,9 +31,9 @@ const {
   disableResetValue: true,
 });
 const productModalOpen = ref(false);
-const editingProduct = ref<Product | null>(null);
+const editingProduct = ref<Product>();
 const productSaving = ref(false);
-const deleteProductConfirm = ref<Product | null>(null);
+const deleteProductConfirm = ref<Product>();
 
 const {
   data: containerTypes,
@@ -45,12 +45,12 @@ const {
   disableResetValue: true,
 });
 const containerModalOpen = ref(false);
-const editingContainer = ref<ContainerType | null>(null);
+const editingContainer = ref<ContainerType>();
 const containerSaving = ref(false);
-const deleteContainerConfirm = ref<ContainerType | null>(null);
+const deleteContainerConfirm = ref<ContainerType>();
 
 function openAddProduct() {
-  editingProduct.value = null;
+  editingProduct.value = undefined;
   productModalOpen.value = true;
 }
 
@@ -78,12 +78,12 @@ async function confirmDeleteProduct() {
   }
 
   await softDeleteProduct(deleteProductConfirm.value.id, auth.authUser.id);
-  deleteProductConfirm.value = null;
+  deleteProductConfirm.value = undefined;
   await loadProducts();
 }
 
 function openAddContainer() {
-  editingContainer.value = null;
+  editingContainer.value = undefined;
   containerModalOpen.value = true;
 }
 
@@ -117,7 +117,7 @@ async function confirmDeleteContainer() {
   }
 
   await softDeleteContainerType(deleteContainerConfirm.value.id, auth.authUser.id);
-  deleteContainerConfirm.value = null;
+  deleteContainerConfirm.value = undefined;
   await loadContainerTypes();
 }
 
@@ -226,18 +226,18 @@ function containerMenu(row: ContainerType) {
     <ContainerTypeFormModal v-model:open="containerModalOpen" :container-type="editingContainer" :saving="containerSaving" @submit="saveContainer" />
 
     <BaseConfirm
-      :open="deleteProductConfirm !== null"
+      :open="!!deleteProductConfirm"
       title="Delete product?"
       :message="`Delete '${deleteProductConfirm?.name}'? This cannot be undone.`"
       @confirm="confirmDeleteProduct"
-      @cancel="deleteProductConfirm = null"
+      @cancel="deleteProductConfirm = undefined"
     />
     <BaseConfirm
-      :open="deleteContainerConfirm !== null"
+      :open="!!deleteContainerConfirm"
       title="Delete container type?"
       :message="`Delete '${deleteContainerConfirm?.name}'? This cannot be undone.`"
       @confirm="confirmDeleteContainer"
-      @cancel="deleteContainerConfirm = null"
+      @cancel="deleteContainerConfirm = undefined"
     />
   </div>
 </template>

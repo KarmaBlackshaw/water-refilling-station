@@ -27,9 +27,9 @@ const vehicles = computed(() => vehicleData.value?.vehicles ?? []);
 const allTasks = computed(() => vehicleData.value?.allTasks ?? []);
 
 const modalOpen = ref(false);
-const editingVehicle = ref<Vehicle | null>(null);
+const editingVehicle = ref<Vehicle>();
 const saving = ref(false);
-const deleteTarget = ref<Vehicle | null>(null);
+const deleteTarget = ref<Vehicle>();
 
 const vehicleTypeLabels: Record<string, string> = {
   motorcycle: 'Motorcycle',
@@ -55,7 +55,7 @@ function labelForType(type: string): string {
 }
 
 function openAdd() {
-  editingVehicle.value = null;
+  editingVehicle.value = undefined;
   modalOpen.value = true;
 }
 
@@ -84,7 +84,7 @@ async function confirmDelete() {
   }
 
   await deleteVehicle(deleteTarget.value.id);
-  deleteTarget.value = null;
+  deleteTarget.value = undefined;
   await load();
 }
 
@@ -150,11 +150,11 @@ function rowMenu(row: Vehicle) {
     <VehicleFormModal v-model:open="modalOpen" :vehicle="editingVehicle" :saving="saving" @submit="save" />
 
     <BaseConfirm
-      :open="deleteTarget !== null"
+      :open="!!deleteTarget"
       title="Delete vehicle?"
       :message="`Delete '${deleteTarget?.brand_model}'? This cannot be undone.`"
       @confirm="confirmDelete"
-      @cancel="deleteTarget = null"
+      @cancel="deleteTarget = undefined"
     />
   </div>
 </template>

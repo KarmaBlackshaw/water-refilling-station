@@ -21,12 +21,12 @@ const {
 const employees = computed(() => data.value ?? []);
 
 const modalOpen = ref(false);
-const editingEmployee = ref<Employee | null>(null);
-const deleteConfirm = ref<Employee | null>(null);
+const editingEmployee = ref<Employee>();
+const deleteConfirm = ref<Employee>();
 const saving = ref(false);
 
 function openAdd() {
-  editingEmployee.value = null;
+  editingEmployee.value = undefined;
   modalOpen.value = true;
 }
 
@@ -62,7 +62,7 @@ async function confirmDelete() {
   }
 
   await softDeleteEmployee(deleteConfirm.value.id, auth.authUser.id);
-  deleteConfirm.value = null;
+  deleteConfirm.value = undefined;
   await load();
 }
 
@@ -126,11 +126,11 @@ function rowMenu(row: Employee) {
     <EmployeeFormModal v-model:open="modalOpen" :employee="editingEmployee" :saving="saving" @submit="save" />
 
     <BaseConfirm
-      :open="deleteConfirm !== null"
+      :open="!!deleteConfirm"
       title="Delete employee?"
       :message="`Delete '${deleteConfirm?.full_name}'?`"
       @confirm="confirmDelete"
-      @cancel="deleteConfirm = null"
+      @cancel="deleteConfirm = undefined"
     />
   </div>
 </template>

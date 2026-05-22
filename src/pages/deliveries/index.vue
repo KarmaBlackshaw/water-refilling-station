@@ -79,7 +79,7 @@ function saleTotal(sale: DeliverySaleRow): number {
 }
 
 const reconcileOpen = ref(false);
-const reconcileTarget = ref<DeliverySaleRow | null>(null);
+const reconcileTarget = ref<DeliverySaleRow>();
 const newDeliveryOpen = ref(false);
 
 function openReconcile(sale: DeliverySaleRow) {

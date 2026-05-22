@@ -14,14 +14,14 @@ const riders = ref<Array<Pick<User, 'id' | 'full_name'>>>([]);
 
 // Area modal
 const areaModalOpen = ref(false);
-const editingArea = ref<Area | null>(null);
+const editingArea = ref<Area>();
 const areaForm = reactive({ name: '', notes: '', primary_rider_id: '' });
 const areaSaving = ref(false);
-const deleteAreaConfirm = ref<Area | null>(null);
+const deleteAreaConfirm = ref<Area>();
 
 // Coverage modal
 const coverageModalOpen = ref(false);
-const coverageArea = ref<Area | null>(null);
+const coverageArea = ref<Area>();
 const coverageForm = reactive({ covering_rider_id: '', starts_on: '', ends_on: '' });
 const coverageSaving = ref(false);
 
@@ -39,7 +39,7 @@ onMounted(load);
 const riderOptions = computed(() => riders.value.map((r) => ({ label: r.full_name, value: r.id })));
 
 function openAddArea() {
-  editingArea.value = null;
+  editingArea.value = undefined;
   areaForm.name = '';
   areaForm.notes = '';
   areaForm.primary_rider_id = '';
@@ -79,7 +79,7 @@ async function confirmDeleteArea() {
   }
 
   await softDeleteArea(deleteAreaConfirm.value.id, auth.authUser.id);
-  deleteAreaConfirm.value = null;
+  deleteAreaConfirm.value = undefined;
   await load();
 }
 
@@ -176,11 +176,11 @@ async function saveCoverage() {
 
     <!-- Delete confirm -->
     <BaseConfirm
-      :open="deleteAreaConfirm !== null"
+      :open="!!deleteAreaConfirm"
       title="Delete area?"
       :message="`Delete '${deleteAreaConfirm?.name}'? Coverage records will also be removed.`"
       @confirm="confirmDeleteArea"
-      @cancel="deleteAreaConfirm = null"
+      @cancel="deleteAreaConfirm = undefined"
     />
   </div>
 </template>

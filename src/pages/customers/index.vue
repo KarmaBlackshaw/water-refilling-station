@@ -7,7 +7,11 @@ const auth = useAuthStore();
 const tenantId = computed(() => auth.tenantId ?? '');
 const branchId = computed(() => auth.branchId ?? '');
 
-type CustomerWithArea = Customer & { area: { id: string; name: string } | null };
+type AddressLite = { id: string; label: string; address_line: string; is_default: boolean; deleted_at: string | null };
+type CustomerWithArea = Customer & {
+  area: { id: string; name: string } | null;
+  addresses: AddressLite[] | null;
+};
 
 const {
   data: customersData,
@@ -22,9 +26,15 @@ const customers = computed(() => customersData.value ?? []);
 
 const search = ref('');
 const modalOpen = ref(false);
-const editingCustomer = ref<Customer | null>(null);
-const deleteConfirm = ref<Customer | null>(null);
+const editingCustomer = ref<Customer>();
+const deleteConfirm = ref<Customer>();
 const saving = ref(false);
+
+function defaultAddress(row: CustomerWithArea): AddressLite | null {
+  const live = (row.addresses ?? []).filter((a) => !a.deleted_at);
+
+  return live.find((a) => a.is_default) ?? live[0] ?? null;
+}
 
 const filtered = computed(() => {
   const q = search.value.toLowerCase();
@@ -33,11 +43,17 @@ const filtered = computed(() => {
     return customers.value;
   }
 
-  return customers.value.filter((c) => c.name.toLowerCase().includes(q) || (c.phone ?? '').includes(q));
+  return customers.value.filter((c) => {
+    if (c.name.toLowerCase().includes(q) || (c.phone ?? '').includes(q)) {
+      return true;
+    }
+
+    return (c.addresses ?? []).some((a) => !a.deleted_at && a.address_line.toLowerCase().includes(q));
+  });
 });
 
 function openAdd() {
-  editingCustomer.value = null;
+  editingCustomer.value = undefined;
   modalOpen.value = true;
 }
 
@@ -46,13 +62,32 @@ function openEdit(c: Customer) {
   modalOpen.value = true;
 }
 
-async function save(payload: { name: string; phone: string | null; type: 'residential' | 'commercial'; notes: string | null }) {
+async function save(payload: {
+  name: string;
+  phone: string | null;
+  type: 'residential' | 'commercial';
+  notes: string | null;
+  address: { label: string; address_line: string } | null;
+}) {
   saving.value = true;
 
+  const { address, ...customerPayload } = payload;
+
   if (editingCustomer.value) {
-    await updateCustomer(editingCustomer.value.id, payload);
+    await updateCustomer(editingCustomer.value.id, customerPayload);
   } else {
-    await createCustomer({ tenant_id: tenantId.value, branch_id: branchId.value, ...payload });
+    const { data: created } = await createCustomer({ tenant_id: tenantId.value, branch_id: branchId.value, ...customerPayload });
+
+    if (created && address) {
+      await createAddress({
+        tenant_id: tenantId.value,
+        branch_id: branchId.value,
+        customer_id: created.id,
+        label: address.label,
+        address_line: address.address_line,
+        is_default: true,
+      });
+    }
   }
 
   modalOpen.value = false;
@@ -66,7 +101,7 @@ async function confirmDelete() {
   }
 
   await softDeleteCustomer(deleteConfirm.value.id, auth.authUser.id);
-  deleteConfirm.value = null;
+  deleteConfirm.value = undefined;
   await load();
 }
 
@@ -98,6 +133,7 @@ function rowMenu(row: Customer) {
             { key: 'phone', label: 'Phone' },
             { key: 'type', label: 'Type' },
             { key: 'area', label: 'Area' },
+            { key: 'address', label: 'Default address' },
             { key: 'actions', label: '', align: 'right' },
           ]"
           :data="filtered"
@@ -117,6 +153,11 @@ function rowMenu(row: Customer) {
 
           <template #cell-area="{ row }">{{ row.area?.name ?? '—' }}</template>
 
+          <template #cell-address="{ row }">
+            <span v-if="defaultAddress(row)" class="text-sm text-casual-navy">{{ defaultAddress(row)?.address_line }}</span>
+            <span v-else class="text-sm text-oslo">—</span>
+          </template>
+
           <template #cell-actions="{ row }">
             <BaseTableActions :menu="rowMenu(row)" />
           </template>
@@ -135,11 +176,11 @@ function rowMenu(row: Customer) {
     <CustomerFormModal v-model:open="modalOpen" :customer="editingCustomer" :saving="saving" @submit="save" />
 
     <BaseConfirm
-      :open="deleteConfirm !== null"
+      :open="!!deleteConfirm"
       title="Delete customer?"
       :message="`Delete '${deleteConfirm?.name}'?`"
       @confirm="confirmDelete"
-      @cancel="deleteConfirm = null"
+      @cancel="deleteConfirm = undefined"
     />
   </div>
 </template>

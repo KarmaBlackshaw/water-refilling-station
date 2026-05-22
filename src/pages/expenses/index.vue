@@ -92,11 +92,11 @@ const employees = computed(() => data.value ?? []);
 const employeeOptions = computed(() => [{ label: 'None / External', value: '' }, ...employees.value.map((e) => ({ label: e.full_name, value: e.id }))]);
 
 const modalOpen = ref(false);
-const editingExpense = ref<ExpenseRow | null>(null);
+const editingExpense = ref<ExpenseRow>();
 const saving = ref(false);
 
 function openAdd() {
-  editingExpense.value = null;
+  editingExpense.value = undefined;
   modalOpen.value = true;
 }
 
@@ -128,7 +128,7 @@ async function saveExpense(payload: {
   }
 }
 
-const deleteTarget = ref<ExpenseRow | null>(null);
+const deleteTarget = ref<ExpenseRow>();
 const deleting = ref(false);
 
 async function confirmDelete() {
@@ -139,7 +139,7 @@ async function confirmDelete() {
   deleting.value = true;
   try {
     await deleteExpense(deleteTarget.value.id);
-    deleteTarget.value = null;
+    deleteTarget.value = undefined;
     await load();
   } finally {
     deleting.value = false;
@@ -254,12 +254,12 @@ function rowMenu(row: ExpenseRow) {
     />
 
     <BaseConfirm
-      :open="deleteTarget !== null"
+      :open="!!deleteTarget"
       title="Delete expense?"
       :message="`Delete this ${deleteTarget ? CATEGORY_LABEL[deleteTarget.category] : ''} expense of ${deleteTarget ? formatMoney(deleteTarget.amount_centavos) : ''}?`"
       :loading="deleting"
       @confirm="confirmDelete"
-      @cancel="deleteTarget = null"
+      @cancel="deleteTarget = undefined"
     />
   </div>
 </template>

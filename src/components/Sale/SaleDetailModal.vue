@@ -8,7 +8,7 @@ type LineWithRels = SaleLine & { product?: { name: string }; container_type?: { 
 const open = defineModel<boolean>('open', { required: true });
 
 const { sale, lines, payments, loading, sourceBadgeVariant, sourceLabel, statusBadgeVariant, statusLabel } = defineProps<{
-  sale: SaleWithCustomer | null;
+  sale?: SaleWithCustomer;
   lines: LineWithRels[];
   payments: SalePayment[];
   loading?: boolean;

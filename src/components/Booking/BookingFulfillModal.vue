@@ -13,7 +13,7 @@ interface FulfillPrice {
 const open = defineModel<boolean>('open', { required: true });
 
 const { booking, tenantId, branchId, saving } = defineProps<{
-  booking: BookingRow | null;
+  booking?: BookingRow;
   tenantId: string;
   branchId: string;
   saving?: boolean;

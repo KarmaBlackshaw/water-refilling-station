@@ -85,6 +85,21 @@ Never write raw `<svg>` markup in `.vue` files outside `src/components/Icon/`. A
 - Use the icon as `<IconWhatever class="size-4 text-oslo" />` — no import needed (auto-import).
 - Loading spinners → `<IconSpinner class="animate-spin" />`, never re-roll the markup.
 
+### Prefer `ref<T>()` over `ref<T | null>(null)` for local UI sentinels
+
+When a ref represents "no current selection" (modal editing target, delete-confirm target, transient form row), use `ref<T>()` — the initial value is `undefined`, which already means absence.
+
+**Why:** `null` adds a second falsy sentinel with no extra meaning. `Ref<T | undefined>` is narrower, the declaration is shorter, and `x.value = undefined` reads as "clear" without inventing an extra `null` state.
+
+**How to apply:**
+- `const editingAddr = ref<CustomerAddress | null>(null)` → `const editingAddr = ref<CustomerAddress>()`.
+- Clear with `x.value = undefined`, not `x.value = null`.
+- Truthy check: `v-if="editingAddr"` or `:open="!!deleteAddrConfirm"`. Avoid `!== null`.
+- Child component props that receive the value should be typed `T | undefined` (or optional `addr?: T`), not `T | null`.
+- KEEP `| null` when `null` comes from an external source:
+  - Supabase rows / API responses (`session = ref<Session | null>(null)`, computed mirroring `pageData.value?.customer ?? null`).
+  - Vue template refs bound via `ref="el"` — Vue assigns `null` on unmount (`const el = ref<HTMLInputElement | null>(null)`).
+
 ### No `any` and no type casts
 
 Do not introduce `any` and do not use `as` casts to coerce types. Fix the type at its source.
