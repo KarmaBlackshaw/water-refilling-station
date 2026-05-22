@@ -21,11 +21,7 @@ const {
 } = useAsync<EmployeePageData>(
   async () => {
     const id = route.params.id as string;
-    const [empRes, attRes, salRes] = await Promise.all([
-      getEmployee(id),
-      listAttendanceForMonth(id, currentYear(), currentMonth()),
-      listSalaryRecords(id),
-    ]);
+    const [empRes, attRes, salRes] = await Promise.all([getEmployee(id), listAttendanceForMonth(id, currentYear(), currentMonth()), listSalaryRecords(id)]);
 
     return {
       employee: empRes.data,
@@ -157,7 +153,7 @@ async function submitRecord(record: SalaryRecord) {
           <BaseBadge :variant="employee.role === 'admin' ? 'info' : 'default'" class="mt-1">{{ employee.role }}</BaseBadge>
         </div>
         <div class="flex gap-2">
-          <BaseButton :variant="todayAttendance?.status === 'present' ? 'full-white' : 'turquoise-stone'" size="sm" @click="toggleTodayAttendance">
+          <BaseButton :variant="todayAttendance?.status === 'present' ? 'full-white' : 'turquoise-stone'" @click="toggleTodayAttendance">
             {{ todayAttendance?.status === 'present' ? 'Mark absent' : 'Mark present' }}
           </BaseButton>
         </div>
@@ -172,7 +168,7 @@ async function submitRecord(record: SalaryRecord) {
           <p class="mt-0.5 text-xs text-independence">
             Base: {{ formatMoney(todayIncome?.basePayCentavos ?? 0) }} · Commission: {{ formatMoney(todayIncome?.commissionCentavos ?? 0) }}
           </p>
-          <BaseButton variant="independence" size="sm" class="mt-2 w-full" @click="openCreateSalary('today')">Create salary record</BaseButton>
+          <BaseButton variant="independence" class="mt-2 w-full" @click="openCreateSalary('today')">Create salary record</BaseButton>
         </BaseCard>
 
         <!-- This week -->
@@ -182,7 +178,7 @@ async function submitRecord(record: SalaryRecord) {
           <p class="mt-0.5 text-xs text-independence">
             Base: {{ formatMoney(weekIncome?.basePayCentavos ?? 0) }} · Commission: {{ formatMoney(weekIncome?.commissionCentavos ?? 0) }}
           </p>
-          <BaseButton variant="independence" size="sm" class="mt-2 w-full" @click="openCreateSalary('this_week')">Create salary record</BaseButton>
+          <BaseButton variant="independence" class="mt-2 w-full" @click="openCreateSalary('this_week')">Create salary record</BaseButton>
         </BaseCard>
 
         <!-- This month -->
@@ -192,7 +188,7 @@ async function submitRecord(record: SalaryRecord) {
           <p class="mt-0.5 text-xs text-independence">
             Base: {{ formatMoney(monthIncome?.basePayCentavos ?? 0) }} · Commission: {{ formatMoney(monthIncome?.commissionCentavos ?? 0) }}
           </p>
-          <BaseButton variant="independence" size="sm" class="mt-2 w-full" @click="openCreateSalary('this_month')">Create salary record</BaseButton>
+          <BaseButton variant="independence" class="mt-2 w-full" @click="openCreateSalary('this_month')">Create salary record</BaseButton>
         </BaseCard>
       </div>
 
@@ -222,7 +218,7 @@ async function submitRecord(record: SalaryRecord) {
               </BaseBadge>
             </template>
             <template #cell-actions="{ row }">
-              <BaseButton v-if="!row.paid_at" variant="independence" size="sm" @click="submitRecord(row)">Mark paid</BaseButton>
+              <BaseButton v-if="!row.paid_at" variant="independence" @click="submitRecord(row)">Mark paid</BaseButton>
             </template>
           </BaseTable>
         </BaseCard>

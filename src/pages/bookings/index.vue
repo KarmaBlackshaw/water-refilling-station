@@ -7,7 +7,6 @@ const tenantId = computed(() => auth.tenantId ?? '');
 const branchId = computed(() => auth.branchId ?? '');
 const toast = useToast();
 
-
 const customers = ref<Customer[]>([]);
 const riders = ref<Pick<User, 'id' | 'full_name'>[]>([]);
 const products = ref<Product[]>([]);
@@ -32,13 +31,11 @@ async function loadShared() {
   containerTypes.value = (ctRes.data ?? []) as ContainerType[];
 }
 
-
 const activeTab = ref('bookings');
 const tabs = [
   { key: 'bookings', label: 'Upcoming Bookings' },
   { key: 'templates', label: 'Templates' },
 ];
-
 
 const bookingFilter = reactive({
   from: today(),
@@ -88,7 +85,6 @@ function itemsSummary(items: BookingRow['items'] | TemplateRow['items']): string
   return items.map((i) => `${i.quantity}× ${i.container_type?.name ?? '?'} ${i.product?.name ?? '?'}`).join(', ');
 }
 
-
 const generateConfirmOpen = ref(false);
 const generateLoading = ref(false);
 
@@ -106,7 +102,6 @@ async function handleGenerate() {
     generateLoading.value = false;
   }
 }
-
 
 const newBookingOpen = ref(false);
 const newBookingSaving = ref(false);
@@ -196,7 +191,6 @@ async function saveNewBooking() {
   }
 }
 
-
 const cancelTarget = ref<BookingRow | null>(null);
 const cancelLoading = ref(false);
 
@@ -217,7 +211,6 @@ async function handleCancelBooking() {
     cancelLoading.value = false;
   }
 }
-
 
 const fulfillTarget = ref<BookingRow | null>(null);
 const fulfillLoading = ref(false);
@@ -301,7 +294,6 @@ function centavosFromDisplay(display: string): number {
   return isNaN(n) ? 0 : Math.round(n * 100);
 }
 
-
 const {
   data: templates,
   loading: templatesLoading,
@@ -333,7 +325,6 @@ function cadenceLabel(c: string): string {
 function dayLabel(d: number): string {
   return dayOptions.find((o) => o.value === d)?.label ?? String(d);
 }
-
 
 const templateModalOpen = ref(false);
 const templateSaving = ref(false);
@@ -453,7 +444,6 @@ async function saveTemplate() {
   }
 }
 
-
 const deleteTemplateTarget = ref<TemplateRow | null>(null);
 const deleteTemplateLoading = ref(false);
 
@@ -474,7 +464,6 @@ async function handleDeleteTemplate() {
     deleteTemplateLoading.value = false;
   }
 }
-
 
 onMounted(loadShared);
 </script>
@@ -497,8 +486,8 @@ onMounted(loadShared);
         <div class="flex flex-wrap items-center justify-between gap-2">
           <h2 class="text-base font-medium text-casual-navy">Upcoming Bookings</h2>
           <div class="flex gap-2">
-            <BaseButton variant="full-white" size="sm" @click="generateConfirmOpen = true"> Generate </BaseButton>
-            <BaseButton size="sm" @click="openNewBooking">New Booking</BaseButton>
+            <BaseButton variant="full-white" @click="generateConfirmOpen = true"> Generate </BaseButton>
+            <BaseButton @click="openNewBooking">New Booking</BaseButton>
           </div>
         </div>
 
@@ -529,14 +518,14 @@ onMounted(loadShared);
           <template #cell-rider="{ row }">{{ row.rider?.full_name ?? '—' }}</template>
           <template #cell-items="{ row }">{{ itemsSummary(row.items) }}</template>
           <template #cell-status="{ row }">
-            <BaseBadge :variant="statusVariant(row.status)" size="sm">
+            <BaseBadge :variant="statusVariant(row.status)">
               {{ row.status.charAt(0).toUpperCase() + row.status.slice(1) }}
             </BaseBadge>
           </template>
           <template #cell-actions="{ row }">
             <div v-if="row.status === 'pending'" class="flex gap-1.5">
-              <BaseButton size="sm" variant="full-white" @click="openFulfill(row)">Fulfill</BaseButton>
-              <BaseButton size="sm" variant="independence" class="text-blaze-red" @click="cancelTarget = row">Cancel</BaseButton>
+              <BaseButton variant="full-white" @click="openFulfill(row)">Fulfill</BaseButton>
+              <BaseButton variant="independence" class="text-blaze-red" @click="cancelTarget = row">Cancel</BaseButton>
             </div>
             <span v-else class="text-xs text-independence">—</span>
           </template>
@@ -547,7 +536,7 @@ onMounted(loadShared);
       <div v-if="activeTab === 'templates'" class="space-y-4">
         <div class="flex items-center justify-between">
           <h2 class="text-base font-medium text-casual-navy">Booking Templates</h2>
-          <BaseButton size="sm" @click="openAddTemplate">New Template</BaseButton>
+          <BaseButton @click="openAddTemplate">New Template</BaseButton>
         </div>
 
         <BaseTable
@@ -574,20 +563,20 @@ onMounted(loadShared);
           <template #cell-day="{ row }">{{ dayLabel(row.day_of_week) }}</template>
           <template #cell-items="{ row }">{{ itemsSummary(row.items) }}</template>
           <template #cell-active="{ row }">
-            <BaseBadge :variant="row.active ? 'success' : 'danger'" size="sm">
+            <BaseBadge :variant="row.active ? 'success' : 'danger'">
               {{ row.active ? 'Active' : 'Inactive' }}
             </BaseBadge>
           </template>
           <template #cell-actions="{ row }">
             <div class="flex gap-1.5">
-              <BaseButton size="sm" variant="independence" @click="openEditTemplate(row)">Edit</BaseButton>
-              <BaseButton size="sm" variant="independence" class="text-blaze-red" @click="deleteTemplateTarget = row">Delete</BaseButton>
+              <BaseButton variant="independence" @click="openEditTemplate(row)">Edit</BaseButton>
+              <BaseButton variant="independence" class="text-blaze-red" @click="deleteTemplateTarget = row">Delete</BaseButton>
             </div>
           </template>
           <template #empty>
             <BaseEmptyState title="No templates yet" description="Create a template to auto-generate recurring bookings.">
               <template #actions>
-                <BaseButton size="sm" @click="openAddTemplate">New Template</BaseButton>
+                <BaseButton @click="openAddTemplate">New Template</BaseButton>
               </template>
             </BaseEmptyState>
           </template>
@@ -629,13 +618,13 @@ onMounted(loadShared);
         <div class="space-y-2">
           <div class="flex items-center justify-between">
             <span class="text-xs font-medium text-oslo">Items</span>
-            <BaseButton size="sm" variant="independence" type="button" @click="addNewBookingItem"> + Add item </BaseButton>
+            <BaseButton variant="independence" type="button" @click="addNewBookingItem"> + Add item </BaseButton>
           </div>
           <div v-for="(item, idx) in newBookingForm.items" :key="idx" class="grid grid-cols-[1fr_1fr_72px_auto] gap-2 items-end">
             <BaseSelect v-model="item.product_id" :options="productOptions" placeholder="Product..." />
             <BaseSelect v-model="item.container_type_id" :options="containerTypeOptions" placeholder="Container..." />
             <BaseInput v-model="item.quantity" type="number" placeholder="Qty" />
-            <BaseButton size="sm" variant="independence" type="button" class="text-blaze-red mb-0.5" @click="removeNewBookingItem(idx)"> ✕ </BaseButton>
+            <BaseButton variant="independence" type="button" class="text-blaze-red mb-0.5" @click="removeNewBookingItem(idx)"> ✕ </BaseButton>
           </div>
           <p v-if="newBookingForm.items.length === 0" class="text-xs text-independence">No items added yet.</p>
         </div>
@@ -727,7 +716,7 @@ onMounted(loadShared);
         <div class="space-y-2">
           <div class="flex items-center justify-between">
             <span class="text-xs font-medium text-oslo">Items</span>
-            <BaseButton size="sm" variant="independence" type="button" @click="addTemplateItem"> + Add item </BaseButton>
+            <BaseButton variant="independence" type="button" @click="addTemplateItem"> + Add item </BaseButton>
           </div>
           <div v-for="(item, idx) in templateForm.items" :key="idx" class="grid grid-cols-[1fr_1fr_72px_120px_auto] gap-2 items-end">
             <BaseSelect v-model="item.product_id" :options="productOptions" placeholder="Product..." />
@@ -737,7 +726,7 @@ onMounted(loadShared);
               <input v-model="item.is_new_container" type="checkbox" class="rounded border-sparkling-silver accent-turquoise-stone" />
               New container
             </label>
-            <BaseButton size="sm" variant="independence" type="button" class="text-blaze-red mb-0.5" @click="removeTemplateItem(idx)"> ✕ </BaseButton>
+            <BaseButton variant="independence" type="button" class="text-blaze-red mb-0.5" @click="removeTemplateItem(idx)"> ✕ </BaseButton>
           </div>
           <p v-if="templateForm.items.length === 0" class="text-xs text-independence">No items added yet.</p>
         </div>

@@ -20,6 +20,7 @@ declare module 'vue' {
     BaseDatePicker: typeof import('./components/Base/BaseDatePicker.vue')['default']
     BaseDonutChart: typeof import('./components/Base/BaseDonutChart.vue')['default']
     BaseEmptyState: typeof import('./components/Base/BaseEmptyState.vue')['default']
+    BaseFormField: typeof import('./components/Base/BaseFormField.vue')['default']
     BaseInput: typeof import('./components/Base/BaseInput.vue')['default']
     BaseKpiCard: typeof import('./components/Base/BaseKpiCard.vue')['default']
     BaseModal: typeof import('./components/Base/BaseModal.vue')['default']

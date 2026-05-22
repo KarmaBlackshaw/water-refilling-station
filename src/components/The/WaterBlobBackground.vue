@@ -51,19 +51,46 @@
 }
 
 @keyframes drift-a {
-  0%, 100% { transform: translate(0, 0) scale(1); border-radius: 60% 40% 55% 45% / 50% 60% 40% 50%; }
-  33% { transform: translate(30px, -40px) scale(1.08); border-radius: 50% 60% 40% 55% / 45% 55% 50% 60%; }
-  66% { transform: translate(-25px, 25px) scale(0.95); border-radius: 55% 45% 65% 35% / 60% 40% 55% 45%; }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    border-radius: 60% 40% 55% 45% / 50% 60% 40% 50%;
+  }
+  33% {
+    transform: translate(30px, -40px) scale(1.08);
+    border-radius: 50% 60% 40% 55% / 45% 55% 50% 60%;
+  }
+  66% {
+    transform: translate(-25px, 25px) scale(0.95);
+    border-radius: 55% 45% 65% 35% / 60% 40% 55% 45%;
+  }
 }
 
 @keyframes drift-b {
-  0%, 100% { transform: translate(0, 0) scale(1); border-radius: 45% 55% 40% 60% / 55% 45% 60% 40%; }
-  50% { transform: translate(-35px, 30px) scale(1.1); border-radius: 60% 40% 55% 45% / 40% 60% 45% 55%; }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    border-radius: 45% 55% 40% 60% / 55% 45% 60% 40%;
+  }
+  50% {
+    transform: translate(-35px, 30px) scale(1.1);
+    border-radius: 60% 40% 55% 45% / 40% 60% 45% 55%;
+  }
 }
 
 @keyframes drift-c {
-  0%, 100% { transform: translate(0, 0) scale(1); border-radius: 50% 50% 60% 40% / 60% 50% 50% 40%; }
-  40% { transform: translate(25px, 35px) scale(1.05); border-radius: 55% 45% 50% 50% / 50% 60% 40% 50%; }
-  80% { transform: translate(-30px, -20px) scale(0.92); border-radius: 45% 55% 40% 60% / 55% 45% 60% 40%; }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    border-radius: 50% 50% 60% 40% / 60% 50% 50% 40%;
+  }
+  40% {
+    transform: translate(25px, 35px) scale(1.05);
+    border-radius: 55% 45% 50% 50% / 50% 60% 40% 50%;
+  }
+  80% {
+    transform: translate(-30px, -20px) scale(0.92);
+    border-radius: 45% 55% 40% 60% / 55% 45% 60% 40%;
+  }
 }
 </style>

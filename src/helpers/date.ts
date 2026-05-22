@@ -88,11 +88,15 @@ export function toISODate(date: string | Date | Dayjs): string {
 }
 
 export function startOfMonth(date?: DateInput): string {
-  return dayjs(date ?? undefined).startOf('month').format('YYYY-MM-DD');
+  return dayjs(date ?? undefined)
+    .startOf('month')
+    .format('YYYY-MM-DD');
 }
 
 export function endOfMonth(date?: DateInput): string {
-  return dayjs(date ?? undefined).endOf('month').format('YYYY-MM-DD');
+  return dayjs(date ?? undefined)
+    .endOf('month')
+    .format('YYYY-MM-DD');
 }
 
 export function currentYear(): number {

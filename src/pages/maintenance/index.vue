@@ -230,7 +230,7 @@ async function saveLog() {
           <h1 class="text-2xl font-bold text-casual-navy">Maintenance</h1>
           <p class="text-sm text-oslo">Track maintenance schedules for plant and vehicles</p>
         </div>
-        <BaseButton size="sm" @click="openAddTask">Add Task</BaseButton>
+        <BaseButton @click="openAddTask">Add Task</BaseButton>
       </div>
 
       <!-- Tabs -->
@@ -265,15 +265,15 @@ async function saveLog() {
           </template>
           <template #cell-actions="{ row }">
             <div class="flex justify-end gap-1">
-              <BaseButton variant="independence" size="sm" @click="openLogModal(row)">Log</BaseButton>
-              <BaseButton variant="independence" size="sm" @click="openEditTask(row)">Edit</BaseButton>
-              <BaseButton variant="independence" size="sm" class="text-independence" @click="deactivateConfirm = row">Deactivate</BaseButton>
+              <BaseButton variant="independence" @click="openLogModal(row)">Log</BaseButton>
+              <BaseButton variant="independence" @click="openEditTask(row)">Edit</BaseButton>
+              <BaseButton variant="independence" class="text-independence" @click="deactivateConfirm = row">Deactivate</BaseButton>
             </div>
           </template>
           <template #empty>
             <BaseEmptyState title="No maintenance tasks">
               <template #actions>
-                <BaseButton size="sm" @click="openAddTask">Add first task</BaseButton>
+                <BaseButton @click="openAddTask">Add first task</BaseButton>
               </template>
             </BaseEmptyState>
           </template>

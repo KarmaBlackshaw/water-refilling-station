@@ -133,7 +133,7 @@ function statusVariant(status: string): 'warning' | 'success' | 'default' {
         </div>
         <div class="ml-auto flex items-center gap-2">
           <BaseDatePicker v-model="selectedDate" class="w-44" />
-          <BaseButton size="sm" @click="newDeliveryOpen = true">New Delivery</BaseButton>
+          <BaseButton @click="newDeliveryOpen = true">New Delivery</BaseButton>
         </div>
       </div>
 
@@ -155,7 +155,7 @@ function statusVariant(status: string): 'warning' | 'success' | 'default' {
                   <p class="font-medium text-casual-navy">{{ sale.customer?.name ?? '—' }}</p>
                   <p v-if="sale.customer?.phone" class="text-xs text-independence">{{ sale.customer.phone }}</p>
                 </div>
-                <BaseBadge :variant="statusVariant(sale.status)" size="sm">{{ statusLabel(sale.status) }}</BaseBadge>
+                <BaseBadge :variant="statusVariant(sale.status)">{{ statusLabel(sale.status) }}</BaseBadge>
               </div>
               <p v-if="sale.address" class="text-xs text-independence">{{ sale.address.label }} — {{ sale.address.address_line }}</p>
               <ul class="space-y-0.5">
@@ -172,7 +172,7 @@ function statusVariant(status: string): 'warning' | 'success' | 'default' {
               </p>
               <p v-if="sale.notes" class="text-xs italic text-independence">{{ sale.notes }}</p>
               <div v-if="sale.status === 'pending_delivery'" class="pt-1">
-                <BaseButton size="sm" variant="full-white" @click="openReconcile(sale)">Reconcile</BaseButton>
+                <BaseButton variant="full-white" @click="openReconcile(sale)">Reconcile</BaseButton>
               </div>
               <p v-else class="pt-1 text-xs text-independence">Delivered</p>
             </BaseCard>

@@ -232,7 +232,7 @@ async function submit() {
             <IconClose class="size-4" />
           </button>
         </div>
-        <BaseButton type="button" variant="independence" size="sm" @click="addLine">+ Add item</BaseButton>
+        <BaseButton type="button" variant="independence" @click="addLine">+ Add item</BaseButton>
         <p class="text-right text-sm font-semibold text-casual-navy">
           Total: <span class="num">{{ formatMoney(total) }}</span>
         </p>

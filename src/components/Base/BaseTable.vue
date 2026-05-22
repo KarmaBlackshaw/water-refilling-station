@@ -42,20 +42,35 @@ defineSlots<{
 
 function resolveKey(row: TRow, index: number): string | number {
   const rk = props.rowKey;
-  if (typeof rk === 'function') return rk(row, index);
-  if (rk === undefined) return index;
+
+  if (typeof rk === 'function') {
+    return rk(row, index);
+  }
+
+  if (rk === undefined) {
+    return index;
+  }
+
   const v = row[rk];
+
   return (v as string | number | undefined) ?? index;
 }
 
 function resolveValue(row: TRow, col: TableColumn<TRow>): unknown {
   const field = (col.field ?? col.key) as keyof TRow;
+
   return row[field];
 }
 
 function alignClass(a?: TableColumn<TRow>['align']): string {
-  if (a === 'right') return 'text-right';
-  if (a === 'center') return 'text-center';
+  if (a === 'right') {
+    return 'text-right';
+  }
+
+  if (a === 'center') {
+    return 'text-center';
+  }
+
   return '';
 }
 </script>
@@ -94,27 +109,13 @@ function alignClass(a?: TableColumn<TRow>['align']): string {
             </slot>
           </td>
         </tr>
-        <tr
-          v-for="(row, index) in rows"
-          v-else
-          :key="resolveKey(row, index)"
-          class="hover:bg-bright-chrome transition-colors"
-        >
+        <tr v-for="(row, index) in rows" v-else :key="resolveKey(row, index)" class="hover:bg-bright-chrome transition-colors">
           <td
             v-for="col in columns"
             :key="col.key"
-            :class="[
-              'px-4 py-3 text-sm text-casual-navy border-b border-sparkling-silver',
-              alignClass(col.align),
-              col.class,
-            ]"
+            :class="['px-4 py-3 text-sm text-casual-navy border-b border-sparkling-silver', alignClass(col.align), col.class]"
           >
-            <slot
-              :name="`cell-${col.key}`"
-              :row="row"
-              :value="resolveValue(row, col)"
-              :index="index"
-            >{{ resolveValue(row, col) ?? '' }}</slot>
+            <slot :name="`cell-${col.key}`" :row="row" :value="resolveValue(row, col)" :index="index">{{ resolveValue(row, col) ?? '' }}</slot>
           </td>
         </tr>
       </tbody>

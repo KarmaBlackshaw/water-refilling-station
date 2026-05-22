@@ -240,7 +240,7 @@ const hasContainerBalance = computed(() => Object.keys(containerBalance.value).l
       <!-- Addresses -->
       <div v-else-if="activeTab === 'addresses'" class="space-y-3">
         <div class="flex justify-end">
-          <BaseButton size="sm" @click="openAddAddr">Add address</BaseButton>
+          <BaseButton @click="openAddAddr">Add address</BaseButton>
         </div>
         <BaseEmptyState v-if="addresses.length === 0" title="No addresses yet" />
         <BaseCard v-for="a in addresses" :key="a.id" padding="sm">
@@ -251,8 +251,8 @@ const hasContainerBalance = computed(() => Object.keys(containerBalance.value).l
               <BaseBadge v-if="a.is_default" variant="info" class="mt-1">Default</BaseBadge>
             </div>
             <div class="flex gap-2">
-              <BaseButton variant="independence" size="sm" @click="openEditAddr(a)">Edit</BaseButton>
-              <BaseButton variant="independence" size="sm" class="text-blaze-red" @click="deleteAddrConfirm = a"> Delete </BaseButton>
+              <BaseButton variant="independence" @click="openEditAddr(a)">Edit</BaseButton>
+              <BaseButton variant="independence" class="text-blaze-red" @click="deleteAddrConfirm = a"> Delete </BaseButton>
             </div>
           </div>
         </BaseCard>
@@ -261,7 +261,7 @@ const hasContainerBalance = computed(() => Object.keys(containerBalance.value).l
       <!-- Price Overrides -->
       <div v-else-if="activeTab === 'price-overrides'" class="space-y-3">
         <div class="flex justify-end">
-          <BaseButton size="sm" @click="openAddOverride">Add override</BaseButton>
+          <BaseButton @click="openAddOverride">Add override</BaseButton>
         </div>
         <BaseCard padding="none">
           <BaseTable
@@ -280,7 +280,7 @@ const hasContainerBalance = computed(() => Object.keys(containerBalance.value).l
             <template #cell-refill_price="{ row }">{{ formatMoney(row.refill_price_centavos) }}</template>
             <template #cell-new_container_price="{ row }">{{ formatMoney(row.new_container_price_centavos) }}</template>
             <template #cell-actions="{ row }">
-              <BaseButton variant="independence" size="sm" class="text-blaze-red" @click="deleteOverrideConfirm = row">Remove</BaseButton>
+              <BaseButton variant="independence" class="text-blaze-red" @click="deleteOverrideConfirm = row">Remove</BaseButton>
             </template>
           </BaseTable>
         </BaseCard>

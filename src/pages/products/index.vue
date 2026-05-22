@@ -150,8 +150,8 @@ async function confirmDeleteContainer() {
           <h1 class="text-2xl font-bold text-casual-navy">Products</h1>
           <p class="text-sm text-oslo">Manage products and pricing</p>
         </div>
-        <BaseButton v-if="activeTab === 'products'" size="sm" @click="openAddProduct">Add product</BaseButton>
-        <BaseButton v-else size="sm" @click="openAddContainer">Add container type</BaseButton>
+        <BaseButton v-if="activeTab === 'products'" @click="openAddProduct">Add product</BaseButton>
+        <BaseButton v-else @click="openAddContainer">Add container type</BaseButton>
       </div>
 
       <BaseTabs
@@ -181,13 +181,13 @@ async function confirmDeleteContainer() {
               </BaseBadge>
             </template>
             <template #cell-actions="{ row }">
-              <BaseButton variant="independence" size="sm" @click="openEditProduct(row)">Edit</BaseButton>
-              <BaseButton variant="independence" size="sm" class="text-blaze-red" @click="deleteProductConfirm = row">Delete</BaseButton>
+              <BaseButton variant="independence" @click="openEditProduct(row)">Edit</BaseButton>
+              <BaseButton variant="independence" class="text-blaze-red" @click="deleteProductConfirm = row">Delete</BaseButton>
             </template>
             <template #empty>
               <BaseEmptyState title="No products yet">
                 <template #actions>
-                  <BaseButton size="sm" @click="openAddProduct">Add first product</BaseButton>
+                  <BaseButton @click="openAddProduct">Add first product</BaseButton>
                 </template>
               </BaseEmptyState>
             </template>
@@ -216,13 +216,13 @@ async function confirmDeleteContainer() {
               </BaseBadge>
             </template>
             <template #cell-actions="{ row }">
-              <BaseButton variant="independence" size="sm" @click="openEditContainer(row)">Edit</BaseButton>
-              <BaseButton variant="independence" size="sm" class="text-blaze-red" @click="deleteContainerConfirm = row">Delete</BaseButton>
+              <BaseButton variant="independence" @click="openEditContainer(row)">Edit</BaseButton>
+              <BaseButton variant="independence" class="text-blaze-red" @click="deleteContainerConfirm = row">Delete</BaseButton>
             </template>
             <template #empty>
               <BaseEmptyState title="No container types yet">
                 <template #actions>
-                  <BaseButton size="sm" @click="openAddContainer">Add first container type</BaseButton>
+                  <BaseButton @click="openAddContainer">Add first container type</BaseButton>
                 </template>
               </BaseEmptyState>
             </template>

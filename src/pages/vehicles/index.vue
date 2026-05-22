@@ -14,6 +14,7 @@ const {
   async () => {
     const rows = await listVehicles();
     const tasks = rows.length > 0 ? await listVehicleMaintenanceTasks(rows.map((v) => v.id)) : [];
+
     return { vehicles: rows, allTasks: tasks };
   },
   {
@@ -128,7 +129,7 @@ async function confirmDelete() {
           <h1 class="text-2xl font-bold text-casual-navy">Vehicles</h1>
           <p class="text-sm text-oslo">Manage fleet vehicles and assignments</p>
         </div>
-        <BaseButton size="sm" @click="openAdd">Add Vehicle</BaseButton>
+        <BaseButton @click="openAdd">Add Vehicle</BaseButton>
       </div>
 
       <BaseTable
@@ -148,26 +149,24 @@ async function confirmDelete() {
         <template #cell-pm_status="{ row }">
           <div class="flex flex-wrap gap-1">
             <template v-if="getVehiclePMBadges(row).overdueCount > 0 || getVehiclePMBadges(row).dueSoonCount > 0">
-              <BaseBadge v-if="getVehiclePMBadges(row).overdueCount > 0" variant="danger" size="sm">
-                {{ getVehiclePMBadges(row).overdueCount }} overdue
-              </BaseBadge>
-              <BaseBadge v-if="getVehiclePMBadges(row).dueSoonCount > 0" variant="warning" size="sm">
+              <BaseBadge v-if="getVehiclePMBadges(row).overdueCount > 0" variant="danger"> {{ getVehiclePMBadges(row).overdueCount }} overdue </BaseBadge>
+              <BaseBadge v-if="getVehiclePMBadges(row).dueSoonCount > 0" variant="warning">
                 {{ getVehiclePMBadges(row).dueSoonCount }} due this week
               </BaseBadge>
             </template>
-            <BaseBadge v-else variant="success" size="sm">OK</BaseBadge>
+            <BaseBadge v-else variant="success">OK</BaseBadge>
           </div>
         </template>
         <template #cell-actions="{ row }">
           <div class="flex justify-end gap-2">
-            <BaseButton variant="independence" size="sm" @click="openEdit(row)">Edit</BaseButton>
-            <BaseButton variant="independence" size="sm" class="text-blaze-red" @click="deleteTarget = row">Delete</BaseButton>
+            <BaseButton variant="independence" @click="openEdit(row)">Edit</BaseButton>
+            <BaseButton variant="independence" class="text-blaze-red" @click="deleteTarget = row">Delete</BaseButton>
           </div>
         </template>
         <template #empty>
           <BaseEmptyState title="No vehicles registered">
             <template #actions>
-              <BaseButton size="sm" @click="openAdd">Add first vehicle</BaseButton>
+              <BaseButton @click="openAdd">Add first vehicle</BaseButton>
             </template>
           </BaseEmptyState>
         </template>

@@ -16,14 +16,14 @@ defineEmits<{
 </script>
 
 <template>
-  <BaseModal :open="open" :title="title ?? 'Are you sure?'" size="sm" :closable="true" @close="$emit('cancel')">
+  <BaseModal :open="open" :title="title ?? 'Are you sure?'" :closable="true" @close="$emit('cancel')">
     <p v-if="message" class="text-sm text-independence">{{ message }}</p>
 
     <template #footer>
-      <BaseButton variant="independence" size="sm" :disabled="loading" @click="$emit('cancel')">
+      <BaseButton variant="independence" :disabled="loading" @click="$emit('cancel')">
         {{ cancelLabel ?? 'Cancel' }}
       </BaseButton>
-      <BaseButton :variant="variant ?? 'blaze-red'" size="sm" :loading="loading" @click="$emit('confirm')">
+      <BaseButton :variant="variant ?? 'blaze-red'" :loading="loading" @click="$emit('confirm')">
         {{ confirmLabel ?? 'Confirm' }}
       </BaseButton>
     </template>

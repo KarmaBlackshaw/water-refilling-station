@@ -22,8 +22,8 @@ const to = computed(() => Math.min(props.page * props.pageSize, props.total));
     </p>
 
     <div class="flex items-center gap-2">
-      <BaseButton variant="independence" size="sm" :disabled="page <= 1" @click="$emit('update:page', page - 1)"> Previous </BaseButton>
-      <BaseButton variant="independence" size="sm" :disabled="page >= totalPages" @click="$emit('update:page', page + 1)"> Next </BaseButton>
+      <BaseButton variant="independence" :disabled="page <= 1" @click="$emit('update:page', page - 1)"> Previous </BaseButton>
+      <BaseButton variant="independence" :disabled="page >= totalPages" @click="$emit('update:page', page + 1)"> Next </BaseButton>
     </div>
   </div>
 </template>

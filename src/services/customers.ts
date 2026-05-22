@@ -154,12 +154,7 @@ export function getDaysSinceOrder(lastOrderDate: string | null): number | null {
   return dayjs().startOf('day').diff(dayjs(lastOrderDate).startOf('day'), 'day');
 }
 
-export function isCustomerStale(
-  lastOrderDate: string | null,
-  type: 'delivery' | 'walkin',
-  deliveryThreshold: number,
-  walkinThreshold: number,
-): boolean {
+export function isCustomerStale(lastOrderDate: string | null, type: 'delivery' | 'walkin', deliveryThreshold: number, walkinThreshold: number): boolean {
   const days = getDaysSinceOrder(lastOrderDate);
 
   if (days === null) {

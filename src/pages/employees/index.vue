@@ -100,7 +100,7 @@ async function confirmDelete() {
           <h1 class="text-2xl font-bold text-casual-navy">Employees</h1>
           <p class="text-sm text-oslo">Manage staff accounts and roles</p>
         </div>
-        <BaseButton size="sm" @click="openAdd">Add employee</BaseButton>
+        <BaseButton @click="openAdd">Add employee</BaseButton>
       </div>
 
       <BaseCard padding="none">
@@ -128,13 +128,13 @@ async function confirmDelete() {
             <BaseBadge :variant="row.active ? 'success' : 'default'">{{ row.active ? 'Active' : 'Inactive' }}</BaseBadge>
           </template>
           <template #cell-actions="{ row }">
-            <BaseButton variant="independence" size="sm" @click="openEdit(row)">Edit</BaseButton>
-            <BaseButton variant="independence" size="sm" class="text-blaze-red" @click="deleteConfirm = row">Delete</BaseButton>
+            <BaseButton variant="independence" @click="openEdit(row)">Edit</BaseButton>
+            <BaseButton variant="independence" class="text-blaze-red" @click="deleteConfirm = row">Delete</BaseButton>
           </template>
           <template #empty>
             <BaseEmptyState title="No employees yet">
               <template #actions>
-                <BaseButton size="sm" @click="openAdd">Add first employee</BaseButton>
+                <BaseButton @click="openAdd">Add first employee</BaseButton>
               </template>
             </BaseEmptyState>
           </template>

@@ -23,12 +23,7 @@ export async function loadPricing(customerId?: string | null): Promise<PricingDa
   };
 }
 
-export function resolvePrice(
-  data: PricingData,
-  productId: string,
-  containerTypeId: string,
-  isNewContainer: boolean,
-): number {
+export function resolvePrice(data: PricingData, productId: string, containerTypeId: string, isNewContainer: boolean): number {
   const override = data.overrides.find((o) => o.product_id === productId && o.container_type_id === containerTypeId);
 
   if (override) {

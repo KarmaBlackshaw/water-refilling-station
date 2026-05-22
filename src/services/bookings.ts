@@ -3,7 +3,6 @@ import { supabase, getCurrentUserId } from '@/helpers/supabase';
 import type { Booking, BookingTemplate, BookingTemplateItem, BookingItem } from '@/types/database';
 import type { Dayjs } from 'dayjs';
 
-
 export interface BookingRow extends Booking {
   customer: { name: string } | null;
   rider: { full_name: string } | null;
@@ -21,7 +20,6 @@ export interface TemplateRow extends BookingTemplate {
     container_type: { name: string } | null;
   })[];
 }
-
 
 // Day-of-week mapping: 0=Mon..5=Sat (no Sunday)
 function jsToMon0(jsDay: number): number {
@@ -59,7 +57,6 @@ function matchesCadence(template: TemplateRow, date: Dayjs, from: Dayjs): boolea
   return false;
 }
 
-
 export async function listBookings(params?: { from?: string; to?: string; status?: string; customerId?: string }): Promise<BookingRow[]> {
   const start = today();
   const defaultTo = addDays(start, 14);
@@ -96,7 +93,6 @@ export async function listBookings(params?: { from?: string; to?: string; status
   return (data ?? []) as BookingRow[];
 }
 
-
 export async function listTemplates(): Promise<TemplateRow[]> {
   const { data, error } = await supabase
     .from('booking_templates')
@@ -112,7 +108,6 @@ export async function listTemplates(): Promise<TemplateRow[]> {
 
   return (data ?? []) as TemplateRow[];
 }
-
 
 export async function createTemplate(
   tenantId: string,
@@ -170,7 +165,6 @@ export async function createTemplate(
   return template as BookingTemplate;
 }
 
-
 export async function updateTemplate(
   id: string,
   data: {
@@ -190,7 +184,6 @@ export async function updateTemplate(
   return template as BookingTemplate;
 }
 
-
 export async function deleteTemplate(id: string): Promise<void> {
   const userId = await getCurrentUserId();
   const { error } = await supabase
@@ -206,7 +199,6 @@ export async function deleteTemplate(id: string): Promise<void> {
     throw error;
   }
 }
-
 
 export async function createBooking(
   tenantId: string,
@@ -265,7 +257,6 @@ export async function createBooking(
   return booking as Booking;
 }
 
-
 export async function cancelBooking(id: string): Promise<void> {
   const userId = await getCurrentUserId();
   const { error } = await supabase
@@ -281,7 +272,6 @@ export async function cancelBooking(id: string): Promise<void> {
     throw error;
   }
 }
-
 
 export async function materializeBookings(tenantId: string, branchId: string, from: string, to: string): Promise<number> {
   // Load all active templates with their items
@@ -411,7 +401,6 @@ export async function materializeBookings(tenantId: string, branchId: string, fr
 
   return toCreate.length;
 }
-
 
 export async function fulfillBooking(
   tenantId: string,

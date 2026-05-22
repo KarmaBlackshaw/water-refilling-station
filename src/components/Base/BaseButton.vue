@@ -30,9 +30,9 @@ const variantClass = computed(() => {
 const sizeClass = computed(() => {
   return {
     sm: 'h-7 px-3 text-xs',
-    md: 'h-9 px-4 text-sm',
-    lg: 'h-10 px-5 text-sm',
-    xl: 'h-12 px-6 text-base',
+    md: 'h-10 px-4 text-sm',
+    lg: 'h-12 px-5 text-sm',
+    xl: 'h-14 px-6 text-base',
   }[size];
 });
 </script>
@@ -42,7 +42,7 @@ const sizeClass = computed(() => {
     :type="type"
     :disabled="disabled || loading"
     :class="[
-      'inline-flex items-center justify-center gap-2 rounded font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turquoise-stone',
+      'inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turquoise-stone',
       variantClass,
       sizeClass,
       disabled || loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',

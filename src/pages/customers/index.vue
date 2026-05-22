@@ -11,13 +11,10 @@ const {
   data: customersData,
   loading,
   run: load,
-} = useAsync<CustomerWithArea[]>(
-  () => listCustomers(tenantId.value, branchId.value).then((r) => (r.data ?? []) as CustomerWithArea[]),
-  {
-    immediate: true,
-    defaultValue: [],
-  },
-);
+} = useAsync<CustomerWithArea[]>(() => listCustomers(tenantId.value, branchId.value).then((r) => (r.data ?? []) as CustomerWithArea[]), {
+  immediate: true,
+  defaultValue: [],
+});
 
 const customers = computed(() => customersData.value ?? []);
 
@@ -106,7 +103,7 @@ async function confirmDelete() {
           <h1 class="text-2xl font-bold text-casual-navy">Customers</h1>
           <p class="text-sm text-oslo">Manage customer accounts and delivery addresses</p>
         </div>
-        <BaseButton size="sm" @click="openAdd">Add customer</BaseButton>
+        <BaseButton @click="openAdd">Add customer</BaseButton>
       </div>
 
       <BaseInput v-model="search" placeholder="Search by name or phone..." />
@@ -134,13 +131,13 @@ async function confirmDelete() {
           </template>
           <template #cell-area="{ row }">{{ row.area?.name ?? '—' }}</template>
           <template #cell-actions="{ row }">
-            <BaseButton variant="independence" size="sm" @click="openEdit(row)">Edit</BaseButton>
-            <BaseButton variant="independence" size="sm" class="text-blaze-red" @click="deleteConfirm = row">Delete</BaseButton>
+            <BaseButton variant="independence" @click="openEdit(row)">Edit</BaseButton>
+            <BaseButton variant="independence" class="text-blaze-red" @click="deleteConfirm = row">Delete</BaseButton>
           </template>
           <template #empty>
             <BaseEmptyState :title="search ? 'No customers found' : 'No customers yet'">
               <template #actions>
-                <BaseButton v-if="!search" size="sm" @click="openAdd">Add first customer</BaseButton>
+                <BaseButton v-if="!search" @click="openAdd">Add first customer</BaseButton>
               </template>
             </BaseEmptyState>
           </template>

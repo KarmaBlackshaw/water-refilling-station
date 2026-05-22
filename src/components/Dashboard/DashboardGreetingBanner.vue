@@ -57,6 +57,6 @@ function go() {
         </template>
       </p>
     </div>
-    <BaseButton v-if="to" variant="turquoise-stone" size="sm" @click="go">View Detail</BaseButton>
+    <BaseButton v-if="to" variant="turquoise-stone" @click="go">View Detail</BaseButton>
   </div>
 </template>

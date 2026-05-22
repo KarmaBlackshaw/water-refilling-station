@@ -18,7 +18,6 @@ function resolvePrice(productId: string, containerTypeId: string, isNewContainer
   return resolvePriceFn(pricingData.value, productId, containerTypeId, isNewContainer);
 }
 
-
 type SaleRow = Sale & {
   customer?: { name: string } | null;
   total?: number;
@@ -114,7 +113,6 @@ function statusLabel(status: string) {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
-
 const voidTarget = ref<SaleRow | null>(null);
 const voiding = ref(false);
 
@@ -135,7 +133,6 @@ async function confirmVoid() {
     voiding.value = false;
   }
 }
-
 
 const detailOpen = ref(false);
 const detailSale = ref<(Sale & { customer?: { name: string } | null }) | null>(null);
@@ -160,7 +157,6 @@ async function openDetail(sale: SaleRow) {
 }
 
 const detailTotal = computed(() => detailPayments.value.reduce((s, p) => s + p.amount_centavos, 0));
-
 
 const posOpen = ref(false);
 const saving = ref(false);
@@ -187,7 +183,9 @@ const filteredCustomers = computed(() => {
 });
 
 function closeCustomerDropdown() {
-  setTimeout(() => { showCustomerDropdown.value = false }, 150);
+  setTimeout(() => {
+    showCustomerDropdown.value = false;
+  }, 150);
 }
 
 function selectCustomer(c: CustomerWithArea) {
@@ -210,10 +208,11 @@ function clearCustomer() {
 }
 
 // Products & container types
-const { data: products } = useAsync<Product[]>(
-  () => listProducts(tenantId.value, branchId.value).then((r) => (r.data ?? []) as Product[]),
-  { immediate: true, defaultValue: [], disableResetValue: true },
-);
+const { data: products } = useAsync<Product[]>(() => listProducts(tenantId.value, branchId.value).then((r) => (r.data ?? []) as Product[]), {
+  immediate: true,
+  defaultValue: [],
+  disableResetValue: true,
+});
 const { data: containerTypes } = useAsync<ContainerType[]>(
   () => listContainerTypes(tenantId.value, branchId.value).then((r) => (r.data ?? []) as ContainerType[]),
   { immediate: true, defaultValue: [], disableResetValue: true },
@@ -372,7 +371,6 @@ async function submitSale() {
     saving.value = false;
   }
 }
-
 </script>
 
 <template>
@@ -420,10 +418,8 @@ async function submitSale() {
             <BaseBadge :variant="statusBadgeVariant(row.status)">{{ statusLabel(row.status) }}</BaseBadge>
           </template>
           <template #cell-actions="{ row }">
-            <BaseButton variant="independence" size="sm" @click="openDetail(row)">View</BaseButton>
-            <BaseButton v-if="row.status !== 'void'" variant="independence" size="sm" class="text-blaze-red" @click="voidTarget = row">
-              Void
-            </BaseButton>
+            <BaseButton variant="independence" @click="openDetail(row)">View</BaseButton>
+            <BaseButton v-if="row.status !== 'void'" variant="independence" class="text-blaze-red" @click="voidTarget = row"> Void </BaseButton>
           </template>
         </BaseTable>
       </BaseCard>
@@ -549,7 +545,7 @@ async function submitSale() {
                 </button>
               </div>
             </div>
-            <BaseButton v-if="selectedCustomer" type="button" variant="independence" size="sm" @click="clearCustomer"> Clear </BaseButton>
+            <BaseButton v-if="selectedCustomer" type="button" variant="independence" @click="clearCustomer"> Clear </BaseButton>
           </div>
           <p v-if="selectedCustomer" class="text-xs text-dark-green-turquoise mt-1">
             Selected: {{ selectedCustomer.name }}
@@ -600,7 +596,7 @@ async function submitSale() {
             </div>
           </div>
 
-          <BaseButton type="button" variant="independence" size="sm" class="mt-2" @click="addLine"> + Add Item </BaseButton>
+          <BaseButton type="button" variant="independence" class="mt-2" @click="addLine"> + Add Item </BaseButton>
         </div>
 
         <!-- Payments -->
@@ -625,7 +621,7 @@ async function submitSale() {
             </div>
           </div>
 
-          <BaseButton type="button" variant="independence" size="sm" class="mt-2" @click="addPayment"> + Add Payment </BaseButton>
+          <BaseButton type="button" variant="independence" class="mt-2" @click="addPayment"> + Add Payment </BaseButton>
         </div>
 
         <!-- Summary -->

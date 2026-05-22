@@ -192,7 +192,7 @@ async function confirmDelete() {
           <h1 class="text-2xl font-bold text-casual-navy">Expenses</h1>
           <p class="text-sm text-oslo">Track and categorize operational expenses</p>
         </div>
-        <BaseButton size="sm" @click="openAdd">Add Expense</BaseButton>
+        <BaseButton @click="openAdd">Add Expense</BaseButton>
       </div>
 
       <!-- Filters -->
@@ -202,7 +202,7 @@ async function confirmDelete() {
           <BaseDatePicker v-model="filterTo" label="To" class="w-36" />
           <BaseSelect v-model="filterCategory" label="Category" :options="categoryOptions" class="w-44" />
           <div class="flex items-end">
-            <BaseButton size="sm" @click="load">Filter</BaseButton>
+            <BaseButton @click="load">Filter</BaseButton>
           </div>
         </div>
       </BaseCard>
@@ -262,14 +262,14 @@ async function confirmDelete() {
         <template #cell-amount="{ row }">{{ formatMoney(row.amount_centavos) }}</template>
         <template #cell-actions="{ row }">
           <div class="flex gap-1">
-            <BaseButton variant="independence" size="sm" @click="openEdit(row)">Edit</BaseButton>
-            <BaseButton variant="independence" size="sm" class="text-blaze-red" @click="deleteTarget = row">Delete</BaseButton>
+            <BaseButton variant="independence" @click="openEdit(row)">Edit</BaseButton>
+            <BaseButton variant="independence" class="text-blaze-red" @click="deleteTarget = row">Delete</BaseButton>
           </div>
         </template>
         <template #empty>
           <BaseEmptyState title="No expenses found" description="Add your first expense or adjust the filters.">
             <template #actions>
-              <BaseButton size="sm" @click="openAdd">Add Expense</BaseButton>
+              <BaseButton @click="openAdd">Add Expense</BaseButton>
             </template>
           </BaseEmptyState>
         </template>

@@ -119,13 +119,13 @@ async function saveCoverage() {
           <h1 class="text-2xl font-bold text-casual-navy">Areas</h1>
           <p class="text-sm text-oslo">Manage delivery areas and coverage zones</p>
         </div>
-        <BaseButton size="sm" @click="openAddArea">Add area</BaseButton>
+        <BaseButton @click="openAddArea">Add area</BaseButton>
       </div>
 
       <BaseSpinner v-if="areasLoading" class="mx-auto mt-8" />
       <BaseEmptyState v-else-if="areas.length === 0" title="No areas yet">
         <template #actions>
-          <BaseButton size="sm" @click="openAddArea">Add first area</BaseButton>
+          <BaseButton @click="openAddArea">Add first area</BaseButton>
         </template>
       </BaseEmptyState>
 
@@ -139,9 +139,9 @@ async function saveCoverage() {
               <p v-if="a.notes" class="mt-1 text-xs text-independence">{{ a.notes }}</p>
             </div>
             <div class="flex shrink-0 gap-2">
-              <BaseButton variant="independence" size="sm" @click="openCoverage(a)">Add coverage</BaseButton>
-              <BaseButton variant="independence" size="sm" @click="openEditArea(a)">Edit</BaseButton>
-              <BaseButton variant="independence" size="sm" class="text-blaze-red" @click="deleteAreaConfirm = a">Delete</BaseButton>
+              <BaseButton variant="independence" @click="openCoverage(a)">Add coverage</BaseButton>
+              <BaseButton variant="independence" @click="openEditArea(a)">Edit</BaseButton>
+              <BaseButton variant="independence" class="text-blaze-red" @click="deleteAreaConfirm = a">Delete</BaseButton>
             </div>
           </div>
         </BaseCard>

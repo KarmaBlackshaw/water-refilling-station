@@ -7,10 +7,7 @@ interface RiderRoute {
   done: number;
 }
 
-const {
-  data: routes,
-  loading,
-} = useAsync<RiderRoute[]>(
+const { data: routes, loading } = useAsync<RiderRoute[]>(
   async () => {
     const deliveries = await listDeliverySales(todayDate);
     const map = new Map<string, RiderRoute>();
