@@ -193,7 +193,7 @@ async function submit() {
 </script>
 
 <template>
-  <BaseModal :open="open" title="New Delivery" size="xl" @close="open = false">
+  <BaseModal v-model:open="open" title="New Delivery" size="xl">
     <form id="new-delivery-form" class="space-y-5" @submit.prevent="submit">
       <div class="space-y-1">
         <label class="text-xs font-medium text-oslo">Customer <span class="text-blaze-red">*</span></label>

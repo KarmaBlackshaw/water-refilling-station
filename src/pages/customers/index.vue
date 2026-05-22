@@ -24,18 +24,6 @@ const editingCustomer = ref<Customer | null>(null);
 const deleteConfirm = ref<Customer | null>(null);
 const saving = ref(false);
 
-const form = reactive({
-  name: '',
-  phone: '',
-  type: 'residential' as 'residential' | 'commercial',
-  notes: '',
-});
-
-const typeOptions = [
-  { label: 'Residential', value: 'residential' },
-  { label: 'Commercial', value: 'commercial' },
-];
-
 const filtered = computed(() => {
   const q = search.value.toLowerCase();
 
@@ -48,30 +36,16 @@ const filtered = computed(() => {
 
 function openAdd() {
   editingCustomer.value = null;
-  form.name = '';
-  form.phone = '';
-  form.type = 'residential';
-  form.notes = '';
   modalOpen.value = true;
 }
 
 function openEdit(c: Customer) {
   editingCustomer.value = c;
-  form.name = c.name;
-  form.phone = c.phone ?? '';
-  form.type = c.type;
-  form.notes = c.notes ?? '';
   modalOpen.value = true;
 }
 
-async function save() {
+async function save(payload: { name: string; phone: string | null; type: 'residential' | 'commercial'; notes: string | null }) {
   saving.value = true;
-  const payload = {
-    name: form.name,
-    phone: form.phone || null,
-    type: form.type,
-    notes: form.notes || null,
-  };
 
   if (editingCustomer.value) {
     await updateCustomer(editingCustomer.value.id, payload);
@@ -145,18 +119,7 @@ async function confirmDelete() {
       </BaseCard>
     </div>
 
-    <BaseModal :open="modalOpen" :title="editingCustomer ? 'Edit customer' : 'Add customer'" @close="modalOpen = false">
-      <form id="customer-form" class="space-y-4" @submit.prevent="save">
-        <BaseInput v-model="form.name" label="Name" :required="true" />
-        <BaseInput v-model="form.phone" label="Phone" type="tel" />
-        <BaseSelect v-model="form.type" label="Type" :options="typeOptions" />
-        <BaseTextarea v-model="form.notes" label="Notes" :rows="2" />
-      </form>
-      <template #footer>
-        <BaseButton variant="independence" @click="modalOpen = false">Cancel</BaseButton>
-        <BaseButton type="submit" form="customer-form" :loading="saving">Save</BaseButton>
-      </template>
-    </BaseModal>
+    <CustomerFormModal v-model:open="modalOpen" :customer="editingCustomer" :saving="saving" @submit="save" />
 
     <BaseConfirm
       :open="deleteConfirm !== null"

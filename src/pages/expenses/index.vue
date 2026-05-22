@@ -2,12 +2,10 @@
 import type { ExpenseCategory } from '@/types/database';
 import { formatMoney } from '@/helpers/money';
 
-// Auth / tenant context
 const auth = useAuthStore();
 const tenantId = computed(() => auth.tenantId ?? '');
 const branchId = computed(() => auth.branchId ?? '');
 
-// Category metadata
 type BadgeVariant = 'default' | 'success' | 'warning' | 'danger' | 'info';
 
 const CATEGORIES: ExpenseCategory[] = ['gasoline', 'parts', 'supplies', 'utilities', 'other'];
@@ -28,14 +26,12 @@ const CATEGORY_VARIANT: Record<ExpenseCategory, BadgeVariant> = {
   other: 'default',
 };
 
-// Filters
 const filterFrom = ref(startOfMonth());
 const filterTo = ref(today());
 const filterCategory = ref('');
 
 const categoryOptions = computed(() => [{ label: 'All Categories', value: '' }, ...CATEGORIES.map((c) => ({ label: CATEGORY_LABEL[c], value: c }))]);
 
-// Data
 type ExpenseRow = Awaited<ReturnType<typeof listExpenses>>[number];
 
 const {
@@ -63,7 +59,6 @@ const {
   },
 );
 
-// Summary
 const totalCentavos = computed(() => expenses.value.reduce((s, e) => s + e.amount_centavos, 0));
 
 const byCategory = computed(() => {
@@ -75,7 +70,6 @@ const byCategory = computed(() => {
   return map;
 });
 
-// Employees (for payee select)
 type EmployeeOption = { id: string; full_name: string };
 
 const { data: employees } = useAsync<EmployeeOption[]>(
@@ -97,59 +91,30 @@ const { data: employees } = useAsync<EmployeeOption[]>(
 
 const employeeOptions = computed(() => [{ label: 'None / External', value: '' }, ...employees.value.map((e) => ({ label: e.full_name, value: e.id }))]);
 
-// Modal state
 const modalOpen = ref(false);
 const editingExpense = ref<ExpenseRow | null>(null);
 const saving = ref(false);
 
-const form = reactive({
-  expense_date: today(),
-  category: '' as ExpenseCategory | '',
-  amountInput: '',
-  payee_employee_id: '',
-  description: '',
-  reference_number: '',
-});
-
 function openAdd() {
   editingExpense.value = null;
-  form.expense_date = today();
-  form.category = '';
-  form.amountInput = '';
-  form.payee_employee_id = '';
-  form.description = '';
-  form.reference_number = '';
   modalOpen.value = true;
 }
 
 function openEdit(expense: ExpenseRow) {
   editingExpense.value = expense;
-  form.expense_date = expense.expense_date;
-  form.category = expense.category;
-  form.amountInput = (expense.amount_centavos / 100).toFixed(2);
-  form.payee_employee_id = expense.payee_employee_id ?? '';
-  form.description = expense.description ?? '';
-  form.reference_number = expense.reference_number ?? '';
   modalOpen.value = true;
 }
 
-async function saveExpense() {
-  if (!form.category) {
-    return;
-  }
-
+async function saveExpense(payload: {
+  expense_date: string;
+  category: ExpenseCategory;
+  amount_centavos: number;
+  payee_employee_id: string | null;
+  description: string | null;
+  reference_number: string | null;
+}) {
   saving.value = true;
   try {
-    const amount_centavos = Math.round(parseFloat(form.amountInput) * 100);
-    const payload = {
-      expense_date: form.expense_date,
-      category: form.category as ExpenseCategory,
-      amount_centavos,
-      payee_employee_id: form.payee_employee_id || null,
-      description: form.description || null,
-      reference_number: form.reference_number || null,
-    };
-
     if (editingExpense.value) {
       await updateExpense(editingExpense.value.id, payload);
     } else {
@@ -163,7 +128,6 @@ async function saveExpense() {
   }
 }
 
-// Delete
 const deleteTarget = ref<ExpenseRow | null>(null);
 const deleting = ref(false);
 
@@ -186,7 +150,6 @@ async function confirmDelete() {
 <template>
   <div class="h-full overflow-y-auto p-6">
     <div class="space-y-4">
-      <!-- Header -->
       <div class="flex items-center justify-between">
         <div>
           <h1 class="text-2xl font-bold text-casual-navy">Expenses</h1>
@@ -195,7 +158,6 @@ async function confirmDelete() {
         <BaseButton @click="openAdd">Add Expense</BaseButton>
       </div>
 
-      <!-- Filters -->
       <BaseCard padding="sm">
         <div class="flex flex-wrap items-end gap-3">
           <BaseDatePicker v-model="filterFrom" label="From" class="w-36" />
@@ -207,7 +169,6 @@ async function confirmDelete() {
         </div>
       </BaseCard>
 
-      <!-- Summary -->
       <BaseCard padding="sm">
         <div class="space-y-2">
           <div class="flex items-baseline gap-2">
@@ -231,82 +192,63 @@ async function confirmDelete() {
         </div>
       </BaseCard>
 
-      <BaseTable
-        :columns="[
-          { key: 'expense_date', label: 'Date' },
-          { key: 'category', label: 'Category' },
-          { key: 'description', label: 'Description' },
-          { key: 'payee', label: 'Payee' },
-          { key: 'reference_number', label: 'Ref #' },
-          { key: 'amount', label: 'Amount', align: 'right', class: 'num' },
-          { key: 'actions', label: '' },
-        ]"
-        :data="expenses"
-        :loading="loading"
-      >
-        <template #cell-category="{ row }">
-          <BaseBadge :variant="CATEGORY_VARIANT[row.category]">
-            {{ CATEGORY_LABEL[row.category] }}
-          </BaseBadge>
-        </template>
-        <template #cell-description="{ row }">
-          <span class="text-independence">{{ row.description ?? '—' }}</span>
-        </template>
-        <template #cell-payee="{ row }">
-          <span v-if="row.employees">{{ (row.employees as { full_name: string }).full_name }}</span>
-          <span v-else class="text-independence">—</span>
-        </template>
-        <template #cell-reference_number="{ row }">
-          <span class="text-independence">{{ row.reference_number ?? '—' }}</span>
-        </template>
-        <template #cell-amount="{ row }">{{ formatMoney(row.amount_centavos) }}</template>
-        <template #cell-actions="{ row }">
-          <div class="flex gap-1">
-            <BaseButton variant="independence" @click="openEdit(row)">Edit</BaseButton>
-            <BaseButton variant="independence" class="text-blaze-red" @click="deleteTarget = row">Delete</BaseButton>
-          </div>
-        </template>
-        <template #empty>
-          <BaseEmptyState title="No expenses found" description="Add your first expense or adjust the filters.">
-            <template #actions>
-              <BaseButton @click="openAdd">Add Expense</BaseButton>
-            </template>
-          </BaseEmptyState>
-        </template>
-      </BaseTable>
+      <BaseCard padding="none">
+        <BaseTable
+          :columns="[
+            { key: 'expense_date', label: 'Date' },
+            { key: 'category', label: 'Category' },
+            { key: 'description', label: 'Description' },
+            { key: 'payee', label: 'Payee' },
+            { key: 'reference_number', label: 'Ref #' },
+            { key: 'amount', label: 'Amount', align: 'right', class: 'num' },
+            { key: 'actions', label: '' },
+          ]"
+          :data="expenses"
+          :loading="loading"
+        >
+          <template #cell-category="{ row }">
+            <BaseBadge :variant="CATEGORY_VARIANT[row.category]">
+              {{ CATEGORY_LABEL[row.category] }}
+            </BaseBadge>
+          </template>
+          <template #cell-description="{ row }">
+            <span class="text-independence">{{ row.description ?? '—' }}</span>
+          </template>
+          <template #cell-payee="{ row }">
+            <span v-if="row.employees">{{ (row.employees as { full_name: string }).full_name }}</span>
+            <span v-else class="text-independence">—</span>
+          </template>
+          <template #cell-reference_number="{ row }">
+            <span class="text-independence">{{ row.reference_number ?? '—' }}</span>
+          </template>
+          <template #cell-amount="{ row }">{{ formatMoney(row.amount_centavos) }}</template>
+          <template #cell-actions="{ row }">
+            <div class="flex gap-1">
+              <BaseButton variant="independence" @click="openEdit(row)">Edit</BaseButton>
+              <BaseButton variant="independence" class="text-blaze-red" @click="deleteTarget = row">Delete</BaseButton>
+            </div>
+          </template>
+          <template #empty>
+            <BaseEmptyState title="No expenses found" description="Add your first expense or adjust the filters.">
+              <template #actions>
+                <BaseButton @click="openAdd">Add Expense</BaseButton>
+              </template>
+            </BaseEmptyState>
+          </template>
+        </BaseTable>
+      </BaseCard>
     </div>
 
-    <!-- Add / Edit Modal -->
-    <BaseModal :open="modalOpen" :title="editingExpense ? 'Edit Expense' : 'Add Expense'" @close="modalOpen = false">
-      <form id="expense-form" class="space-y-4" @submit.prevent="saveExpense">
-        <BaseDatePicker v-model="form.expense_date" label="Date" :required="true" />
+    <ExpenseFormModal
+      v-model:open="modalOpen"
+      :expense="editingExpense"
+      :employee-options="employeeOptions"
+      :categories="CATEGORIES"
+      :category-label="CATEGORY_LABEL"
+      :saving="saving"
+      @submit="saveExpense"
+    />
 
-        <BaseSelect
-          v-model="form.category"
-          label="Category"
-          :options="CATEGORIES.map((c) => ({ label: CATEGORY_LABEL[c], value: c }))"
-          placeholder="Select category..."
-          :required="true"
-        />
-
-        <BaseInput v-model="form.amountInput" label="Amount (₱)" type="number" :required="true" placeholder="0.00" step="0.01" min="0" />
-
-        <BaseSelect v-model="form.payee_employee_id" label="Payee Employee" :options="employeeOptions" />
-
-        <BaseTextarea v-model="form.description" label="Description" :rows="2" placeholder="Optional notes..." />
-
-        <BaseInput v-model="form.reference_number" label="Reference #" placeholder="Optional receipt or reference number" />
-      </form>
-
-      <template #footer>
-        <BaseButton variant="independence" @click="modalOpen = false">Cancel</BaseButton>
-        <BaseButton type="submit" form="expense-form" :loading="saving">
-          {{ editingExpense ? 'Update' : 'Add' }}
-        </BaseButton>
-      </template>
-    </BaseModal>
-
-    <!-- Delete confirm -->
     <BaseConfirm
       :open="deleteTarget !== null"
       title="Delete expense?"

@@ -84,7 +84,7 @@ async function submit() {
 </script>
 
 <template>
-  <BaseModal :open="open" title="Reconcile Delivery" size="md" @close="open = false">
+  <BaseModal v-model:open="open" title="Reconcile Delivery" size="md">
     <div v-if="sale" class="space-y-4">
       <div class="rounded-lg bg-[--color-surface-raised] p-3 text-sm">
         <p class="font-medium text-casual-navy">{{ sale.customer?.name ?? '—' }}</p>

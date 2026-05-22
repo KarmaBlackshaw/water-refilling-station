@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Employee, UserRole } from '@/types/database';
-import { formatMoney, parseMoney } from '@/helpers/money';
+import { formatMoney } from '@/helpers/money';
 
 const auth = useAuthStore();
 const tenantId = computed(() => auth.tenantId ?? '');
@@ -21,54 +21,25 @@ const editingEmployee = ref<Employee | null>(null);
 const deleteConfirm = ref<Employee | null>(null);
 const saving = ref(false);
 
-const form = reactive({
-  full_name: '',
-  phone: '',
-  hire_date: '',
-  role: 'rider' as UserRole,
-  monthly_salary_display: '',
-  daily_quota_jugs: '',
-});
-
-const roleOptions = [
-  { label: 'Rider', value: 'rider' },
-  { label: 'Admin', value: 'admin' },
-];
-
 function openAdd() {
   editingEmployee.value = null;
-  form.full_name = '';
-  form.phone = '';
-  form.hire_date = '';
-  form.role = 'rider';
-  form.monthly_salary_display = formatMoney(0);
-  form.daily_quota_jugs = '';
   modalOpen.value = true;
 }
 
 function openEdit(e: Employee) {
   editingEmployee.value = e;
-  form.full_name = e.full_name;
-  form.phone = e.phone ?? '';
-  form.hire_date = e.hire_date ?? '';
-  form.role = e.role;
-  form.monthly_salary_display = formatMoney(e.monthly_salary_centavos);
-  form.daily_quota_jugs = e.daily_quota_jugs != null ? String(e.daily_quota_jugs) : '';
   modalOpen.value = true;
 }
 
-async function save() {
+async function save(payload: {
+  full_name: string;
+  phone: string | undefined;
+  hire_date: string | undefined;
+  role: UserRole;
+  monthly_salary_centavos: number;
+  daily_quota_jugs: number | null;
+}) {
   saving.value = true;
-  const salary = parseMoney(form.monthly_salary_display);
-  const quota = form.daily_quota_jugs ? parseInt(form.daily_quota_jugs, 10) : null;
-  const payload = {
-    full_name: form.full_name,
-    phone: form.phone || undefined,
-    hire_date: form.hire_date || undefined,
-    role: form.role,
-    monthly_salary_centavos: salary,
-    daily_quota_jugs: quota,
-  };
 
   if (editingEmployee.value) {
     await updateEmployee(editingEmployee.value.id, payload);
@@ -142,20 +113,7 @@ async function confirmDelete() {
       </BaseCard>
     </div>
 
-    <BaseModal :open="modalOpen" :title="editingEmployee ? 'Edit employee' : 'Add employee'" @close="modalOpen = false">
-      <form id="employee-form" class="space-y-4" @submit.prevent="save">
-        <BaseInput v-model="form.full_name" label="Full name" :required="true" />
-        <BaseInput v-model="form.phone" label="Phone" type="tel" />
-        <BaseDatePicker v-model="form.hire_date" label="Hire date" />
-        <BaseSelect v-model="form.role" label="Role" :options="roleOptions" />
-        <BaseInput v-model="form.monthly_salary_display" label="Monthly salary" placeholder="₱0.00" />
-        <BaseInput v-model="form.daily_quota_jugs" label="Daily quota (jugs) — riders only" type="number" helper-text="Leave blank to use the tenant default" />
-      </form>
-      <template #footer>
-        <BaseButton variant="independence" @click="modalOpen = false">Cancel</BaseButton>
-        <BaseButton type="submit" form="employee-form" :loading="saving">Save</BaseButton>
-      </template>
-    </BaseModal>
+    <EmployeeFormModal v-model:open="modalOpen" :employee="editingEmployee" :saving="saving" @submit="save" />
 
     <BaseConfirm
       :open="deleteConfirm !== null"

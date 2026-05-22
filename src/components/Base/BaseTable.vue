@@ -10,7 +10,7 @@ export interface TableColumn<TRow = Record<string, unknown>> {
 }
 </script>
 
-<script setup lang="ts" generic="TRow extends Record<string, unknown>">
+<script setup lang="ts" generic="TRow extends object">
 import BaseSpinner from './BaseSpinner.vue';
 import BaseEmptyState from './BaseEmptyState.vue';
 

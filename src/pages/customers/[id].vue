@@ -79,46 +79,33 @@ const arBalance = computed(() => pageData.value?.arBalance ?? 0);
 
 const addrModalOpen = ref(false);
 const editingAddr = ref<CustomerAddress | null>(null);
-const addrForm = reactive({ label: '', address_line: '', is_default: false });
 const addrSaving = ref(false);
 const deleteAddrConfirm = ref<CustomerAddress | null>(null);
 
 function openAddAddr() {
   editingAddr.value = null;
-  addrForm.label = '';
-  addrForm.address_line = '';
-  addrForm.is_default = addresses.value.length === 0;
   addrModalOpen.value = true;
 }
 
 function openEditAddr(a: CustomerAddress) {
   editingAddr.value = a;
-  addrForm.label = a.label;
-  addrForm.address_line = a.address_line;
-  addrForm.is_default = a.is_default;
   addrModalOpen.value = true;
 }
 
-async function saveAddr() {
+async function saveAddr(payload: { label: string; address_line: string; is_default: boolean }) {
   if (!customer.value) {
     return;
   }
 
   addrSaving.value = true;
   if (editingAddr.value) {
-    await updateAddress(editingAddr.value.id, {
-      label: addrForm.label,
-      address_line: addrForm.address_line,
-      is_default: addrForm.is_default,
-    });
+    await updateAddress(editingAddr.value.id, payload);
   } else {
     await createAddress({
       tenant_id: tenantId.value,
       branch_id: branchId.value,
       customer_id: customer.value.id,
-      label: addrForm.label,
-      address_line: addrForm.address_line,
-      is_default: addrForm.is_default,
+      ...payload,
     });
   }
 
@@ -140,22 +127,17 @@ async function confirmDeleteAddr() {
 const overrideModalOpen = ref(false);
 const overrideSaving = ref(false);
 const deleteOverrideConfirm = ref<PriceOverrideWithRels | null>(null);
-const overrideForm = reactive({
-  product_id: '',
-  container_type_id: '',
-  refill_price: '',
-  new_container_price: '',
-});
 
 function openAddOverride() {
-  overrideForm.product_id = '';
-  overrideForm.container_type_id = '';
-  overrideForm.refill_price = '';
-  overrideForm.new_container_price = '';
   overrideModalOpen.value = true;
 }
 
-async function saveOverride() {
+async function saveOverride(payload: {
+  product_id: string;
+  container_type_id: string;
+  refill_price_centavos: number;
+  new_container_price_centavos: number;
+}) {
   if (!customer.value) {
     return;
   }
@@ -165,10 +147,7 @@ async function saveOverride() {
     tenant_id: tenantId.value,
     branch_id: branchId.value,
     customer_id: customer.value.id,
-    product_id: overrideForm.product_id,
-    container_type_id: overrideForm.container_type_id,
-    refill_price_centavos: Math.round(parseFloat(overrideForm.refill_price) * 100),
-    new_container_price_centavos: Math.round(parseFloat(overrideForm.new_container_price) * 100),
+    ...payload,
   });
   overrideModalOpen.value = false;
   await load();
@@ -205,7 +184,6 @@ const hasContainerBalance = computed(() => Object.keys(containerBalance.value).l
 
       <BaseTabs v-model="activeTab" :tabs="tabs" />
 
-      <!-- Overview -->
       <div v-if="activeTab === 'overview'" class="space-y-4">
         <BaseCard padding="sm">
           <dl class="space-y-2 text-sm">
@@ -237,7 +215,6 @@ const hasContainerBalance = computed(() => Object.keys(containerBalance.value).l
         </BaseCard>
       </div>
 
-      <!-- Addresses -->
       <div v-else-if="activeTab === 'addresses'" class="space-y-3">
         <div class="flex justify-end">
           <BaseButton @click="openAddAddr">Add address</BaseButton>
@@ -258,7 +235,6 @@ const hasContainerBalance = computed(() => Object.keys(containerBalance.value).l
         </BaseCard>
       </div>
 
-      <!-- Price Overrides -->
       <div v-else-if="activeTab === 'price-overrides'" class="space-y-3">
         <div class="flex justify-end">
           <BaseButton @click="openAddOverride">Add override</BaseButton>
@@ -286,7 +262,6 @@ const hasContainerBalance = computed(() => Object.keys(containerBalance.value).l
         </BaseCard>
       </div>
 
-      <!-- Sales History -->
       <div v-else-if="activeTab === 'sales'" class="space-y-3">
         <BaseCard padding="none">
           <BaseTable
@@ -315,20 +290,14 @@ const hasContainerBalance = computed(() => Object.keys(containerBalance.value).l
 
     <BaseEmptyState v-else title="Customer not found" />
 
-    <!-- Address modal -->
-    <BaseModal :open="addrModalOpen" :title="editingAddr ? 'Edit address' : 'Add address'" @close="addrModalOpen = false">
-      <form id="addr-form" class="space-y-4" @submit.prevent="saveAddr">
-        <BaseInput v-model="addrForm.label" label="Label (e.g. Home, Office)" :required="true" />
-        <BaseTextarea v-model="addrForm.address_line" label="Address" :required="true" :rows="2" />
-        <BaseCheckbox v-model="addrForm.is_default" label="Set as default address" />
-      </form>
-      <template #footer>
-        <BaseButton variant="independence" @click="addrModalOpen = false">Cancel</BaseButton>
-        <BaseButton type="submit" form="addr-form" :loading="addrSaving">Save</BaseButton>
-      </template>
-    </BaseModal>
+    <CustomerAddressFormModal
+      v-model:open="addrModalOpen"
+      :address="editingAddr"
+      :is-first-address="addresses.length === 0"
+      :saving="addrSaving"
+      @submit="saveAddr"
+    />
 
-    <!-- Delete address confirm -->
     <BaseConfirm
       :open="deleteAddrConfirm !== null"
       title="Delete address?"
@@ -337,21 +306,8 @@ const hasContainerBalance = computed(() => Object.keys(containerBalance.value).l
       @cancel="deleteAddrConfirm = null"
     />
 
-    <!-- Price override modal -->
-    <BaseModal :open="overrideModalOpen" title="Add price override" @close="overrideModalOpen = false">
-      <form id="override-form" class="space-y-4" @submit.prevent="saveOverride">
-        <BaseInput v-model="overrideForm.product_id" label="Product ID" :required="true" />
-        <BaseInput v-model="overrideForm.container_type_id" label="Container type ID" :required="true" />
-        <BaseInput v-model="overrideForm.refill_price" label="Refill price (₱)" type="number" :required="true" />
-        <BaseInput v-model="overrideForm.new_container_price" label="New container price (₱)" type="number" :required="true" />
-      </form>
-      <template #footer>
-        <BaseButton variant="independence" @click="overrideModalOpen = false">Cancel</BaseButton>
-        <BaseButton type="submit" form="override-form" :loading="overrideSaving">Save</BaseButton>
-      </template>
-    </BaseModal>
+    <CustomerPriceOverrideFormModal v-model:open="overrideModalOpen" :saving="overrideSaving" @submit="saveOverride" />
 
-    <!-- Delete override confirm -->
     <BaseConfirm
       :open="deleteOverrideConfirm !== null"
       title="Remove price override?"

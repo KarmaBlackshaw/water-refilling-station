@@ -83,36 +83,8 @@ const taskModalOpen = ref(false);
 const editingTask = ref<MaintenanceTask | null>(null);
 const saving = ref(false);
 
-const scheduleOptions = [
-  { label: 'Time-based', value: 'time' },
-  { label: 'Usage-based', value: 'usage' },
-];
-
-const taskForm = reactive({
-  vehicle_id: '',
-  task_type: '',
-  schedule_kind: 'time' as ScheduleKind,
-  interval_days: '',
-  interval_usage: '',
-  last_done_at: '',
-  next_due_at: '',
-});
-
-const taskModalTitle = computed(() => (editingTask.value ? 'Edit Task' : 'Add Task'));
-
-function resetTaskForm() {
-  taskForm.vehicle_id = '';
-  taskForm.task_type = '';
-  taskForm.schedule_kind = 'time';
-  taskForm.interval_days = '';
-  taskForm.interval_usage = '';
-  taskForm.last_done_at = '';
-  taskForm.next_due_at = '';
-}
-
 async function openAddTask() {
   editingTask.value = null;
-  resetTaskForm();
   if (activeTab.value === 'vehicle') {
     await ensureVehicles();
   }
@@ -122,13 +94,6 @@ async function openAddTask() {
 
 async function openEditTask(task: MaintenanceTask) {
   editingTask.value = task;
-  taskForm.vehicle_id = task.vehicle_id ?? '';
-  taskForm.task_type = task.task_type;
-  taskForm.schedule_kind = task.schedule_kind;
-  taskForm.interval_days = task.interval_days != null ? String(task.interval_days) : '';
-  taskForm.interval_usage = task.interval_usage != null ? String(task.interval_usage) : '';
-  taskForm.last_done_at = task.last_done_at ?? '';
-  taskForm.next_due_at = task.next_due_at ?? '';
   if (activeTab.value === 'vehicle') {
     await ensureVehicles();
   }
@@ -136,28 +101,19 @@ async function openEditTask(task: MaintenanceTask) {
   taskModalOpen.value = true;
 }
 
-// Auto-compute next_due_at when last_done_at or interval_days change
-watch([() => taskForm.last_done_at, () => taskForm.interval_days, () => taskForm.schedule_kind], () => {
-  if (taskForm.schedule_kind === 'time' && taskForm.last_done_at && taskForm.interval_days) {
-    const days = parseInt(taskForm.interval_days, 10);
-
-    if (!isNaN(days) && days > 0) {
-      taskForm.next_due_at = addDays(taskForm.last_done_at, days);
-    }
-  }
-});
-
-async function saveTask() {
+async function saveTask(formPayload: {
+  vehicle_id: string | null;
+  task_type: string;
+  schedule_kind: ScheduleKind;
+  interval_days: number | null;
+  interval_usage: number | null;
+  last_done_at: string | null;
+  next_due_at: string | null;
+}) {
   saving.value = true;
   const payload = {
     scope: activeTab.value as MaintenanceScope,
-    vehicle_id: activeTab.value === 'vehicle' && taskForm.vehicle_id ? taskForm.vehicle_id : null,
-    task_type: taskForm.task_type,
-    schedule_kind: taskForm.schedule_kind,
-    interval_days: taskForm.schedule_kind === 'time' && taskForm.interval_days ? parseInt(taskForm.interval_days, 10) : null,
-    interval_usage: taskForm.schedule_kind === 'usage' && taskForm.interval_usage ? parseInt(taskForm.interval_usage, 10) : null,
-    last_done_at: taskForm.last_done_at || null,
-    next_due_at: taskForm.next_due_at || null,
+    ...formPayload,
   };
 
   if (editingTask.value) {
@@ -187,33 +143,22 @@ const logModalOpen = ref(false);
 const loggingTask = ref<MaintenanceTask | null>(null);
 const loggingSaving = ref(false);
 
-const logForm = reactive({
-  performed_at: todayIso,
-  cost_display: '',
-  notes: '',
-});
-
 function openLogModal(task: MaintenanceTask) {
   loggingTask.value = task;
-  logForm.performed_at = todayIso;
-  logForm.cost_display = '';
-  logForm.notes = '';
   logModalOpen.value = true;
 }
 
-async function saveLog() {
+async function saveLog(payload: { performed_at: string; cost_centavos: number | null; notes: string | null }) {
   if (!loggingTask.value) {
     return;
   }
 
   loggingSaving.value = true;
-  const cost = logForm.cost_display ? Math.round(parseFloat(logForm.cost_display.replace(/[₱,\s]/g, '')) * 100) : null;
-
   await createLog({
     task_id: loggingTask.value.id,
-    performed_at: logForm.performed_at,
-    cost_centavos: isNaN(cost as number) ? null : cost,
-    notes: logForm.notes || null,
+    performed_at: payload.performed_at,
+    cost_centavos: payload.cost_centavos,
+    notes: payload.notes,
   });
   logModalOpen.value = false;
   await load();
@@ -224,7 +169,6 @@ async function saveLog() {
 <template>
   <div class="h-full overflow-y-auto p-6">
     <div class="space-y-4">
-      <!-- Header -->
       <div class="flex items-center justify-between">
         <div>
           <h1 class="text-2xl font-bold text-casual-navy">Maintenance</h1>
@@ -233,10 +177,8 @@ async function saveLog() {
         <BaseButton @click="openAddTask">Add Task</BaseButton>
       </div>
 
-      <!-- Tabs -->
       <BaseTabs v-model="activeTab" :tabs="tabs" />
 
-      <!-- Due stats -->
       <div class="grid grid-cols-2 gap-3">
         <div class="rounded-lg border border-sparkling-silver bg-red-subtle px-4 py-3">
           <p class="text-xs text-independence">Overdue</p>
@@ -281,60 +223,17 @@ async function saveLog() {
       </BaseCard>
     </div>
 
-    <!-- Add/Edit Task modal -->
-    <BaseModal :open="taskModalOpen" :title="taskModalTitle" @close="taskModalOpen = false">
-      <form id="task-form" class="space-y-4" @submit.prevent="saveTask">
-        <!-- Vehicle select (vehicles tab only) -->
-        <BaseSelect v-if="activeTab === 'vehicle'" v-model="taskForm.vehicle_id" label="Vehicle" :options="vehicleOptions" />
+    <MaintenanceTaskFormModal
+      v-model:open="taskModalOpen"
+      :task="editingTask"
+      :scope="activeTab"
+      :vehicle-options="vehicleOptions"
+      :saving="saving"
+      @submit="saveTask"
+    />
 
-        <BaseInput v-model="taskForm.task_type" label="Task type" placeholder="e.g. Filter Swap, Oil Change" :required="true" />
+    <MaintenanceLogModal v-model:open="logModalOpen" :task="loggingTask" :saving="loggingSaving" @submit="saveLog" />
 
-        <BaseSelect v-model="taskForm.schedule_kind" label="Schedule" :options="scheduleOptions" />
-
-        <BaseInput v-if="taskForm.schedule_kind === 'time'" v-model="taskForm.interval_days" label="Interval (days)" type="number" placeholder="e.g. 30" />
-
-        <BaseInput
-          v-if="taskForm.schedule_kind === 'usage'"
-          v-model="taskForm.interval_usage"
-          label="Interval (usage count)"
-          type="number"
-          placeholder="e.g. 500"
-        />
-
-        <BaseDatePicker v-model="taskForm.last_done_at" label="Last done at" />
-
-        <BaseDatePicker
-          v-model="taskForm.next_due_at"
-          label="Next due at"
-          :helper-text="taskForm.schedule_kind === 'time' ? 'Auto-filled when last done + interval are set' : 'Set manually for usage-based tasks'"
-        />
-      </form>
-      <template #footer>
-        <BaseButton variant="independence" @click="taskModalOpen = false">Cancel</BaseButton>
-        <BaseButton type="submit" form="task-form" :loading="saving">Save</BaseButton>
-      </template>
-    </BaseModal>
-
-    <!-- Log Maintenance modal -->
-    <BaseModal :open="logModalOpen" title="Log Maintenance" @close="logModalOpen = false">
-      <form id="log-form" class="space-y-4" @submit.prevent="saveLog">
-        <p class="text-sm text-independence">
-          Task: <span class="font-medium text-casual-navy">{{ loggingTask?.task_type }}</span>
-        </p>
-
-        <BaseDatePicker v-model="logForm.performed_at" label="Performed at" :required="true" />
-
-        <BaseInput v-model="logForm.cost_display" label="Cost" placeholder="₱0.00" />
-
-        <BaseTextarea v-model="logForm.notes" label="Notes" placeholder="Optional notes…" :rows="3" />
-      </form>
-      <template #footer>
-        <BaseButton variant="independence" @click="logModalOpen = false">Cancel</BaseButton>
-        <BaseButton type="submit" form="log-form" :loading="loggingSaving">Save log</BaseButton>
-      </template>
-    </BaseModal>
-
-    <!-- Deactivate confirm -->
     <BaseConfirm
       :open="deactivateConfirm !== null"
       title="Deactivate task?"

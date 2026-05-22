@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatMoney, parseMoney } from '@/helpers/money';
+import { formatMoney } from '@/helpers/money';
 import { computeIncome, getPeriodDates } from '@/services/payroll';
 import type { Employee, EmployeeAttendance, SalaryRecord } from '@/types/database';
 
@@ -61,7 +61,6 @@ async function toggleTodayAttendance() {
   await load();
 }
 
-// Income computations (commission shown as 0 — TODO in T10)
 function getIncomeBreakdown(period: 'today' | 'this_week' | 'this_month') {
   if (!employee.value) {
     return null;
@@ -76,52 +75,54 @@ const todayIncome = computed(() => getIncomeBreakdown('today'));
 const weekIncome = computed(() => getIncomeBreakdown('this_week'));
 const monthIncome = computed(() => getIncomeBreakdown('this_month'));
 
-// Salary record creation
 const salaryModalOpen = ref(false);
-const salaryForm = reactive({
-  period_start: '',
-  period_end: '',
-  base_pay_display: '',
-  commission_display: '',
-  gross_display: '',
-  notes: '',
-});
+const salaryInitial = ref<{
+  period_start: string;
+  period_end: string;
+  base_pay_centavos: number;
+  commission_centavos: number;
+  gross_centavos: number;
+} | null>(null);
 const salarySaving = ref(false);
 
 function openCreateSalary(period: 'today' | 'this_week' | 'this_month') {
   const breakdown = getIncomeBreakdown(period);
   const { start, end } = getPeriodDates(period);
 
-  salaryForm.period_start = start;
-  salaryForm.period_end = end;
-  salaryForm.base_pay_display = formatMoney(breakdown?.basePayCentavos ?? 0);
-  salaryForm.commission_display = formatMoney(breakdown?.commissionCentavos ?? 0);
-  salaryForm.gross_display = formatMoney(breakdown?.grossCentavos ?? 0);
-  salaryForm.notes = '';
+  salaryInitial.value = {
+    period_start: start,
+    period_end: end,
+    base_pay_centavos: breakdown?.basePayCentavos ?? 0,
+    commission_centavos: breakdown?.commissionCentavos ?? 0,
+    gross_centavos: breakdown?.grossCentavos ?? 0,
+  };
   salaryModalOpen.value = true;
 }
 
-async function saveSalaryRecord() {
+async function saveSalaryRecord(payload: {
+  period_start: string;
+  period_end: string;
+  base_pay_centavos: number;
+  commission_centavos: number;
+  gross_centavos: number;
+  notes: string | undefined;
+}) {
   if (!employee.value) {
     return;
   }
 
   salarySaving.value = true;
-  const base = parseMoney(salaryForm.base_pay_display);
-  const commission = parseMoney(salaryForm.commission_display);
-  const gross = parseMoney(salaryForm.gross_display);
-
   await createSalaryRecord({
     tenant_id: tenantId.value,
     branch_id: branchId.value,
     employee_id: employee.value.id,
-    period_start: salaryForm.period_start,
-    period_end: salaryForm.period_end,
-    base_pay_centavos: base,
-    commission_centavos: commission,
-    gross_centavos: gross,
-    net_centavos: gross,
-    notes: salaryForm.notes || undefined,
+    period_start: payload.period_start,
+    period_end: payload.period_end,
+    base_pay_centavos: payload.base_pay_centavos,
+    commission_centavos: payload.commission_centavos,
+    gross_centavos: payload.gross_centavos,
+    net_centavos: payload.gross_centavos,
+    notes: payload.notes,
   });
   salaryModalOpen.value = false;
   await load();
@@ -145,7 +146,6 @@ async function submitRecord(record: SalaryRecord) {
     </div>
 
     <div v-else-if="employee" class="space-y-6">
-      <!-- Header -->
       <div class="flex items-start justify-between">
         <div>
           <h1 class="text-2xl font-bold text-casual-navy">{{ employee.full_name }}</h1>
@@ -159,9 +159,7 @@ async function submitRecord(record: SalaryRecord) {
         </div>
       </div>
 
-      <!-- Income cards -->
       <div class="grid gap-3 grid-cols-3">
-        <!-- Today -->
         <BaseCard padding="sm">
           <p class="text-xs font-medium text-oslo uppercase tracking-wide">Today</p>
           <p class="mt-1 text-xl font-semibold num text-casual-navy">{{ formatMoney(todayIncome?.grossCentavos ?? 0) }}</p>
@@ -171,7 +169,6 @@ async function submitRecord(record: SalaryRecord) {
           <BaseButton variant="independence" class="mt-2 w-full" @click="openCreateSalary('today')">Create salary record</BaseButton>
         </BaseCard>
 
-        <!-- This week -->
         <BaseCard padding="sm">
           <p class="text-xs font-medium text-oslo uppercase tracking-wide">This week</p>
           <p class="mt-1 text-xl font-semibold num text-casual-navy">{{ formatMoney(weekIncome?.grossCentavos ?? 0) }}</p>
@@ -181,7 +178,6 @@ async function submitRecord(record: SalaryRecord) {
           <BaseButton variant="independence" class="mt-2 w-full" @click="openCreateSalary('this_week')">Create salary record</BaseButton>
         </BaseCard>
 
-        <!-- This month -->
         <BaseCard padding="sm">
           <p class="text-xs font-medium text-oslo uppercase tracking-wide">This month</p>
           <p class="mt-1 text-xl font-semibold num text-casual-navy">{{ formatMoney(monthIncome?.grossCentavos ?? 0) }}</p>
@@ -192,7 +188,6 @@ async function submitRecord(record: SalaryRecord) {
         </BaseCard>
       </div>
 
-      <!-- Salary records -->
       <div>
         <h2 class="mb-3 text-sm font-medium text-independence uppercase tracking-wide">Salary records</h2>
         <BaseCard padding="none">
@@ -225,22 +220,6 @@ async function submitRecord(record: SalaryRecord) {
       </div>
     </div>
 
-    <!-- Salary modal -->
-    <BaseModal :open="salaryModalOpen" title="Create salary record" @close="salaryModalOpen = false">
-      <form id="salary-record-form" class="space-y-4" @submit.prevent="saveSalaryRecord">
-        <div class="grid grid-cols-2 gap-3">
-          <BaseDatePicker v-model="salaryForm.period_start" label="Period start" :required="true" />
-          <BaseDatePicker v-model="salaryForm.period_end" label="Period end" :required="true" />
-        </div>
-        <BaseInput v-model="salaryForm.base_pay_display" label="Base pay" placeholder="₱0.00" />
-        <BaseInput v-model="salaryForm.commission_display" label="Commission" placeholder="₱0.00" />
-        <BaseInput v-model="salaryForm.gross_display" label="Gross (editable)" placeholder="₱0.00" />
-        <BaseTextarea v-model="salaryForm.notes" label="Notes" :rows="2" />
-      </form>
-      <template #footer>
-        <BaseButton variant="independence" @click="salaryModalOpen = false">Cancel</BaseButton>
-        <BaseButton type="submit" form="salary-record-form" :loading="salarySaving">Save record</BaseButton>
-      </template>
-    </BaseModal>
+    <EmployeeSalaryRecordModal v-model:open="salaryModalOpen" :initial="salaryInitial" :saving="salarySaving" @submit="saveSalaryRecord" />
   </div>
 </template>

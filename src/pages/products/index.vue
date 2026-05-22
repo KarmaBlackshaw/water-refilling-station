@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatMoney, parseMoney } from '@/helpers/money';
+import { formatMoney } from '@/helpers/money';
 import {
   listProducts,
   createProduct,
@@ -14,13 +14,11 @@ import type { Product, ContainerType } from '@/types/database';
 
 const auth = useAuthStore();
 
-// Tabs
 const activeTab = ref<'products' | 'containers'>('products');
 
 const tenantId = computed(() => auth.tenantId ?? '');
 const branchId = computed(() => auth.branchId ?? '');
 
-// Products state
 const {
   data: products,
   loading: productsLoading,
@@ -32,11 +30,9 @@ const {
 });
 const productModalOpen = ref(false);
 const editingProduct = ref<Product | null>(null);
-const productForm = reactive({ name: '', active: true });
 const productSaving = ref(false);
 const deleteProductConfirm = ref<Product | null>(null);
 
-// Container types state
 const {
   data: containerTypes,
   loading: containerTypesLoading,
@@ -48,31 +44,25 @@ const {
 });
 const containerModalOpen = ref(false);
 const editingContainer = ref<ContainerType | null>(null);
-const containerForm = reactive({ name: '', deposit_display: '₱0.00', active: true });
 const containerSaving = ref(false);
 const deleteContainerConfirm = ref<ContainerType | null>(null);
 
-// Product CRUD
 function openAddProduct() {
   editingProduct.value = null;
-  productForm.name = '';
-  productForm.active = true;
   productModalOpen.value = true;
 }
 
 function openEditProduct(p: Product) {
   editingProduct.value = p;
-  productForm.name = p.name;
-  productForm.active = p.active;
   productModalOpen.value = true;
 }
 
-async function saveProduct() {
+async function saveProduct(payload: { name: string; active: boolean }) {
   productSaving.value = true;
   if (editingProduct.value) {
-    await updateProduct(editingProduct.value.id, { name: productForm.name, active: productForm.active });
+    await updateProduct(editingProduct.value.id, payload);
   } else {
-    await createProduct({ tenant_id: tenantId.value, branch_id: branchId.value, name: productForm.name });
+    await createProduct({ tenant_id: tenantId.value, branch_id: branchId.value, name: payload.name });
   }
 
   productModalOpen.value = false;
@@ -90,39 +80,27 @@ async function confirmDeleteProduct() {
   await loadProducts();
 }
 
-// Container CRUD
 function openAddContainer() {
   editingContainer.value = null;
-  containerForm.name = '';
-  containerForm.deposit_display = formatMoney(0);
-  containerForm.active = true;
   containerModalOpen.value = true;
 }
 
 function openEditContainer(c: ContainerType) {
   editingContainer.value = c;
-  containerForm.name = c.name;
-  containerForm.deposit_display = formatMoney(c.deposit_centavos);
-  containerForm.active = c.active;
   containerModalOpen.value = true;
 }
 
-async function saveContainer() {
+async function saveContainer(payload: { name: string; deposit_centavos: number; active: boolean }) {
   containerSaving.value = true;
-  const deposit = parseMoney(containerForm.deposit_display);
 
   if (editingContainer.value) {
-    await updateContainerType(editingContainer.value.id, {
-      name: containerForm.name,
-      active: containerForm.active,
-      deposit_centavos: deposit,
-    });
+    await updateContainerType(editingContainer.value.id, payload);
   } else {
     await createContainerType({
       tenant_id: tenantId.value,
       branch_id: branchId.value,
-      name: containerForm.name,
-      deposit_centavos: deposit,
+      name: payload.name,
+      deposit_centavos: payload.deposit_centavos,
     });
   }
 
@@ -162,7 +140,6 @@ async function confirmDeleteContainer() {
         ]"
       />
 
-      <!-- Products tab -->
       <div v-if="activeTab === 'products'">
         <BaseCard padding="none">
           <BaseTable
@@ -195,7 +172,6 @@ async function confirmDeleteContainer() {
         </BaseCard>
       </div>
 
-      <!-- Container types tab -->
       <div v-else>
         <BaseCard padding="none">
           <BaseTable
@@ -231,32 +207,10 @@ async function confirmDeleteContainer() {
       </div>
     </div>
 
-    <!-- Product modal -->
-    <BaseModal :open="productModalOpen" :title="editingProduct ? 'Edit product' : 'Add product'" @close="productModalOpen = false">
-      <form id="product-form" class="space-y-4" @submit.prevent="saveProduct">
-        <BaseInput v-model="productForm.name" label="Name" :required="true" />
-        <BaseCheckbox v-model="productForm.active" label="Active" />
-      </form>
-      <template #footer>
-        <BaseButton variant="independence" @click="productModalOpen = false">Cancel</BaseButton>
-        <BaseButton type="submit" form="product-form" :loading="productSaving">Save</BaseButton>
-      </template>
-    </BaseModal>
+    <ProductFormModal v-model:open="productModalOpen" :product="editingProduct" :saving="productSaving" @submit="saveProduct" />
 
-    <!-- Container modal -->
-    <BaseModal :open="containerModalOpen" :title="editingContainer ? 'Edit container type' : 'Add container type'" @close="containerModalOpen = false">
-      <form id="container-form" class="space-y-4" @submit.prevent="saveContainer">
-        <BaseInput v-model="containerForm.name" label="Name" :required="true" />
-        <BaseInput v-model="containerForm.deposit_display" label="Deposit amount" placeholder="₱0.00" />
-        <BaseCheckbox v-model="containerForm.active" label="Active" />
-      </form>
-      <template #footer>
-        <BaseButton variant="independence" @click="containerModalOpen = false">Cancel</BaseButton>
-        <BaseButton type="submit" form="container-form" :loading="containerSaving">Save</BaseButton>
-      </template>
-    </BaseModal>
+    <ContainerTypeFormModal v-model:open="containerModalOpen" :container-type="editingContainer" :saving="containerSaving" @submit="saveContainer" />
 
-    <!-- Delete confirms -->
     <BaseConfirm
       :open="deleteProductConfirm !== null"
       title="Delete product?"

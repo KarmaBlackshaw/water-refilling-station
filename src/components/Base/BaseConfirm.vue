@@ -9,14 +9,20 @@ defineProps<{
   loading?: boolean;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
   confirm: [];
   cancel: [];
 }>();
+
+function onUpdateOpen(v: boolean) {
+  if (!v) {
+    emit('cancel');
+  }
+}
 </script>
 
 <template>
-  <BaseModal :open="open" :title="title ?? 'Are you sure?'" :closable="true" @close="$emit('cancel')">
+  <BaseModal :open="open" :title="title ?? 'Are you sure?'" :closable="true" @update:open="onUpdateOpen">
     <p v-if="message" class="text-sm text-independence">{{ message }}</p>
 
     <template #footer>

@@ -2,15 +2,12 @@
 import type { Size } from '@/types';
 import IconClose from '@/components/Icon/IconClose.vue';
 
+const open = defineModel<boolean>('open', { required: true });
+
 const { size = 'md', closable = true } = defineProps<{
-  open: boolean;
   title?: string;
   size?: Size;
   closable?: boolean;
-}>();
-
-const emit = defineEmits<{
-  close: [];
 }>();
 
 const sizeClass = computed(() => {
@@ -24,13 +21,13 @@ const sizeClass = computed(() => {
 
 function handleClose() {
   if (closable) {
-    emit('close');
+    open.value = false;
   }
 }
 
 function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape' && closable) {
-    emit('close');
+    open.value = false;
   }
 }
 
