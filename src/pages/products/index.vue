@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { formatMoney } from '@/helpers/money';
+import IconEdit from '@/components/Icon/IconEdit.vue';
+import IconTrash from '@/components/Icon/IconTrash.vue';
 import {
   listProducts,
   createProduct,
@@ -118,6 +120,20 @@ async function confirmDeleteContainer() {
   deleteContainerConfirm.value = null;
   await loadContainerTypes();
 }
+
+function productMenu(row: Product) {
+  return [
+    { label: 'Edit', icon: IconEdit, onClick: () => openEditProduct(row) },
+    { label: 'Delete', icon: IconTrash, danger: true, onClick: () => (deleteProductConfirm.value = row) },
+  ];
+}
+
+function containerMenu(row: ContainerType) {
+  return [
+    { label: 'Edit', icon: IconEdit, onClick: () => openEditContainer(row) },
+    { label: 'Delete', icon: IconTrash, danger: true, onClick: () => (deleteContainerConfirm.value = row) },
+  ];
+}
 </script>
 
 <template>
@@ -158,8 +174,7 @@ async function confirmDeleteContainer() {
               </BaseBadge>
             </template>
             <template #cell-actions="{ row }">
-              <BaseButton variant="independence" @click="openEditProduct(row)">Edit</BaseButton>
-              <BaseButton variant="independence" class="text-blaze-red" @click="deleteProductConfirm = row">Delete</BaseButton>
+              <BaseTableActions :menu="productMenu(row)" />
             </template>
             <template #empty>
               <BaseEmptyState title="No products yet">
@@ -192,8 +207,7 @@ async function confirmDeleteContainer() {
               </BaseBadge>
             </template>
             <template #cell-actions="{ row }">
-              <BaseButton variant="independence" @click="openEditContainer(row)">Edit</BaseButton>
-              <BaseButton variant="independence" class="text-blaze-red" @click="deleteContainerConfirm = row">Delete</BaseButton>
+              <BaseTableActions :menu="containerMenu(row)" />
             </template>
             <template #empty>
               <BaseEmptyState title="No container types yet">

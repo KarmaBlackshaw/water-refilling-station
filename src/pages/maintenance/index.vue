@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { MaintenanceTask, MaintenanceScope, ScheduleKind, Vehicle } from '@/types/database';
+import IconEdit from '@/components/Icon/IconEdit.vue';
+import IconTrash from '@/components/Icon/IconTrash.vue';
 
 const tabs = [
   { key: 'water_plant', label: 'Water Plant' },
@@ -164,6 +166,14 @@ async function saveLog(payload: { performed_at: string; cost_centavos: number | 
   await load();
   loggingSaving.value = false;
 }
+
+function taskMenu(task: MaintenanceTask) {
+  return [
+    { label: 'Log', onClick: () => openLogModal(task) },
+    { label: 'Edit', icon: IconEdit, onClick: () => openEditTask(task) },
+    { label: 'Deactivate', icon: IconTrash, danger: true, onClick: () => (deactivateConfirm.value = task) },
+  ];
+}
 </script>
 
 <template>
@@ -206,11 +216,7 @@ async function saveLog(payload: { performed_at: string; cost_centavos: number | 
             <BaseBadge :variant="taskStatus(row).variant">{{ taskStatus(row).label }}</BaseBadge>
           </template>
           <template #cell-actions="{ row }">
-            <div class="flex justify-end gap-1">
-              <BaseButton variant="independence" @click="openLogModal(row)">Log</BaseButton>
-              <BaseButton variant="independence" @click="openEditTask(row)">Edit</BaseButton>
-              <BaseButton variant="independence" class="text-independence" @click="deactivateConfirm = row">Deactivate</BaseButton>
-            </div>
+            <BaseTableActions :menu="taskMenu(row)" />
           </template>
           <template #empty>
             <BaseEmptyState title="No maintenance tasks">

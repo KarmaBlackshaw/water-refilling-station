@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { Customer } from '@/types/database';
+import IconEdit from '@/components/Icon/IconEdit.vue';
+import IconTrash from '@/components/Icon/IconTrash.vue';
 
 const auth = useAuthStore();
 const tenantId = computed(() => auth.tenantId ?? '');
@@ -67,6 +69,13 @@ async function confirmDelete() {
   deleteConfirm.value = null;
   await load();
 }
+
+function rowMenu(row: Customer) {
+  return [
+    { label: 'Edit', icon: IconEdit, onClick: () => openEdit(row) },
+    { label: 'Delete', icon: IconTrash, danger: true, onClick: () => (deleteConfirm.value = row) },
+  ];
+}
 </script>
 
 <template>
@@ -99,15 +108,19 @@ async function confirmDelete() {
               {{ row.name }}
             </RouterLink>
           </template>
+
           <template #cell-phone="{ row }">{{ row.phone ?? '—' }}</template>
+
           <template #cell-type="{ row }">
             <BaseBadge variant="default">{{ row.type }}</BaseBadge>
           </template>
+
           <template #cell-area="{ row }">{{ row.area?.name ?? '—' }}</template>
+
           <template #cell-actions="{ row }">
-            <BaseButton variant="independence" @click="openEdit(row)">Edit</BaseButton>
-            <BaseButton variant="independence" class="text-blaze-red" @click="deleteConfirm = row">Delete</BaseButton>
+            <BaseTableActions :menu="rowMenu(row)" />
           </template>
+
           <template #empty>
             <BaseEmptyState :title="search ? 'No customers found' : 'No customers yet'">
               <template #actions>

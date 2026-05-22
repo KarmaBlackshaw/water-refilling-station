@@ -278,12 +278,7 @@ function submit() {
 
         <div class="space-y-2">
           <div v-for="line in posLines" :key="line.id" class="grid grid-cols-[1fr_1fr_auto_80px_110px_auto_auto] gap-2 items-end">
-            <BaseSelect
-              v-model="line.product_id"
-              :options="productOptions"
-              placeholder="Product"
-              @update:model-value="onLineProductOrContainerChange(line)"
-            />
+            <BaseSelect v-model="line.product_id" :options="productOptions" placeholder="Product" @update:model-value="onLineProductOrContainerChange(line)" />
             <BaseSelect
               v-model="line.container_type_id"
               :options="containerTypeOptions"

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Sale, Customer, Product, ContainerType, SaleLine, SalePayment } from '@/types/database';
 import type { WalkInSubmitPayload } from '@/components/Sale/SaleWalkInModal.vue';
+import IconTrash from '@/components/Icon/IconTrash.vue';
 
 const auth = useAuthStore();
 const tenantId = computed(() => auth.tenantId ?? '');
@@ -183,6 +184,13 @@ async function submitWalkIn(payload: WalkInSubmitPayload) {
     saving.value = false;
   }
 }
+
+function rowMenu(row: SaleRow) {
+  return [
+    { label: 'View', onClick: () => openDetail(row) },
+    { label: 'Void', icon: IconTrash, danger: true, hidden: row.status === 'void', onClick: () => (voidTarget.value = row) },
+  ];
+}
 </script>
 
 <template>
@@ -228,8 +236,7 @@ async function submitWalkIn(payload: WalkInSubmitPayload) {
             <BaseBadge :variant="statusBadgeVariant(row.status)">{{ statusLabel(row.status) }}</BaseBadge>
           </template>
           <template #cell-actions="{ row }">
-            <BaseButton variant="independence" @click="openDetail(row)">View</BaseButton>
-            <BaseButton v-if="row.status !== 'void'" variant="independence" class="text-blaze-red" @click="voidTarget = row"> Void </BaseButton>
+            <BaseTableActions :menu="rowMenu(row)" />
           </template>
         </BaseTable>
       </BaseCard>

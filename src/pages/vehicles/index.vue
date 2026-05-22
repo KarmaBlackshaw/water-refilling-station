@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { Vehicle, MaintenanceTask } from '@/types/database';
+import IconEdit from '@/components/Icon/IconEdit.vue';
+import IconTrash from '@/components/Icon/IconTrash.vue';
 
 const auth = useAuthStore();
 
@@ -87,6 +89,13 @@ async function confirmDelete() {
   deleteTarget.value = null;
   await load();
 }
+
+function rowMenu(row: Vehicle) {
+  return [
+    { label: 'Edit', icon: IconEdit, onClick: () => openEdit(row) },
+    { label: 'Delete', icon: IconTrash, danger: true, onClick: () => (deleteTarget.value = row) },
+  ];
+}
 </script>
 
 <template>
@@ -127,10 +136,7 @@ async function confirmDelete() {
             </div>
           </template>
           <template #cell-actions="{ row }">
-            <div class="flex justify-end gap-2">
-              <BaseButton variant="independence" @click="openEdit(row)">Edit</BaseButton>
-              <BaseButton variant="independence" class="text-blaze-red" @click="deleteTarget = row">Delete</BaseButton>
-            </div>
+            <BaseTableActions :menu="rowMenu(row)" />
           </template>
           <template #empty>
             <BaseEmptyState title="No vehicles registered">

@@ -137,6 +137,10 @@ async function submitRecord(record: SalaryRecord) {
   await submitSalaryRecord(record.id, auth.authUser.id);
   await load();
 }
+
+function salaryRowMenu(row: SalaryRecord) {
+  return [{ label: 'Mark paid', hidden: !!row.paid_at, onClick: () => submitRecord(row) }];
+}
 </script>
 
 <template>
@@ -213,7 +217,7 @@ async function submitRecord(record: SalaryRecord) {
               </BaseBadge>
             </template>
             <template #cell-actions="{ row }">
-              <BaseButton v-if="!row.paid_at" variant="independence" @click="submitRecord(row)">Mark paid</BaseButton>
+              <BaseTableActions :menu="salaryRowMenu(row)" />
             </template>
           </BaseTable>
         </BaseCard>

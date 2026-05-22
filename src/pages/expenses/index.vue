@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { ExpenseCategory } from '@/types/database';
 import { formatMoney } from '@/helpers/money';
+import IconEdit from '@/components/Icon/IconEdit.vue';
+import IconTrash from '@/components/Icon/IconTrash.vue';
 
 const auth = useAuthStore();
 const tenantId = computed(() => auth.tenantId ?? '');
@@ -145,6 +147,13 @@ async function confirmDelete() {
     deleting.value = false;
   }
 }
+
+function rowMenu(row: ExpenseRow) {
+  return [
+    { label: 'Edit', icon: IconEdit, onClick: () => openEdit(row) },
+    { label: 'Delete', icon: IconTrash, danger: true, onClick: () => (deleteTarget.value = row) },
+  ];
+}
 </script>
 
 <template>
@@ -223,10 +232,7 @@ async function confirmDelete() {
           </template>
           <template #cell-amount="{ row }">{{ formatMoney(row.amount_centavos) }}</template>
           <template #cell-actions="{ row }">
-            <div class="flex gap-1">
-              <BaseButton variant="independence" @click="openEdit(row)">Edit</BaseButton>
-              <BaseButton variant="independence" class="text-blaze-red" @click="deleteTarget = row">Delete</BaseButton>
-            </div>
+            <BaseTableActions :menu="rowMenu(row)" />
           </template>
           <template #empty>
             <BaseEmptyState title="No expenses found" description="Add your first expense or adjust the filters.">

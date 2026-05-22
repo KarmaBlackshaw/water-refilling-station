@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { Customer, CustomerAddress, CustomerPriceOverride, Sale } from '@/types/database';
 import { formatMoney } from '@/helpers/money';
+import IconEdit from '@/components/Icon/IconEdit.vue';
+import IconTrash from '@/components/Icon/IconTrash.vue';
 
 const route = useRoute();
 const auth = useAuthStore();
@@ -132,12 +134,7 @@ function openAddOverride() {
   overrideModalOpen.value = true;
 }
 
-async function saveOverride(payload: {
-  product_id: string;
-  container_type_id: string;
-  refill_price_centavos: number;
-  new_container_price_centavos: number;
-}) {
+async function saveOverride(payload: { product_id: string; container_type_id: string; refill_price_centavos: number; new_container_price_centavos: number }) {
   if (!customer.value) {
     return;
   }
@@ -165,6 +162,17 @@ async function confirmDeleteOverride() {
 }
 
 const hasContainerBalance = computed(() => Object.keys(containerBalance.value).length > 0);
+
+function addrMenu(addr: CustomerAddress) {
+  return [
+    { label: 'Edit', icon: IconEdit, onClick: () => openEditAddr(addr) },
+    { label: 'Delete', icon: IconTrash, danger: true, onClick: () => (deleteAddrConfirm.value = addr) },
+  ];
+}
+
+function overrideMenu(override: PriceOverrideWithRels) {
+  return [{ label: 'Remove', icon: IconTrash, danger: true, onClick: () => (deleteOverrideConfirm.value = override) }];
+}
 </script>
 
 <template>
@@ -227,10 +235,7 @@ const hasContainerBalance = computed(() => Object.keys(containerBalance.value).l
               <p class="text-sm text-independence">{{ a.address_line }}</p>
               <BaseBadge v-if="a.is_default" variant="info" class="mt-1">Default</BaseBadge>
             </div>
-            <div class="flex gap-2">
-              <BaseButton variant="independence" @click="openEditAddr(a)">Edit</BaseButton>
-              <BaseButton variant="independence" class="text-blaze-red" @click="deleteAddrConfirm = a"> Delete </BaseButton>
-            </div>
+            <BaseTableActions :menu="addrMenu(a)" />
           </div>
         </BaseCard>
       </div>
@@ -256,7 +261,7 @@ const hasContainerBalance = computed(() => Object.keys(containerBalance.value).l
             <template #cell-refill_price="{ row }">{{ formatMoney(row.refill_price_centavos) }}</template>
             <template #cell-new_container_price="{ row }">{{ formatMoney(row.new_container_price_centavos) }}</template>
             <template #cell-actions="{ row }">
-              <BaseButton variant="independence" class="text-blaze-red" @click="deleteOverrideConfirm = row">Remove</BaseButton>
+              <BaseTableActions :menu="overrideMenu(row)" />
             </template>
           </BaseTable>
         </BaseCard>

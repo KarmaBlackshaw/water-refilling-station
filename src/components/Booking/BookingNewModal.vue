@@ -113,13 +113,7 @@ function submit() {
     <form id="new-booking-form" class="space-y-4" @submit.prevent="submit">
       <div class="grid grid-cols-2 gap-3">
         <BaseSelect v-model="form.customer_id" label="Customer" :options="customerOptions" placeholder="Select customer..." :required="true" />
-        <BaseSelect
-          v-model="form.address_id"
-          label="Address"
-          :options="addressOptions"
-          placeholder="Select address..."
-          :disabled="!form.customer_id"
-        />
+        <BaseSelect v-model="form.address_id" label="Address" :options="addressOptions" placeholder="Select address..." :disabled="!form.customer_id" />
       </div>
       <div class="grid grid-cols-2 gap-3">
         <BaseSelect v-model="form.rider_id" label="Rider" :options="riderOptions" placeholder="Select rider..." />

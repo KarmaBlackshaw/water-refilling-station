@@ -159,13 +159,7 @@ function submit() {
           :required="true"
           :disabled="!!template"
         />
-        <BaseSelect
-          v-model="form.address_id"
-          label="Address"
-          :options="addressOptions"
-          placeholder="Select address..."
-          :disabled="!form.customer_id"
-        />
+        <BaseSelect v-model="form.address_id" label="Address" :options="addressOptions" placeholder="Select address..." :disabled="!form.customer_id" />
       </div>
       <div class="grid grid-cols-3 gap-3">
         <BaseSelect v-model="form.rider_id" label="Rider" :options="riderOptions" placeholder="Select rider..." />

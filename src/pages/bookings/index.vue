@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { Customer, Product, ContainerType, User } from '@/types/database';
 import type { BookingRow, TemplateRow } from '@/services/bookings';
+import IconEdit from '@/components/Icon/IconEdit.vue';
+import IconTrash from '@/components/Icon/IconTrash.vue';
 
 const auth = useAuthStore();
 const tenantId = computed(() => auth.tenantId ?? '');
@@ -269,6 +271,22 @@ async function handleDeleteTemplate() {
   }
 }
 
+function bookingRowMenu(row: BookingRow) {
+  const isPending = row.status === 'pending';
+
+  return [
+    { label: 'Fulfill', onClick: () => openFulfill(row), hidden: !isPending },
+    { label: 'Cancel', icon: IconTrash, danger: true, onClick: () => (cancelTarget.value = row), hidden: !isPending },
+  ];
+}
+
+function templateRowMenu(row: TemplateRow) {
+  return [
+    { label: 'Edit', icon: IconEdit, onClick: () => openEditTemplate(row) },
+    { label: 'Delete', icon: IconTrash, danger: true, onClick: () => (deleteTemplateTarget.value = row) },
+  ];
+}
+
 onMounted(loadShared);
 </script>
 
@@ -323,11 +341,7 @@ onMounted(loadShared);
               </BaseBadge>
             </template>
             <template #cell-actions="{ row }">
-              <div v-if="row.status === 'pending'" class="flex gap-1.5">
-                <BaseButton variant="full-white" @click="openFulfill(row)">Fulfill</BaseButton>
-                <BaseButton variant="independence" class="text-blaze-red" @click="cancelTarget = row">Cancel</BaseButton>
-              </div>
-              <span v-else class="text-xs text-independence">—</span>
+              <BaseTableActions :menu="bookingRowMenu(row)" />
             </template>
           </BaseTable>
         </BaseCard>
@@ -369,10 +383,7 @@ onMounted(loadShared);
               </BaseBadge>
             </template>
             <template #cell-actions="{ row }">
-              <div class="flex gap-1.5">
-                <BaseButton variant="independence" @click="openEditTemplate(row)">Edit</BaseButton>
-                <BaseButton variant="independence" class="text-blaze-red" @click="deleteTemplateTarget = row">Delete</BaseButton>
-              </div>
+              <BaseTableActions :menu="templateRowMenu(row)" />
             </template>
             <template #empty>
               <BaseEmptyState title="No templates yet" description="Create a template to auto-generate recurring bookings.">

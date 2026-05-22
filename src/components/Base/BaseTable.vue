@@ -31,7 +31,7 @@ const props = withDefaults(
   },
 );
 
-const rows = computed<TRow[]>(() => props.data ?? []);
+const rows = computed<TRow[]>(() => (props.data ?? []).filter((r): r is TRow => r != null));
 
 defineSlots<{
   empty(): unknown;
@@ -47,7 +47,7 @@ function resolveKey(row: TRow, index: number): string | number {
     return rk(row, index);
   }
 
-  if (rk === undefined) {
+  if (rk === undefined || row == null) {
     return index;
   }
 
@@ -57,6 +57,10 @@ function resolveKey(row: TRow, index: number): string | number {
 }
 
 function resolveValue(row: TRow, col: TableColumn<TRow>): unknown {
+  if (row == null) {
+    return undefined;
+  }
+
   const field = (col.field ?? col.key) as keyof TRow;
 
   return row[field];

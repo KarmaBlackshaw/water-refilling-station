@@ -103,13 +103,7 @@ function submit() {
 
       <BaseInput v-if="form.schedule_kind === 'time'" v-model="form.interval_days" label="Interval (days)" type="number" placeholder="e.g. 30" />
 
-      <BaseInput
-        v-if="form.schedule_kind === 'usage'"
-        v-model="form.interval_usage"
-        label="Interval (usage count)"
-        type="number"
-        placeholder="e.g. 500"
-      />
+      <BaseInput v-if="form.schedule_kind === 'usage'" v-model="form.interval_usage" label="Interval (usage count)" type="number" placeholder="e.g. 500" />
 
       <BaseDatePicker v-model="form.last_done_at" label="Last done at" />
 

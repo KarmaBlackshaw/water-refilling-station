@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { Employee, UserRole } from '@/types/database';
 import { formatMoney } from '@/helpers/money';
+import IconEdit from '@/components/Icon/IconEdit.vue';
+import IconTrash from '@/components/Icon/IconTrash.vue';
 
 const auth = useAuthStore();
 const tenantId = computed(() => auth.tenantId ?? '');
@@ -10,7 +12,7 @@ const {
   data: employees,
   loading,
   run: load,
-} = useAsync<Employee[]>(() => listEmployees(tenantId.value, branchId.value), {
+} = useAsync<Employee[]>(() => listEmployees(tenantId.value, branchId.value).then((r) => (r.data ?? []) as Employee[]), {
   immediate: true,
   defaultValue: [],
   disableResetValue: true,
@@ -61,6 +63,13 @@ async function confirmDelete() {
   deleteConfirm.value = null;
   await load();
 }
+
+function rowMenu(row: Employee) {
+  return [
+    { label: 'Edit', icon: IconEdit, onClick: () => openEdit(row) },
+    { label: 'Delete', icon: IconTrash, danger: true, onClick: () => (deleteConfirm.value = row) },
+  ];
+}
 </script>
 
 <template>
@@ -99,8 +108,7 @@ async function confirmDelete() {
             <BaseBadge :variant="row.active ? 'success' : 'default'">{{ row.active ? 'Active' : 'Inactive' }}</BaseBadge>
           </template>
           <template #cell-actions="{ row }">
-            <BaseButton variant="independence" @click="openEdit(row)">Edit</BaseButton>
-            <BaseButton variant="independence" class="text-blaze-red" @click="deleteConfirm = row">Delete</BaseButton>
+            <BaseTableActions :menu="rowMenu(row)" />
           </template>
           <template #empty>
             <BaseEmptyState title="No employees yet">

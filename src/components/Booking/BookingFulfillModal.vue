@@ -20,9 +20,7 @@ const { booking, tenantId, branchId, saving } = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  submit: [
-    payload: Array<{ product_id: string; container_type_id: string; unit_price_centavos: number }>,
-  ];
+  submit: [payload: Array<{ product_id: string; container_type_id: string; unit_price_centavos: number }>];
 }>();
 
 const fulfillPrices = ref<FulfillPrice[]>([]);
