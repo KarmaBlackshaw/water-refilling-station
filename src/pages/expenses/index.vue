@@ -61,12 +61,12 @@ const {
   },
 );
 
-const totalCentavos = computed(() => expenses.value.reduce((s, e) => s + e.amount_centavos, 0));
+const totalCentavos = computed(() => expenses.value?.reduce((s, e) => s + e.amount_centavos, 0) ?? 0);
 
 const byCategory = computed(() => {
   const map: Partial<Record<ExpenseCategory, number>> = {};
 
-  for (const e of expenses.value) {
+  for (const e of expenses.value ?? []) {
     map[e.category] = (map[e.category] ?? 0) + e.amount_centavos;
   }
   return map;
