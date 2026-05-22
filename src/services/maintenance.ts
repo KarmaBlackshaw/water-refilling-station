@@ -10,13 +10,14 @@ export async function listTasks(scope: 'water_plant' | 'vehicle'): Promise<Maint
     .eq('scope', scope)
     .eq('active', true)
     .is('deleted_at', null)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .returns<MaintenanceTask[]>();
 
   if (error) {
     throw error;
   }
 
-  return (data ?? []) as MaintenanceTask[];
+  return data ?? [];
 }
 
 export async function createTask(data: {
@@ -29,13 +30,13 @@ export async function createTask(data: {
   last_done_at?: string | null;
   next_due_at?: string | null;
 }): Promise<MaintenanceTask> {
-  const { data: row, error } = await supabase.from('maintenance_tasks').insert(data).select().single();
+  const { data: row, error } = await supabase.from('maintenance_tasks').insert(data).select().single().returns<MaintenanceTask>();
 
   if (error) {
     throw error;
   }
 
-  return row as MaintenanceTask;
+  return row;
 }
 
 export async function updateTask(
@@ -50,13 +51,13 @@ export async function updateTask(
     active: boolean;
   }>,
 ): Promise<MaintenanceTask> {
-  const { data: row, error } = await supabase.from('maintenance_tasks').update(data).eq('id', id).select().single();
+  const { data: row, error } = await supabase.from('maintenance_tasks').update(data).eq('id', id).select().single().returns<MaintenanceTask>();
 
   if (error) {
     throw error;
   }
 
-  return row as MaintenanceTask;
+  return row;
 }
 
 export async function deleteTask(id: string): Promise<void> {
@@ -69,13 +70,18 @@ export async function deleteTask(id: string): Promise<void> {
 }
 
 export async function listLogs(taskId: string): Promise<MaintenanceLog[]> {
-  const { data, error } = await supabase.from('maintenance_logs').select('*').eq('task_id', taskId).order('performed_at', { ascending: false });
+  const { data, error } = await supabase
+    .from('maintenance_logs')
+    .select('*')
+    .eq('task_id', taskId)
+    .order('performed_at', { ascending: false })
+    .returns<MaintenanceLog[]>();
 
   if (error) {
     throw error;
   }
 
-  return (data ?? []) as MaintenanceLog[];
+  return data ?? [];
 }
 
 export async function createLog(data: {
@@ -85,7 +91,7 @@ export async function createLog(data: {
   notes?: string | null;
 }): Promise<MaintenanceLog> {
   // Fetch task to compute next_due_at
-  const { data: task, error: taskError } = await supabase.from('maintenance_tasks').select('*').eq('id', data.task_id).single();
+  const { data: task, error: taskError } = await supabase.from('maintenance_tasks').select('*').eq('id', data.task_id).single().returns<MaintenanceTask>();
 
   if (taskError) {
     throw taskError;
@@ -102,13 +108,14 @@ export async function createLog(data: {
       notes: data.notes ?? null,
     })
     .select()
-    .single();
+    .single()
+    .returns<MaintenanceLog>();
 
   if (error) {
     throw error;
   }
 
-  const nextDue = computeNextDue(task as MaintenanceTask, data.performed_at);
+  const nextDue = computeNextDue(task, data.performed_at);
 
   await supabase
     .from('maintenance_tasks')
@@ -118,7 +125,7 @@ export async function createLog(data: {
     })
     .eq('id', data.task_id);
 
-  return log as MaintenanceLog;
+  return log;
 }
 
 export function computeNextDue(task: MaintenanceTask, logDate: string): string | null {

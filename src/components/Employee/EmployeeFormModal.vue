@@ -22,11 +22,20 @@ const emit = defineEmits<{
   ];
 }>();
 
-const form = reactive({
+type FormState = {
+  full_name: string;
+  phone: string;
+  hire_date: string;
+  role: UserRole;
+  monthly_salary_display: string;
+  daily_quota_jugs: string;
+};
+
+const form = reactive<FormState>({
   full_name: '',
   phone: '',
   hire_date: '',
-  role: 'rider' as UserRole,
+  role: 'rider',
   monthly_salary_display: '',
   daily_quota_jugs: '',
 });

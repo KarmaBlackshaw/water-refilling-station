@@ -29,10 +29,20 @@ const scheduleOptions = [
   { label: 'Usage-based', value: 'usage' },
 ];
 
-const form = reactive({
+type FormState = {
+  vehicle_id: string;
+  task_type: string;
+  schedule_kind: ScheduleKind;
+  interval_days: string;
+  interval_usage: string;
+  last_done_at: string;
+  next_due_at: string;
+};
+
+const form = reactive<FormState>({
   vehicle_id: '',
   task_type: '',
-  schedule_kind: 'time' as ScheduleKind,
+  schedule_kind: 'time',
   interval_days: '',
   interval_usage: '',
   last_done_at: '',

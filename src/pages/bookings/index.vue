@@ -22,10 +22,10 @@ async function loadShared() {
     listContainerTypes(tenantId.value, branchId.value),
   ]);
 
-  customers.value = (custRes.data ?? []) as Customer[];
-  riders.value = (riderRes.data ?? []) as Pick<User, 'id' | 'full_name'>[];
-  products.value = (prodRes.data ?? []) as Product[];
-  containerTypes.value = (ctRes.data ?? []) as ContainerType[];
+  customers.value = custRes.data ?? [];
+  riders.value = riderRes.data ?? [];
+  products.value = prodRes.data ?? [];
+  containerTypes.value = ctRes.data ?? [];
 }
 
 const activeTab = ref('bookings');
@@ -94,7 +94,7 @@ async function handleGenerate() {
     toast.success(`Generated ${count} new booking(s).`);
     await loadBookings();
   } catch (e: unknown) {
-    toast.error((e as Error)?.message ?? 'Failed to generate bookings');
+    toast.error(getErrorMessage(e, 'Failed to generate bookings'));
   } finally {
     generateLoading.value = false;
   }
@@ -117,7 +117,7 @@ async function saveNewBooking(payload: {
     toast.success('Booking created.');
     await loadBookings();
   } catch (e: unknown) {
-    toast.error((e as Error)?.message ?? 'Failed to create booking');
+    toast.error(getErrorMessage(e, 'Failed to create booking'));
   } finally {
     newBookingSaving.value = false;
   }
@@ -138,7 +138,7 @@ async function handleCancelBooking() {
     toast.success('Booking cancelled.');
     await loadBookings();
   } catch (e: unknown) {
-    toast.error((e as Error)?.message ?? 'Failed to cancel booking');
+    toast.error(getErrorMessage(e, 'Failed to cancel booking'));
   } finally {
     cancelLoading.value = false;
   }
@@ -167,7 +167,7 @@ async function handleFulfill(prices: Array<{ product_id: string; container_type_
     toast.success(`Booking fulfilled. Sale ID: ${saleId.slice(0, 8)}…`);
     await loadBookings();
   } catch (e: unknown) {
-    toast.error((e as Error)?.message ?? 'Failed to fulfill booking');
+    toast.error(getErrorMessage(e, 'Failed to fulfill booking'));
   } finally {
     fulfillLoading.value = false;
   }
@@ -244,7 +244,7 @@ async function saveTemplate(payload: {
     toast.success(editingTemplate.value ? 'Template updated.' : 'Template created.');
     await loadTemplates();
   } catch (e: unknown) {
-    toast.error((e as Error)?.message ?? 'Failed to save template');
+    toast.error(getErrorMessage(e, 'Failed to save template'));
   } finally {
     templateSaving.value = false;
   }
@@ -265,7 +265,7 @@ async function handleDeleteTemplate() {
     toast.success('Template deleted.');
     await loadTemplates();
   } catch (e: unknown) {
-    toast.error((e as Error)?.message ?? 'Failed to delete template');
+    toast.error(getErrorMessage(e, 'Failed to delete template'));
   } finally {
     deleteTemplateLoading.value = false;
   }

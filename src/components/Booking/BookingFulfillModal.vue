@@ -66,6 +66,16 @@ function centavosFromDisplay(display: string): number {
   return isNaN(n) ? 0 : Math.round(n * 100);
 }
 
+function onPriceChange(event: Event, fp: FulfillPrice) {
+  const target = event.currentTarget;
+
+  if (!(target instanceof HTMLInputElement)) {
+    return;
+  }
+
+  fp.unit_price_centavos = centavosFromDisplay(target.value);
+}
+
 function submit() {
   emit(
     'submit',
@@ -104,7 +114,7 @@ function submit() {
             step="0.01"
             min="0"
             class="num w-[100px] rounded-md border border-sparkling-silver bg-full-white px-2 py-1 text-sm text-right text-casual-navy focus:outline-none focus:ring-2 focus:ring-turquoise-stone"
-            @change="fp.unit_price_centavos = centavosFromDisplay(($event.target as HTMLInputElement).value)"
+            @change="(e) => onPriceChange(e, fp)"
           />
         </div>
       </div>

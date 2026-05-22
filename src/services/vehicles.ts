@@ -4,13 +4,13 @@ import { getCurrentUserId } from '@/helpers/supabase';
 import type { Vehicle, MaintenanceTask } from '@/types/database';
 
 export async function listVehicles(): Promise<Vehicle[]> {
-  const { data, error } = await supabase.from('vehicles').select('*').is('deleted_at', null).order('brand_model');
+  const { data, error } = await supabase.from('vehicles').select('*').is('deleted_at', null).order('brand_model').returns<Vehicle[]>();
 
   if (error) {
     throw error;
   }
 
-  return data as Vehicle[];
+  return data ?? [];
 }
 
 export async function listVehicleMaintenanceTasks(vehicleIds: string[]): Promise<MaintenanceTask[]> {
@@ -24,13 +24,14 @@ export async function listVehicleMaintenanceTasks(vehicleIds: string[]): Promise
     .eq('scope', 'vehicle')
     .in('vehicle_id', vehicleIds)
     .eq('active', true)
-    .is('deleted_at', null);
+    .is('deleted_at', null)
+    .returns<MaintenanceTask[]>();
 
   if (error) {
     throw error;
   }
 
-  return data as MaintenanceTask[];
+  return data ?? [];
 }
 
 export async function createVehicle(data: {
@@ -40,13 +41,13 @@ export async function createVehicle(data: {
   year?: number | null;
   notes?: string | null;
 }): Promise<Vehicle> {
-  const { data: row, error } = await supabase.from('vehicles').insert(data).select().single();
+  const { data: row, error } = await supabase.from('vehicles').insert(data).select().single().returns<Vehicle>();
 
   if (error) {
     throw error;
   }
 
-  return row as Vehicle;
+  return row;
 }
 
 export async function updateVehicle(
@@ -59,13 +60,13 @@ export async function updateVehicle(
     notes?: string | null;
   },
 ): Promise<Vehicle> {
-  const { data: row, error } = await supabase.from('vehicles').update(data).eq('id', id).select().single();
+  const { data: row, error } = await supabase.from('vehicles').update(data).eq('id', id).select().single().returns<Vehicle>();
 
   if (error) {
     throw error;
   }
 
-  return row as Vehicle;
+  return row;
 }
 
 export async function deleteVehicle(id: string): Promise<void> {

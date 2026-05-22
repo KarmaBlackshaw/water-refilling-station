@@ -55,13 +55,22 @@ const dayOptions = [
   { label: 'Sat', value: 5 },
 ];
 
-const form = reactive({
+type FormState = {
+  customer_id: string;
+  address_id: string;
+  rider_id: string;
+  cadence: string;
+  day_of_week: number;
+  items: ItemRow[];
+};
+
+const form = reactive<FormState>({
   customer_id: '',
   address_id: '',
   rider_id: '',
   cadence: 'weekly',
-  day_of_week: 0 as number,
-  items: [] as ItemRow[],
+  day_of_week: 0,
+  items: [],
 });
 
 const addressOptions = ref<{ label: string; value: string }[]>([]);
@@ -151,14 +160,7 @@ function submit() {
   <BaseModal v-model:open="open" :title="template ? 'Edit Template' : 'New Template'" size="xl">
     <form id="template-form" class="space-y-4" @submit.prevent="submit">
       <div class="grid grid-cols-2 gap-3">
-        <BaseSelect
-          v-model="form.customer_id"
-          label="Customer"
-          :options="customerOptions"
-          placeholder="Select customer..."
-          required
-          :disabled="!!template"
-        />
+        <BaseSelect v-model="form.customer_id" label="Customer" :options="customerOptions" placeholder="Select customer..." required :disabled="!!template" />
         <BaseSelect v-model="form.address_id" label="Address" :options="addressOptions" placeholder="Select address..." :disabled="!form.customer_id" />
       </div>
       <div class="grid grid-cols-3 gap-3">

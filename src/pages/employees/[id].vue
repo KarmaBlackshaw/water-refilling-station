@@ -20,7 +20,7 @@ const {
   run: load,
 } = useAsync<EmployeePageData>(
   async () => {
-    const id = route.params.id as string;
+    const id = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id;
     const [empRes, attRes, salRes] = await Promise.all([getEmployee(id), listAttendanceForMonth(id, currentYear(), currentMonth()), listSalaryRecords(id)]);
 
     return {

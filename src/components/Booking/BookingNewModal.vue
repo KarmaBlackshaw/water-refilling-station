@@ -37,12 +37,20 @@ const riderOptions = computed(() => riders.map((r) => ({ label: r.full_name, val
 const productOptions = computed(() => products.map((p) => ({ label: p.name, value: p.id })));
 const containerTypeOptions = computed(() => containerTypes.map((ct) => ({ label: ct.name, value: ct.id })));
 
-const form = reactive({
+type FormState = {
+  customer_id: string;
+  address_id: string;
+  rider_id: string;
+  scheduled_date: string;
+  items: ItemRow[];
+};
+
+const form = reactive<FormState>({
   customer_id: '',
   address_id: '',
   rider_id: '',
   scheduled_date: today(),
-  items: [] as ItemRow[],
+  items: [],
 });
 
 const addressOptions = ref<{ label: string; value: string }[]>([]);

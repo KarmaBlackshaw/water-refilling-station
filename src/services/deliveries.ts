@@ -43,13 +43,14 @@ export async function listDeliverySales(date?: string): Promise<DeliverySaleRow[
     .neq('status', 'void')
     .is('deleted_at', null)
     .eq('sale_date', targetDate)
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: true })
+    .returns<DeliverySaleRow[]>();
 
   if (error) {
     throw error;
   }
 
-  return (data ?? []) as unknown as DeliverySaleRow[];
+  return data ?? [];
 }
 
 export async function createDeliverySale(data: {
@@ -87,7 +88,8 @@ export async function createDeliverySale(data: {
       notes: data.notes ?? null,
     })
     .select()
-    .single();
+    .single()
+    .returns<Sale>();
 
   if (saleError) {
     throw saleError;
@@ -129,7 +131,7 @@ export async function createDeliverySale(data: {
     }
   }
 
-  return sale as Sale;
+  return sale;
 }
 
 export interface TopRiderRow {
@@ -137,6 +139,8 @@ export interface TopRiderRow {
   full_name: string;
   count: number;
 }
+
+type RiderQueryRow = { rider_id: string | null; rider: { full_name: string } | null };
 
 export async function listTopRiders(from: string, to: string, limit = 4): Promise<TopRiderRow[]> {
   const { data, error } = await supabase
@@ -147,7 +151,8 @@ export async function listTopRiders(from: string, to: string, limit = 4): Promis
     .gte('sale_date', from)
     .lte('sale_date', to)
     .not('rider_id', 'is', null)
-    .is('deleted_at', null);
+    .is('deleted_at', null)
+    .returns<RiderQueryRow[]>();
 
   if (error) {
     throw error;
@@ -155,7 +160,7 @@ export async function listTopRiders(from: string, to: string, limit = 4): Promis
 
   const counts = new Map<string, { full_name: string; count: number }>();
 
-  for (const row of (data ?? []) as Array<{ rider_id: string | null; rider: { full_name: string } | null }>) {
+  for (const row of data ?? []) {
     if (!row.rider_id) {
       continue;
     }

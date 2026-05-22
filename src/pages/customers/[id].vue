@@ -39,7 +39,12 @@ const {
   run: load,
 } = useAsync<PageData>(
   async () => {
-    const id = route.params.id as string;
+    const id = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id;
+
+    if (!id) {
+      throw new Error('Customer ID is required');
+    }
+
     const [custRes, addrRes, overrideRes, salesRes, balanceRes, arRes] = await Promise.all([
       getCustomer(id),
       listAddresses(id),
@@ -50,10 +55,10 @@ const {
     ]);
 
     return {
-      customer: custRes.data as CustomerWithArea,
-      addresses: (addrRes.data ?? []) as CustomerAddress[],
-      priceOverrides: (overrideRes.data ?? []) as PriceOverrideWithRels[],
-      sales: (salesRes.data ?? []) as SaleWithLines[],
+      customer: custRes.data,
+      addresses: addrRes.data ?? [],
+      priceOverrides: overrideRes.data ?? [],
+      sales: salesRes.data ?? [],
       containerBalance: balanceRes,
       arBalance: arRes,
     };

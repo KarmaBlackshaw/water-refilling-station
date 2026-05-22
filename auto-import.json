@@ -126,6 +126,7 @@
     "getDaysUntilBilling": true,
     "getEmployee": true,
     "getEmployees": true,
+    "getErrorMessage": true,
     "getExpenseSummary": true,
     "getLastOrderDate": true,
     "getMaintenanceAlertCount": true,

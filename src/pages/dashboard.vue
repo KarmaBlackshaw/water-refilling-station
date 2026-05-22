@@ -35,10 +35,14 @@ const { data: weeklyRevenueResult, loading: loadingWeeklyRevenue } = useAsync<{ 
       const { data: payments } = await supabase.from('sale_payments').select('sale_id, amount_centavos').in('sale_id', saleIds);
 
       for (const p of payments ?? []) {
-        const date = saleDateMap[p.sale_id as string];
+        if (p.sale_id === null) {
+          continue;
+        }
+
+        const date = saleDateMap[p.sale_id];
 
         if (date) {
-          dayTotals[date] = (dayTotals[date] ?? 0) + (p.amount_centavos as number);
+          dayTotals[date] = (dayTotals[date] ?? 0) + (p.amount_centavos ?? 0);
         }
       }
     }

@@ -11,8 +11,8 @@ type TOptions = {
 
 type TCleanUp = () => void;
 
-function isVueComponentInstance(obj: any): obj is ComponentPublicInstance {
-  return obj && '$el' in obj;
+function isVueComponentInstance(obj: unknown): obj is ComponentPublicInstance {
+  return obj !== null && typeof obj === 'object' && '$el' in obj;
 }
 
 export default function useFloat(_options?: TOptions) {
@@ -48,7 +48,7 @@ export default function useFloat(_options?: TOptions) {
       return;
     }
 
-    const { x, y } = await computePosition(buttonElement.value as ReferenceElement, popperElement.value as HTMLElement, {
+    const { x, y } = await computePosition(buttonElement.value, popperElement.value, {
       placement: options.placement,
       strategy: 'fixed',
       middleware: [
@@ -127,8 +127,14 @@ export default function useFloat(_options?: TOptions) {
     cleanup.value = autoUpdate(buttonElement.value, popperElement.value, update);
   }
 
+  const buttonHtmlElement = computed<HTMLElement | null>(() => {
+    const el = buttonElement.value;
+
+    return el instanceof HTMLElement ? el : null;
+  });
+
   onClickOutside(
-    button as Ref<HTMLElement>,
+    buttonHtmlElement,
     () => {
       hide();
     },

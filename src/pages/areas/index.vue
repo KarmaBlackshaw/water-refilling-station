@@ -29,8 +29,8 @@ async function load() {
   areasLoading.value = true;
   const [areasRes, ridersRes] = await Promise.all([listAreas(tenantId.value, branchId.value), listRiders(tenantId.value, branchId.value)]);
 
-  areas.value = (areasRes.data ?? []) as typeof areas.value;
-  riders.value = (ridersRes.data ?? []) as Array<Pick<User, 'id' | 'full_name'>>;
+  areas.value = areasRes.data ?? [];
+  riders.value = ridersRes.data ?? [];
   areasLoading.value = false;
 }
 

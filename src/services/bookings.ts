@@ -84,13 +84,13 @@ export async function listBookings(params?: { from?: string; to?: string; status
     query = query.eq('customer_id', params.customerId);
   }
 
-  const { data, error } = await query;
+  const { data, error } = await query.returns<BookingRow[]>();
 
   if (error) {
     throw error;
   }
 
-  return (data ?? []) as BookingRow[];
+  return data ?? [];
 }
 
 export async function listTemplates(): Promise<TemplateRow[]> {
@@ -100,13 +100,14 @@ export async function listTemplates(): Promise<TemplateRow[]> {
       '*, customer:customers(name, phone), rider:users!rider_id(full_name), items:booking_template_items(*, product:products(name), container_type:container_types(name))',
     )
     .is('deleted_at', null)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .returns<TemplateRow[]>();
 
   if (error) {
     throw error;
   }
 
-  return (data ?? []) as TemplateRow[];
+  return data ?? [];
 }
 
 export async function createTemplate(
@@ -140,7 +141,8 @@ export async function createTemplate(
       day_of_week: templateData.day_of_week,
     })
     .select()
-    .single();
+    .single()
+    .returns<BookingTemplate>();
 
   if (error || !template) {
     throw error ?? new Error('Failed to create template');
@@ -162,7 +164,7 @@ export async function createTemplate(
     throw itemsError;
   }
 
-  return template as BookingTemplate;
+  return template;
 }
 
 export async function updateTemplate(
@@ -175,13 +177,13 @@ export async function updateTemplate(
     active?: boolean;
   },
 ): Promise<BookingTemplate> {
-  const { data: template, error } = await supabase.from('booking_templates').update(data).eq('id', id).select().single();
+  const { data: template, error } = await supabase.from('booking_templates').update(data).eq('id', id).select().single().returns<BookingTemplate>();
 
   if (error || !template) {
     throw error ?? new Error('Failed to update template');
   }
 
-  return template as BookingTemplate;
+  return template;
 }
 
 export async function deleteTemplate(id: string): Promise<void> {
@@ -232,7 +234,8 @@ export async function createBooking(
       status: 'pending',
     })
     .select()
-    .single();
+    .single()
+    .returns<Booking>();
 
   if (error || !booking) {
     throw error ?? new Error('Failed to create booking');
@@ -254,7 +257,7 @@ export async function createBooking(
     throw itemsError;
   }
 
-  return booking as Booking;
+  return booking;
 }
 
 export async function cancelBooking(id: string): Promise<void> {
@@ -283,7 +286,8 @@ export async function materializeBookings(tenantId: string, branchId: string, fr
     .eq('tenant_id', tenantId)
     .eq('branch_id', branchId)
     .eq('active', true)
-    .is('deleted_at', null);
+    .is('deleted_at', null)
+    .returns<TemplateRow[]>();
 
   if (templatesError) {
     throw templatesError;
@@ -299,7 +303,7 @@ export async function materializeBookings(tenantId: string, branchId: string, fr
   // Collect all (template_id, date) combos that should exist
   const needed: Array<{ template: TemplateRow; date: string }> = [];
 
-  for (const template of templates as TemplateRow[]) {
+  for (const template of templates) {
     let cur = fromDate;
 
     while (cur.isBefore(toDate) || cur.isSame(toDate, 'day')) {
@@ -358,7 +362,7 @@ export async function materializeBookings(tenantId: string, branchId: string, fr
 
   // Match created bookings back to their templates to insert items
   if (createdBookings && createdBookings.length > 0) {
-    const templateMap = new Map((templates as TemplateRow[]).map((t) => [t.id, t]));
+    const templateMap = new Map(templates.map((t) => [t.id, t]));
 
     const allItemRows: Array<{
       booking_id: string;
@@ -413,13 +417,19 @@ export async function fulfillBooking(
   }>,
 ): Promise<string> {
   // 1. Load booking + items
-  const { data: booking, error: bookingError } = await supabase.from('bookings').select('*, items:booking_items(*)').eq('id', bookingId).single();
+  type BookingWithItems = Booking & { items: BookingItem[] };
+  const { data: booking, error: bookingError } = await supabase
+    .from('bookings')
+    .select('*, items:booking_items(*)')
+    .eq('id', bookingId)
+    .single()
+    .returns<BookingWithItems>();
 
   if (bookingError || !booking) {
     throw bookingError ?? new Error('Booking not found');
   }
 
-  const items = (booking.items ?? []) as BookingItem[];
+  const items = booking.items ?? [];
 
   // 2. Create sale
   const { data: sale, error: saleError } = await supabase

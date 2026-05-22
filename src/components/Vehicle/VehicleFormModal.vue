@@ -20,11 +20,19 @@ const emit = defineEmits<{
   ];
 }>();
 
-const form = reactive({
+type FormState = {
+  type: string;
+  brand_model: string;
+  plate_number: string;
+  year: string | number;
+  notes: string;
+};
+
+const form = reactive<FormState>({
   type: '',
   brand_model: '',
   plate_number: '',
-  year: '' as string | number,
+  year: '',
   notes: '',
 });
 

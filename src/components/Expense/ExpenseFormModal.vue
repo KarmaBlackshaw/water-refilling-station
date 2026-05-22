@@ -34,9 +34,18 @@ const emit = defineEmits<{
   ];
 }>();
 
-const form = reactive({
+type FormState = {
+  expense_date: string;
+  category: ExpenseCategory | '';
+  amountInput: string;
+  payee_employee_id: string;
+  description: string;
+  reference_number: string;
+};
+
+const form = reactive<FormState>({
   expense_date: today(),
-  category: '' as ExpenseCategory | '',
+  category: '',
   amountInput: '',
   payee_employee_id: '',
   description: '',
@@ -74,9 +83,11 @@ function submit() {
     return;
   }
 
+  const category = form.category;
+
   emit('submit', {
     expense_date: form.expense_date,
-    category: form.category as ExpenseCategory,
+    category,
     amount_centavos: Math.round(parseFloat(form.amountInput) * 100),
     payee_employee_id: form.payee_employee_id || null,
     description: form.description || null,

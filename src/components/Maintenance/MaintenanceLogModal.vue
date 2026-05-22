@@ -37,7 +37,7 @@ function submit() {
 
   emit('submit', {
     performed_at: form.performed_at,
-    cost_centavos: isNaN(cost as number) ? null : cost,
+    cost_centavos: cost !== null && !isNaN(cost) ? cost : null,
     notes: form.notes || null,
   });
 }

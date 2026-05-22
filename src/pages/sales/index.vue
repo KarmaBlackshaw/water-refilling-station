@@ -147,20 +147,22 @@ const saving = ref(false);
 
 type CustomerWithArea = Customer & { area: { id: string; name: string } | null };
 
-const { data: customers } = useAsync<CustomerWithArea[]>(
-  () => listCustomers(tenantId.value, branchId.value).then((r) => (r.data ?? []) as CustomerWithArea[]),
-  { immediate: true, defaultValue: [], disableResetValue: true },
-);
-
-const { data: products } = useAsync<Product[]>(() => listProducts(tenantId.value, branchId.value).then((r) => (r.data ?? []) as Product[]), {
+const { data: customers } = useAsync<CustomerWithArea[]>(() => listCustomers(tenantId.value, branchId.value).then((r) => r.data ?? []), {
   immediate: true,
   defaultValue: [],
   disableResetValue: true,
 });
-const { data: containerTypes } = useAsync<ContainerType[]>(
-  () => listContainerTypes(tenantId.value, branchId.value).then((r) => (r.data ?? []) as ContainerType[]),
-  { immediate: true, defaultValue: [], disableResetValue: true },
-);
+
+const { data: products } = useAsync<Product[]>(() => listProducts(tenantId.value, branchId.value).then((r) => r.data ?? []), {
+  immediate: true,
+  defaultValue: [],
+  disableResetValue: true,
+});
+const { data: containerTypes } = useAsync<ContainerType[]>(() => listContainerTypes(tenantId.value, branchId.value).then((r) => r.data ?? []), {
+  immediate: true,
+  defaultValue: [],
+  disableResetValue: true,
+});
 
 async function submitWalkIn(payload: WalkInSubmitPayload) {
   saving.value = true;

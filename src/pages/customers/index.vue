@@ -13,7 +13,7 @@ const {
   data: customersData,
   loading,
   run: load,
-} = useAsync<CustomerWithArea[]>(() => listCustomers(tenantId.value, branchId.value).then((r) => (r.data ?? []) as CustomerWithArea[]), {
+} = useAsync<CustomerWithArea[]>(() => listCustomers(tenantId.value, branchId.value).then((r) => r.data ?? []), {
   immediate: true,
   defaultValue: [],
 });

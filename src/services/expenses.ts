@@ -22,13 +22,13 @@ export async function listExpenses(params: { tenantId: string; branchId: string;
     query = query.eq('category', params.category);
   }
 
-  const { data, error } = await query;
+  const { data, error } = await query.returns<ExpenseWithPayee[]>();
 
   if (error) {
     throw error;
   }
 
-  return (data ?? []) as ExpenseWithPayee[];
+  return data ?? [];
 }
 
 export async function createExpense(
@@ -47,13 +47,14 @@ export async function createExpense(
     .from('operational_expenses')
     .insert({ tenant_id: tenantId, branch_id: branchId, ...data })
     .select()
-    .single();
+    .single()
+    .returns<OperationalExpense>();
 
   if (error) {
     throw error;
   }
 
-  return row as OperationalExpense;
+  return row;
 }
 
 export async function updateExpense(
@@ -67,13 +68,13 @@ export async function updateExpense(
     reference_number?: string | null;
   },
 ): Promise<OperationalExpense> {
-  const { data: row, error } = await supabase.from('operational_expenses').update(data).eq('id', id).select().single();
+  const { data: row, error } = await supabase.from('operational_expenses').update(data).eq('id', id).select().single().returns<OperationalExpense>();
 
   if (error) {
     throw error;
   }
 
-  return row as OperationalExpense;
+  return row;
 }
 
 export async function deleteExpense(id: string): Promise<void> {

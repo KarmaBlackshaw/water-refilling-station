@@ -28,7 +28,7 @@ export const tryToCatch = async <T>(fn: (...args: any[]) => Promise<T>): Promise
 
     return [null, response];
   } catch (error) {
-    return [error as Error];
+    return [error instanceof Error ? error : new Error(String(error))];
   }
 };
 
@@ -67,7 +67,7 @@ export default function useAsync<T>(fn: (...args: any) => Promise<T>, optionsRaw
     }
 
     loading.value = false;
-    data.value = response as UnwrapRef<T | null>;
+    data.value = response;
 
     return response;
   };

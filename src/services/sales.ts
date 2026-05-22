@@ -2,13 +2,10 @@ import { nowISO } from '@/helpers/date';
 import { supabase, getCurrentUserId } from '@/helpers/supabase';
 import type { Sale, SaleLine, SalePayment } from '@/types/database';
 
-export async function listSales(params?: {
-  source?: string;
-  status?: string;
-  from?: string;
-  to?: string;
-  customerId?: string;
-}): Promise<(Sale & { customer?: { name: string } | null })[]> {
+type SaleWithCustomer = Sale & { customer?: { name: string } | null };
+type SaleLineWithJoins = SaleLine & { product?: { name: string }; container_type?: { name: string } };
+
+export async function listSales(params?: { source?: string; status?: string; from?: string; to?: string; customerId?: string }): Promise<SaleWithCustomer[]> {
   let query = supabase.from('sales').select('*, customer:customers(name)').is('deleted_at', null).order('created_at', { ascending: false }).limit(100);
 
   if (params?.source) {
@@ -31,24 +28,24 @@ export async function listSales(params?: {
     query = query.eq('customer_id', params.customerId);
   }
 
-  const { data, error } = await query;
+  const { data, error } = await query.returns<SaleWithCustomer[]>();
 
   if (error) {
     throw error;
   }
 
-  return (data ?? []) as (Sale & { customer?: { name: string } | null })[];
+  return data ?? [];
 }
 
 export async function getSale(id: string): Promise<{
-  sale: Sale & { customer?: { name: string } | null };
-  lines: (SaleLine & { product?: { name: string }; container_type?: { name: string } })[];
+  sale: SaleWithCustomer;
+  lines: SaleLineWithJoins[];
   payments: SalePayment[];
 } | null> {
   const [saleRes, linesRes, paymentsRes] = await Promise.all([
-    supabase.from('sales').select('*, customer:customers(name)').eq('id', id).single(),
-    supabase.from('sale_lines').select('*, product:products(name), container_type:container_types(name)').eq('sale_id', id),
-    supabase.from('sale_payments').select('*').eq('sale_id', id),
+    supabase.from('sales').select('*, customer:customers(name)').eq('id', id).single().returns<SaleWithCustomer>(),
+    supabase.from('sale_lines').select('*, product:products(name), container_type:container_types(name)').eq('sale_id', id).returns<SaleLineWithJoins[]>(),
+    supabase.from('sale_payments').select('*').eq('sale_id', id).returns<SalePayment[]>(),
   ]);
 
   if (saleRes.error || !saleRes.data) {
@@ -56,12 +53,9 @@ export async function getSale(id: string): Promise<{
   }
 
   return {
-    sale: saleRes.data as Sale & { customer?: { name: string } | null },
-    lines: (linesRes.data ?? []) as (SaleLine & {
-      product?: { name: string };
-      container_type?: { name: string };
-    })[],
-    payments: (paymentsRes.data ?? []) as SalePayment[],
+    sale: saleRes.data,
+    lines: linesRes.data ?? [],
+    payments: paymentsRes.data ?? [],
   };
 }
 
@@ -95,7 +89,8 @@ export async function createWalkInSale(data: {
       status: 'completed',
     })
     .select()
-    .single();
+    .single()
+    .returns<Sale>();
 
   if (saleError || !sale) {
     throw saleError ?? new Error('Failed to create sale');
@@ -135,7 +130,7 @@ export async function createWalkInSale(data: {
     throw paymentsError;
   }
 
-  return sale as Sale;
+  return sale;
 }
 
 export async function voidSale(id: string): Promise<void> {

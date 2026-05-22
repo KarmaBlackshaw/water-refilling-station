@@ -25,7 +25,6 @@ const props = withDefaults(
   }>(),
   {
     loading: false,
-    rowKey: 'id' as never,
     emptyTitle: 'No data',
     emptyDescription: undefined,
   },
@@ -53,7 +52,11 @@ function resolveKey(row: TRow, index: number): string | number {
 
   const v = row[rk];
 
-  return (v as string | number | undefined) ?? index;
+  if (typeof v === 'string' || typeof v === 'number') {
+    return v;
+  }
+
+  return index;
 }
 
 function resolveValue(row: TRow, col: TableColumn<TRow>): unknown {

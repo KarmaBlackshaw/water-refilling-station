@@ -109,6 +109,7 @@ declare global {
   const getDaysUntilBilling: typeof import('./helpers/date').getDaysUntilBilling
   const getEmployee: typeof import('./services/employees').getEmployee
   const getEmployees: typeof import('./services/employees').getEmployees
+  const getErrorMessage: typeof import('./helpers/errors').getErrorMessage
   const getExpenseSummary: typeof import('./services/expenses').getExpenseSummary
   const getLastOrderDate: typeof import('./services/customers').getLastOrderDate
   const getMaintenanceAlertCount: typeof import('./services/dashboard').getMaintenanceAlertCount
@@ -611,6 +612,7 @@ declare module 'vue' {
     readonly getDaysUntilBilling: UnwrapRef<typeof import('./helpers/date')['getDaysUntilBilling']>
     readonly getEmployee: UnwrapRef<typeof import('./services/employees')['getEmployee']>
     readonly getEmployees: UnwrapRef<typeof import('./services/employees')['getEmployees']>
+    readonly getErrorMessage: UnwrapRef<typeof import('./helpers/errors')['getErrorMessage']>
     readonly getExpenseSummary: UnwrapRef<typeof import('./services/expenses')['getExpenseSummary']>
     readonly getLastOrderDate: UnwrapRef<typeof import('./services/customers')['getLastOrderDate']>
     readonly getMaintenanceAlertCount: UnwrapRef<typeof import('./services/dashboard')['getMaintenanceAlertCount']>

@@ -7,7 +7,11 @@ function load(): Set<string> {
     const raw = localStorage.getItem(STORAGE_KEY);
 
     if (raw) {
-      return new Set(JSON.parse(raw) as string[]);
+      const parsed: unknown = JSON.parse(raw);
+
+      if (Array.isArray(parsed)) {
+        return new Set(parsed.filter((v): v is string => typeof v === 'string'));
+      }
     }
   } catch {
     /* ignore */

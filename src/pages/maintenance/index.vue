@@ -7,7 +7,7 @@ const tabs = [
   { key: 'water_plant', label: 'Water Plant' },
   { key: 'vehicle', label: 'Vehicles' },
 ];
-const activeTab = ref<'water_plant' | 'vehicle'>('water_plant');
+const activeTab = ref<MaintenanceScope>('water_plant');
 
 const {
   data: tasks,
@@ -114,7 +114,7 @@ async function saveTask(formPayload: {
 }) {
   saving.value = true;
   const payload = {
-    scope: activeTab.value as MaintenanceScope,
+    scope: activeTab.value,
     ...formPayload,
   };
 
