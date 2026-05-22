@@ -3,6 +3,8 @@ import type { MaintenanceTask, MaintenanceScope, ScheduleKind, Vehicle } from '@
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
 
+const { confirm } = useConfirm();
+
 const tabs = [
   { key: 'water_plant', label: 'Water Plant' },
   { key: 'vehicle', label: 'Vehicles' },
@@ -129,18 +131,6 @@ async function saveTask(formPayload: {
   saving.value = false;
 }
 
-const deactivateConfirm = ref<MaintenanceTask>();
-
-async function confirmDeactivate() {
-  if (!deactivateConfirm.value) {
-    return;
-  }
-
-  await updateTask(deactivateConfirm.value.id, { active: false });
-  deactivateConfirm.value = undefined;
-  await load();
-}
-
 const logModalOpen = ref(false);
 const loggingTask = ref<MaintenanceTask>();
 const loggingSaving = ref(false);
@@ -171,7 +161,20 @@ function taskMenu(task: MaintenanceTask) {
   return [
     { label: 'Log', onClick: () => openLogModal(task) },
     { label: 'Edit', icon: IconEdit, onClick: () => openEditTask(task) },
-    { label: 'Deactivate', icon: IconTrash, danger: true, onClick: () => (deactivateConfirm.value = task) },
+    {
+      label: 'Deactivate',
+      icon: IconTrash,
+      danger: true,
+      onClick: () =>
+        confirm({
+          title: 'Deactivate task?',
+          message: `Deactivate '${task.task_type}'? The task will be hidden but its history preserved.`,
+          onConfirm: async () => {
+            await updateTask(task.id, { active: false });
+            await load();
+          },
+        }),
+    },
   ];
 }
 </script>
@@ -239,13 +242,5 @@ function taskMenu(task: MaintenanceTask) {
     />
 
     <MaintenanceLogModal v-model:open="logModalOpen" :task="loggingTask" :saving="loggingSaving" @submit="saveLog" />
-
-    <BaseConfirm
-      :open="!!deactivateConfirm"
-      title="Deactivate task?"
-      :message="`Deactivate '${deactivateConfirm?.task_type}'? The task will be hidden but its history preserved.`"
-      @confirm="confirmDeactivate"
-      @cancel="deactivateConfirm = undefined"
-    />
   </div>
 </template>

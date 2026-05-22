@@ -2,6 +2,7 @@
 import type { Area, User } from '@/types/database';
 
 const auth = useAuthStore();
+const { confirm } = useConfirm();
 const tenantId = computed(() => auth.tenantId ?? '');
 const branchId = computed(() => auth.branchId ?? '');
 
@@ -16,14 +17,11 @@ const riders = ref<Array<Pick<User, 'id' | 'full_name'>>>([]);
 const areaModalOpen = ref(false);
 const editingArea = ref<Area>();
 const areaForm = reactive({ name: '', notes: '', primary_rider_id: '' });
-const areaSaving = ref(false);
-const deleteAreaConfirm = ref<Area>();
 
 // Coverage modal
 const coverageModalOpen = ref(false);
 const coverageArea = ref<Area>();
 const coverageForm = reactive({ covering_rider_id: '', starts_on: '', ends_on: '' });
-const coverageSaving = ref(false);
 
 async function load() {
   areasLoading.value = true;
@@ -54,8 +52,7 @@ function openEditArea(a: Area) {
   areaModalOpen.value = true;
 }
 
-async function saveArea() {
-  areaSaving.value = true;
+const { loading: areaSaving, run: saveArea } = useAsync(async () => {
   const payload = {
     name: areaForm.name,
     notes: areaForm.notes || null,
@@ -70,18 +67,7 @@ async function saveArea() {
 
   areaModalOpen.value = false;
   await load();
-  areaSaving.value = false;
-}
-
-async function confirmDeleteArea() {
-  if (!deleteAreaConfirm.value || !auth.authUser) {
-    return;
-  }
-
-  await softDeleteArea(deleteAreaConfirm.value.id, auth.authUser.id);
-  deleteAreaConfirm.value = undefined;
-  await load();
-}
+});
 
 function openCoverage(a: Area) {
   coverageArea.value = a;
@@ -91,12 +77,11 @@ function openCoverage(a: Area) {
   coverageModalOpen.value = true;
 }
 
-async function saveCoverage() {
+const { loading: coverageSaving, run: saveCoverage } = useAsync(async () => {
   if (!coverageArea.value) {
     return;
   }
 
-  coverageSaving.value = true;
   await createCoverageRecord({
     tenant_id: tenantId.value,
     branch_id: branchId.value,
@@ -107,8 +92,7 @@ async function saveCoverage() {
   });
   coverageModalOpen.value = false;
   await load();
-  coverageSaving.value = false;
-}
+});
 </script>
 
 <template>
@@ -141,7 +125,26 @@ async function saveCoverage() {
             <div class="flex shrink-0 gap-2">
               <BaseButton variant="independence" @click="openCoverage(a)">Add coverage</BaseButton>
               <BaseButton variant="independence" @click="openEditArea(a)">Edit</BaseButton>
-              <BaseButton variant="independence" class="text-blaze-red" @click="deleteAreaConfirm = a">Delete</BaseButton>
+              <BaseButton
+                variant="independence"
+                class="text-blaze-red"
+                @click="
+                  confirm({
+                    title: 'Delete area?',
+                    message: `Delete '${a.name}'? Coverage records will also be removed.`,
+                    onConfirm: async () => {
+                      if (!auth.authUser) {
+                        return;
+                      }
+
+                      await softDeleteArea(a.id, auth.authUser.id);
+                      await load();
+                    },
+                  })
+                "
+              >
+                Delete
+              </BaseButton>
             </div>
           </div>
         </BaseCard>
@@ -173,14 +176,5 @@ async function saveCoverage() {
         <BaseButton type="submit" form="coverage-form" :loading="coverageSaving">Add coverage</BaseButton>
       </template>
     </BaseModal>
-
-    <!-- Delete confirm -->
-    <BaseConfirm
-      :open="!!deleteAreaConfirm"
-      title="Delete area?"
-      :message="`Delete '${deleteAreaConfirm?.name}'? Coverage records will also be removed.`"
-      @confirm="confirmDeleteArea"
-      @cancel="deleteAreaConfirm = undefined"
-    />
   </div>
 </template>

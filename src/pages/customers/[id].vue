@@ -6,6 +6,7 @@ import IconTrash from '@/components/Icon/IconTrash.vue';
 
 const route = useRoute();
 const auth = useAuthStore();
+const { confirm } = useConfirm();
 const tenantId = computed(() => auth.tenantId ?? '');
 const branchId = computed(() => auth.branchId ?? '');
 
@@ -86,8 +87,6 @@ const arBalance = computed(() => pageData.value?.arBalance ?? 0);
 
 const addrModalOpen = ref(false);
 const editingAddr = ref<CustomerAddress>();
-const addrSaving = ref(false);
-const deleteAddrConfirm = ref<CustomerAddress>();
 
 function openAddAddr() {
   editingAddr.value = undefined;
@@ -99,12 +98,11 @@ function openEditAddr(a: CustomerAddress) {
   addrModalOpen.value = true;
 }
 
-async function saveAddr(payload: { label: string; address_line: string; is_default: boolean }) {
+const { loading: addrSaving, run: saveAddr } = useAsync(async (payload: { label: string; address_line: string; is_default: boolean }) => {
   if (!customer.value) {
     return;
   }
 
-  addrSaving.value = true;
   if (editingAddr.value) {
     await updateAddress(editingAddr.value.id, payload);
   } else {
@@ -118,33 +116,26 @@ async function saveAddr(payload: { label: string; address_line: string; is_defau
 
   addrModalOpen.value = false;
   await load();
-  addrSaving.value = false;
-}
-
-async function confirmDeleteAddr() {
-  if (!deleteAddrConfirm.value || !auth.authUser) {
-    return;
-  }
-
-  await softDeleteAddress(deleteAddrConfirm.value.id, auth.authUser.id);
-  deleteAddrConfirm.value = undefined;
-  await load();
-}
+});
 
 const overrideModalOpen = ref(false);
-const overrideSaving = ref(false);
-const deleteOverrideConfirm = ref<PriceOverrideWithRels>();
 
 function openAddOverride() {
   overrideModalOpen.value = true;
 }
 
-async function saveOverride(payload: { product_id: string; container_type_id: string; refill_price_centavos: number; new_container_price_centavos: number }) {
+type OverridePayload = {
+  product_id: string;
+  container_type_id: string;
+  refill_price_centavos: number;
+  new_container_price_centavos: number;
+};
+
+const { loading: overrideSaving, run: saveOverride } = useAsync(async (payload: OverridePayload) => {
   if (!customer.value) {
     return;
   }
 
-  overrideSaving.value = true;
   await upsertPriceOverride({
     tenant_id: tenantId.value,
     branch_id: branchId.value,
@@ -153,18 +144,7 @@ async function saveOverride(payload: { product_id: string; container_type_id: st
   });
   overrideModalOpen.value = false;
   await load();
-  overrideSaving.value = false;
-}
-
-async function confirmDeleteOverride() {
-  if (!deleteOverrideConfirm.value || !auth.authUser) {
-    return;
-  }
-
-  await softDeletePriceOverride(deleteOverrideConfirm.value.id, auth.authUser.id);
-  deleteOverrideConfirm.value = undefined;
-  await load();
-}
+});
 
 const hasContainerBalance = computed(() => Object.keys(containerBalance.value).length > 0);
 
@@ -177,12 +157,48 @@ const defaultAddress = computed(() => {
 function addrMenu(addr: CustomerAddress) {
   return [
     { label: 'Edit', icon: IconEdit, onClick: () => openEditAddr(addr) },
-    { label: 'Delete', icon: IconTrash, danger: true, onClick: () => (deleteAddrConfirm.value = addr) },
+    {
+      label: 'Delete',
+      icon: IconTrash,
+      danger: true,
+      onClick: () =>
+        confirm({
+          title: 'Delete address?',
+          message: `Delete '${addr.label}'?`,
+          onConfirm: async () => {
+            if (!auth.authUser) {
+              return;
+            }
+
+            await softDeleteAddress(addr.id, auth.authUser.id);
+            await load();
+          },
+        }),
+    },
   ];
 }
 
 function overrideMenu(override: PriceOverrideWithRels) {
-  return [{ label: 'Remove', icon: IconTrash, danger: true, onClick: () => (deleteOverrideConfirm.value = override) }];
+  return [
+    {
+      label: 'Remove',
+      icon: IconTrash,
+      danger: true,
+      onClick: () =>
+        confirm({
+          title: 'Remove price override?',
+          message: `Remove override for ${override.product?.name ?? 'this product'}?`,
+          onConfirm: async () => {
+            if (!auth.authUser) {
+              return;
+            }
+
+            await softDeletePriceOverride(override.id, auth.authUser.id);
+            await load();
+          },
+        }),
+    },
+  ];
 }
 </script>
 
@@ -324,22 +340,6 @@ function overrideMenu(override: PriceOverrideWithRels) {
       @submit="saveAddr"
     />
 
-    <BaseConfirm
-      :open="!!deleteAddrConfirm"
-      title="Delete address?"
-      :message="`Delete '${deleteAddrConfirm?.label}'?`"
-      @confirm="confirmDeleteAddr"
-      @cancel="deleteAddrConfirm = undefined"
-    />
-
     <CustomerPriceOverrideFormModal v-model:open="overrideModalOpen" :saving="overrideSaving" @submit="saveOverride" />
-
-    <BaseConfirm
-      :open="!!deleteOverrideConfirm"
-      title="Remove price override?"
-      :message="`Remove override for ${deleteOverrideConfirm?.product?.name ?? 'this product'}?`"
-      @confirm="confirmDeleteOverride"
-      @cancel="deleteOverrideConfirm = undefined"
-    />
   </div>
 </template>

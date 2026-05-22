@@ -5,6 +5,7 @@ import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
 
 const auth = useAuthStore();
+const { confirm } = useConfirm();
 const tenantId = computed(() => auth.tenantId ?? '');
 const branchId = computed(() => auth.branchId ?? '');
 
@@ -32,7 +33,13 @@ const filterFrom = ref(startOfMonth());
 const filterTo = ref(today());
 const filterCategory = ref('');
 
-const categoryOptions = computed(() => [{ label: 'All Categories', value: '' }, ...CATEGORIES.map((c) => ({ label: CATEGORY_LABEL[c], value: c }))]);
+const categoryOptions = computed(() => [
+  {
+    label: 'All Categories',
+    value: '',
+  },
+  ...CATEGORIES.map((c) => ({ label: CATEGORY_LABEL[c], value: c })),
+]);
 
 type ExpenseRow = Awaited<ReturnType<typeof listExpenses>>[number];
 
@@ -89,11 +96,16 @@ const { data } = useAsync(
 
 const employees = computed(() => data.value ?? []);
 
-const employeeOptions = computed(() => [{ label: 'None / External', value: '' }, ...employees.value.map((e) => ({ label: e.full_name, value: e.id }))]);
+const employeeOptions = computed(() => [
+  {
+    label: 'None / External',
+    value: '',
+  },
+  ...employees.value.map((e) => ({ label: e.full_name, value: e.id })),
+]);
 
 const modalOpen = ref(false);
 const editingExpense = ref<ExpenseRow>();
-const saving = ref(false);
 
 function openAdd() {
   editingExpense.value = undefined;
@@ -105,16 +117,15 @@ function openEdit(expense: ExpenseRow) {
   modalOpen.value = true;
 }
 
-async function saveExpense(payload: {
-  expense_date: string;
-  category: ExpenseCategory;
-  amount_centavos: number;
-  payee_employee_id: string | null;
-  description: string | null;
-  reference_number: string | null;
-}) {
-  saving.value = true;
-  try {
+const { loading: saving, run: saveExpense } = useAsync(
+  async (payload: {
+    expense_date: string;
+    category: ExpenseCategory;
+    amount_centavos: number;
+    payee_employee_id: string | null;
+    description: string | null;
+    reference_number: string | null;
+  }) => {
     if (editingExpense.value) {
       await updateExpense(editingExpense.value.id, payload);
     } else {
@@ -123,33 +134,30 @@ async function saveExpense(payload: {
 
     modalOpen.value = false;
     await load();
-  } finally {
-    saving.value = false;
-  }
-}
-
-const deleteTarget = ref<ExpenseRow>();
-const deleting = ref(false);
-
-async function confirmDelete() {
-  if (!deleteTarget.value) {
-    return;
-  }
-
-  deleting.value = true;
-  try {
-    await deleteExpense(deleteTarget.value.id);
-    deleteTarget.value = undefined;
-    await load();
-  } finally {
-    deleting.value = false;
-  }
-}
+  },
+);
 
 function rowMenu(row: ExpenseRow) {
   return [
-    { label: 'Edit', icon: IconEdit, onClick: () => openEdit(row) },
-    { label: 'Delete', icon: IconTrash, danger: true, onClick: () => (deleteTarget.value = row) },
+    {
+      label: 'Edit',
+      icon: IconEdit,
+      onClick: () => openEdit(row),
+    },
+    {
+      label: 'Delete',
+      icon: IconTrash,
+      danger: true,
+      onClick: () =>
+        confirm({
+          title: 'Delete expense?',
+          message: `Delete this ${CATEGORY_LABEL[row.category]} expense of ${formatMoney(row.amount_centavos)}?`,
+          onConfirm: async () => {
+            await deleteExpense(row.id);
+            await load();
+          },
+        }),
+    },
   ];
 }
 </script>
@@ -251,15 +259,6 @@ function rowMenu(row: ExpenseRow) {
       :category-label="CATEGORY_LABEL"
       :saving="saving"
       @submit="saveExpense"
-    />
-
-    <BaseConfirm
-      :open="!!deleteTarget"
-      title="Delete expense?"
-      :message="`Delete this ${deleteTarget ? CATEGORY_LABEL[deleteTarget.category] : ''} expense of ${deleteTarget ? formatMoney(deleteTarget.amount_centavos) : ''}?`"
-      :loading="deleting"
-      @confirm="confirmDelete"
-      @cancel="deleteTarget = undefined"
     />
   </div>
 </template>

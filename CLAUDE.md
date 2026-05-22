@@ -18,6 +18,38 @@ Use `src/composables/useAsync.ts` for any async data fetching in Vue components.
 - Need just an error-safe wrapper → `tryToCatch` (also exported)
 - Reach for raw `ref` + `onMounted` only when behavior genuinely can't fit (streaming, manual lifecycle).
 
+### Don't reshape data inside the `useAsync` callback — use `computed`
+
+The `useAsync` callback should pass the service response through unchanged. Extract / map / default-fallback in a separate `computed`.
+
+**Why:** Reshaping inline (`.then((r) => r.data ?? [])` or `async () => { const { data } = await ...; return data ?? []; }`) hides the original error/metadata, conflates fetch with projection, and makes the cached `data` ref harder to type. A `computed` keeps fetch and view-shape concerns separate and reactive.
+
+**How to apply:**
+```ts
+// bad
+const { data: products } = useAsync<Product[]>(
+  () => listProducts(...).then((r) => r.data ?? []),
+  { immediate: true, defaultValue: [] },
+);
+
+// bad
+const { data: products } = useAsync<Product[]>(
+  async () => {
+    const { data } = await listProducts(...);
+    return data ?? [];
+  },
+  { immediate: true, defaultValue: [] },
+);
+
+// good
+const { data: productsRes } = useAsync(() => listProducts(...), { immediate: true });
+const products = computed(() => productsRes.value?.data ?? []);
+```
+
+- Name the raw ref `xRes` (or `xData` if the service already returns the array directly).
+- Drop `defaultValue: []` when the response type isn't an array — the `computed` provides the `?? []` fallback.
+- Only fetch lives inside `useAsync`. Filtering, mapping, sorting, label-building → `computed`.
+
 ### Always use `defineModel` for two-way binding
 
 For any component with a `modelValue` prop + `update:modelValue` emit, use `defineModel<T>()` instead. Never hand-roll the prop/emit pair.

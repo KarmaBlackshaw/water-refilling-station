@@ -3,6 +3,8 @@ import type { Vehicle, MaintenanceTask } from '@/types/database';
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
 
+const { confirm } = useConfirm();
+
 type VehicleWithTasks = { vehicles: Vehicle[]; allTasks: MaintenanceTask[] };
 
 const {
@@ -28,8 +30,6 @@ const allTasks = computed(() => vehicleData.value?.allTasks ?? []);
 
 const modalOpen = ref(false);
 const editingVehicle = ref<Vehicle>();
-const saving = ref(false);
-const deleteTarget = ref<Vehicle>();
 
 const vehicleTypeLabels: Record<string, string> = {
   motorcycle: 'Motorcycle',
@@ -64,34 +64,36 @@ function openEdit(v: Vehicle) {
   modalOpen.value = true;
 }
 
-async function save(payload: { type: string; brand_model: string; plate_number: string; year: number | null; notes: string | null }) {
-  saving.value = true;
+const { loading: saving, run: save } = useAsync(
+  async (payload: { type: string; brand_model: string; plate_number: string; year: number | null; notes: string | null }) => {
+    if (editingVehicle.value) {
+      await updateVehicle(editingVehicle.value.id, payload);
+    } else {
+      await createVehicle(payload);
+    }
 
-  if (editingVehicle.value) {
-    await updateVehicle(editingVehicle.value.id, payload);
-  } else {
-    await createVehicle(payload);
-  }
-
-  modalOpen.value = false;
-  await load();
-  saving.value = false;
-}
-
-async function confirmDelete() {
-  if (!deleteTarget.value) {
-    return;
-  }
-
-  await deleteVehicle(deleteTarget.value.id);
-  deleteTarget.value = undefined;
-  await load();
-}
+    modalOpen.value = false;
+    await load();
+  },
+);
 
 function rowMenu(row: Vehicle) {
   return [
     { label: 'Edit', icon: IconEdit, onClick: () => openEdit(row) },
-    { label: 'Delete', icon: IconTrash, danger: true, onClick: () => (deleteTarget.value = row) },
+    {
+      label: 'Delete',
+      icon: IconTrash,
+      danger: true,
+      onClick: () =>
+        confirm({
+          title: 'Delete vehicle?',
+          message: `Delete '${row.brand_model}'? This cannot be undone.`,
+          onConfirm: async () => {
+            await deleteVehicle(row.id);
+            await load();
+          },
+        }),
+    },
   ];
 }
 </script>
@@ -148,13 +150,5 @@ function rowMenu(row: Vehicle) {
     </div>
 
     <VehicleFormModal v-model:open="modalOpen" :vehicle="editingVehicle" :saving="saving" @submit="save" />
-
-    <BaseConfirm
-      :open="!!deleteTarget"
-      title="Delete vehicle?"
-      :message="`Delete '${deleteTarget?.brand_model}'? This cannot be undone.`"
-      @confirm="confirmDelete"
-      @cancel="deleteTarget = undefined"
-    />
   </div>
 </template>

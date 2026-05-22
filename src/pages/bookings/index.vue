@@ -8,6 +8,7 @@ const auth = useAuthStore();
 const tenantId = computed(() => auth.tenantId ?? '');
 const branchId = computed(() => auth.branchId ?? '');
 const toast = useToast();
+const { confirm } = useConfirm();
 
 const customers = ref<Customer[]>([]);
 const riders = ref<Pick<User, 'id' | 'full_name'>[]>([]);
@@ -82,96 +83,72 @@ function itemsSummary(items: BookingRow['items'] | TemplateRow['items']): string
   return items.map((i) => `${i.quantity}× ${i.container_type?.name ?? '?'} ${i.product?.name ?? '?'}`).join(', ');
 }
 
-const generateConfirmOpen = ref(false);
-const generateLoading = ref(false);
+function openGenerateConfirm() {
+  confirm({
+    title: 'Generate bookings?',
+    message: 'Generate bookings from all active templates for the next 14 days?',
+    confirmLabel: 'Generate',
+    variant: 'turquoise-stone',
+    onConfirm: async () => {
+      try {
+        const count = await materializeBookings(tenantId.value, branchId.value, today(), addDays(today(), 14));
 
-async function handleGenerate() {
-  generateLoading.value = true;
-  try {
-    const count = await materializeBookings(tenantId.value, branchId.value, today(), addDays(today(), 14));
-
-    generateConfirmOpen.value = false;
-    toast.success(`Generated ${count} new booking(s).`);
-    await loadBookings();
-  } catch (e: unknown) {
-    toast.error(getErrorMessage(e, 'Failed to generate bookings'));
-  } finally {
-    generateLoading.value = false;
-  }
+        toast.success(`Generated ${count} new booking(s).`);
+        await loadBookings();
+      } catch (e: unknown) {
+        toast.error(getErrorMessage(e, 'Failed to generate bookings'));
+      }
+    },
+  });
 }
 
 const newBookingOpen = ref(false);
-const newBookingSaving = ref(false);
 
-async function saveNewBooking(payload: {
-  customer_id: string;
-  address_id: string | null;
-  rider_id: string | null;
-  scheduled_date: string;
-  items: { product_id: string; container_type_id: string; quantity: number; is_new_container: boolean }[];
-}) {
-  newBookingSaving.value = true;
-  try {
-    await createBooking(tenantId.value, branchId.value, payload);
-    newBookingOpen.value = false;
-    toast.success('Booking created.');
-    await loadBookings();
-  } catch (e: unknown) {
-    toast.error(getErrorMessage(e, 'Failed to create booking'));
-  } finally {
-    newBookingSaving.value = false;
-  }
-}
-
-const cancelTarget = ref<BookingRow>();
-const cancelLoading = ref(false);
-
-async function handleCancelBooking() {
-  if (!cancelTarget.value) {
-    return;
-  }
-
-  cancelLoading.value = true;
-  try {
-    await cancelBooking(cancelTarget.value.id);
-    cancelTarget.value = undefined;
-    toast.success('Booking cancelled.');
-    await loadBookings();
-  } catch (e: unknown) {
-    toast.error(getErrorMessage(e, 'Failed to cancel booking'));
-  } finally {
-    cancelLoading.value = false;
-  }
-}
+const { loading: newBookingSaving, run: saveNewBooking } = useAsync(
+  async (payload: {
+    customer_id: string;
+    address_id: string | null;
+    rider_id: string | null;
+    scheduled_date: string;
+    items: { product_id: string; container_type_id: string; quantity: number; is_new_container: boolean }[];
+  }) => {
+    try {
+      await createBooking(tenantId.value, branchId.value, payload);
+      newBookingOpen.value = false;
+      toast.success('Booking created.');
+      await loadBookings();
+    } catch (e: unknown) {
+      toast.error(getErrorMessage(e, 'Failed to create booking'));
+    }
+  },
+);
 
 const fulfillTarget = ref<BookingRow>();
 const fulfillOpen = ref(false);
-const fulfillLoading = ref(false);
 
 function openFulfill(booking: BookingRow) {
   fulfillTarget.value = booking;
   fulfillOpen.value = true;
 }
 
-async function handleFulfill(prices: Array<{ product_id: string; container_type_id: string; unit_price_centavos: number }>) {
-  if (!fulfillTarget.value) {
-    return;
-  }
+const { loading: fulfillLoading, run: handleFulfill } = useAsync(
+  async (prices: Array<{ product_id: string; container_type_id: string; unit_price_centavos: number }>) => {
+    if (!fulfillTarget.value) {
+      return;
+    }
 
-  fulfillLoading.value = true;
-  try {
-    const saleId = await fulfillBooking(tenantId.value, branchId.value, fulfillTarget.value.id, prices);
+    try {
+      const saleId = await fulfillBooking(tenantId.value, branchId.value, fulfillTarget.value.id, prices);
 
-    fulfillOpen.value = false;
-    fulfillTarget.value = undefined;
-    toast.success(`Booking fulfilled. Sale ID: ${saleId.slice(0, 8)}…`);
-    await loadBookings();
-  } catch (e: unknown) {
-    toast.error(getErrorMessage(e, 'Failed to fulfill booking'));
-  } finally {
-    fulfillLoading.value = false;
-  }
-}
+      fulfillOpen.value = false;
+      fulfillTarget.value = undefined;
+      toast.success(`Booking fulfilled. Sale ID: ${saleId.slice(0, 8)}…`);
+      await loadBookings();
+    } catch (e: unknown) {
+      toast.error(getErrorMessage(e, 'Failed to fulfill booking'));
+    }
+  },
+);
 
 const {
   data: templates,
@@ -206,7 +183,6 @@ function dayLabel(d: number): string {
 }
 
 const templateModalOpen = ref(false);
-const templateSaving = ref(false);
 const editingTemplate = ref<TemplateRow>();
 
 function openAddTemplate() {
@@ -219,71 +195,92 @@ function openEditTemplate(t: TemplateRow) {
   templateModalOpen.value = true;
 }
 
-async function saveTemplate(payload: {
-  customer_id: string;
-  address_id: string | null;
-  rider_id: string | null;
-  cadence: string;
-  day_of_week: number;
-  items: { product_id: string; container_type_id: string; quantity: number; is_new_container: boolean }[];
-}) {
-  templateSaving.value = true;
-  try {
-    if (editingTemplate.value) {
-      await updateTemplate(editingTemplate.value.id, {
-        address_id: payload.address_id,
-        rider_id: payload.rider_id,
-        cadence: payload.cadence,
-        day_of_week: payload.day_of_week,
-      });
-    } else {
-      await createTemplate(tenantId.value, branchId.value, payload);
+const { loading: templateSaving, run: saveTemplate } = useAsync(
+  async (payload: {
+    customer_id: string;
+    address_id: string | null;
+    rider_id: string | null;
+    cadence: string;
+    day_of_week: number;
+    items: { product_id: string; container_type_id: string; quantity: number; is_new_container: boolean }[];
+  }) => {
+    try {
+      const isEditing = !!editingTemplate.value;
+
+      if (editingTemplate.value) {
+        await updateTemplate(editingTemplate.value.id, {
+          address_id: payload.address_id,
+          rider_id: payload.rider_id,
+          cadence: payload.cadence,
+          day_of_week: payload.day_of_week,
+        });
+      } else {
+        await createTemplate(tenantId.value, branchId.value, payload);
+      }
+
+      templateModalOpen.value = false;
+      toast.success(isEditing ? 'Template updated.' : 'Template created.');
+      await loadTemplates();
+    } catch (e: unknown) {
+      toast.error(getErrorMessage(e, 'Failed to save template'));
     }
-
-    templateModalOpen.value = false;
-    toast.success(editingTemplate.value ? 'Template updated.' : 'Template created.');
-    await loadTemplates();
-  } catch (e: unknown) {
-    toast.error(getErrorMessage(e, 'Failed to save template'));
-  } finally {
-    templateSaving.value = false;
-  }
-}
-
-const deleteTemplateTarget = ref<TemplateRow>();
-const deleteTemplateLoading = ref(false);
-
-async function handleDeleteTemplate() {
-  if (!deleteTemplateTarget.value) {
-    return;
-  }
-
-  deleteTemplateLoading.value = true;
-  try {
-    await deleteTemplate(deleteTemplateTarget.value.id);
-    deleteTemplateTarget.value = undefined;
-    toast.success('Template deleted.');
-    await loadTemplates();
-  } catch (e: unknown) {
-    toast.error(getErrorMessage(e, 'Failed to delete template'));
-  } finally {
-    deleteTemplateLoading.value = false;
-  }
-}
+  },
+);
 
 function bookingRowMenu(row: BookingRow) {
   const isPending = row.status === 'pending';
 
   return [
     { label: 'Fulfill', onClick: () => openFulfill(row), hidden: !isPending },
-    { label: 'Cancel', icon: IconTrash, danger: true, onClick: () => (cancelTarget.value = row), hidden: !isPending },
+    {
+      label: 'Cancel',
+      icon: IconTrash,
+      danger: true,
+      onClick: () =>
+        confirm({
+          title: 'Cancel booking?',
+          message: `Cancel booking for ${row.customer?.name ?? 'this customer'} on ${row.scheduled_date ?? ''}?`,
+          confirmLabel: 'Cancel booking',
+          variant: 'blaze-red',
+          onConfirm: async () => {
+            try {
+              await cancelBooking(row.id);
+              toast.success('Booking cancelled.');
+              await loadBookings();
+            } catch (e: unknown) {
+              toast.error(getErrorMessage(e, 'Failed to cancel booking'));
+            }
+          },
+        }),
+      hidden: !isPending,
+    },
   ];
 }
 
 function templateRowMenu(row: TemplateRow) {
   return [
     { label: 'Edit', icon: IconEdit, onClick: () => openEditTemplate(row) },
-    { label: 'Delete', icon: IconTrash, danger: true, onClick: () => (deleteTemplateTarget.value = row) },
+    {
+      label: 'Delete',
+      icon: IconTrash,
+      danger: true,
+      onClick: () =>
+        confirm({
+          title: 'Delete template?',
+          message: `Delete template for ${row.customer?.name ?? 'this customer'}? Future generated bookings won't be affected.`,
+          confirmLabel: 'Delete',
+          variant: 'blaze-red',
+          onConfirm: async () => {
+            try {
+              await deleteTemplate(row.id);
+              toast.success('Template deleted.');
+              await loadTemplates();
+            } catch (e: unknown) {
+              toast.error(getErrorMessage(e, 'Failed to delete template'));
+            }
+          },
+        }),
+    },
   ];
 }
 
@@ -304,7 +301,7 @@ onMounted(loadShared);
         <div class="flex flex-wrap items-center justify-between gap-2">
           <h2 class="text-base font-medium text-casual-navy">Upcoming Bookings</h2>
           <div class="flex gap-2">
-            <BaseButton variant="full-white" @click="generateConfirmOpen = true"> Generate </BaseButton>
+            <BaseButton variant="full-white" @click="openGenerateConfirm"> Generate </BaseButton>
             <BaseButton @click="newBookingOpen = true">New Booking</BaseButton>
           </div>
         </div>
@@ -397,17 +394,6 @@ onMounted(loadShared);
       </div>
     </div>
 
-    <BaseConfirm
-      :open="generateConfirmOpen"
-      title="Generate bookings?"
-      message="Generate bookings from all active templates for the next 14 days?"
-      confirm-label="Generate"
-      variant="turquoise-stone"
-      :loading="generateLoading"
-      @confirm="handleGenerate"
-      @cancel="generateConfirmOpen = false"
-    />
-
     <BookingNewModal
       v-model:open="newBookingOpen"
       :customers="customers"
@@ -416,17 +402,6 @@ onMounted(loadShared);
       :container-types="containerTypes"
       :saving="newBookingSaving"
       @submit="saveNewBooking"
-    />
-
-    <BaseConfirm
-      :open="!!cancelTarget"
-      title="Cancel booking?"
-      :message="`Cancel booking for ${cancelTarget?.customer?.name ?? 'this customer'} on ${cancelTarget?.scheduled_date ?? ''}?`"
-      confirm-label="Cancel booking"
-      variant="blaze-red"
-      :loading="cancelLoading"
-      @confirm="handleCancelBooking"
-      @cancel="cancelTarget = undefined"
     />
 
     <BookingFulfillModal
@@ -447,17 +422,6 @@ onMounted(loadShared);
       :container-types="containerTypes"
       :saving="templateSaving"
       @submit="saveTemplate"
-    />
-
-    <BaseConfirm
-      :open="!!deleteTemplateTarget"
-      title="Delete template?"
-      :message="`Delete template for ${deleteTemplateTarget?.customer?.name ?? 'this customer'}? Future generated bookings won't be affected.`"
-      confirm-label="Delete"
-      variant="blaze-red"
-      :loading="deleteTemplateLoading"
-      @confirm="handleDeleteTemplate"
-      @cancel="deleteTemplateTarget = undefined"
     />
   </div>
 </template>

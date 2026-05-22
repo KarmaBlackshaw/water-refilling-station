@@ -22,7 +22,7 @@ type UseAsync<T> = {
   reset: () => void;
 };
 
-export const tryToCatch = async <T>(fn: (...args: any[]) => Promise<T>): Promise<[Error | null, T?]> => {
+export const tryToCatch = async <T>(fn: (...args: any[]) => PromiseLike<T> | T): Promise<[Error | null, T?]> => {
   try {
     const response: T = await fn();
 
@@ -32,7 +32,7 @@ export const tryToCatch = async <T>(fn: (...args: any[]) => Promise<T>): Promise
   }
 };
 
-export default function useAsync<T>(fn: (...args: any) => Promise<T>, optionsRaw?: Options) {
+export default function useAsync<T>(fn: (...args: any) => PromiseLike<T> | T, optionsRaw?: Options) {
   const options = Object.assign(
     {
       immediate: false,

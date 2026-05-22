@@ -17,6 +17,7 @@ declare module 'vue' {
     BaseCard: typeof import('./components/Base/BaseCard.vue')['default']
     BaseCheckbox: typeof import('./components/Base/BaseCheckbox.vue')['default']
     BaseConfirm: typeof import('./components/Base/BaseConfirm.vue')['default']
+    BaseConfirmHost: typeof import('./components/Base/BaseConfirmHost.vue')['default']
     BaseDatePicker: typeof import('./components/Base/BaseDatePicker.vue')['default']
     BaseDonutChart: typeof import('./components/Base/BaseDonutChart.vue')['default']
     BaseEmptyState: typeof import('./components/Base/BaseEmptyState.vue')['default']

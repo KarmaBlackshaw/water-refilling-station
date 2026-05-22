@@ -4,6 +4,7 @@ import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
 
 const auth = useAuthStore();
+const { confirm } = useConfirm();
 const tenantId = computed(() => auth.tenantId ?? '');
 const branchId = computed(() => auth.branchId ?? '');
 
@@ -13,22 +14,13 @@ type CustomerWithArea = Customer & {
   addresses: AddressLite[] | null;
 };
 
-const {
-  data: customersData,
-  loading,
-  run: load,
-} = useAsync<CustomerWithArea[]>(() => listCustomers(tenantId.value, branchId.value).then((r) => r.data ?? []), {
-  immediate: true,
-  defaultValue: [],
-});
+const { data: customersRes, loading, run: load } = useAsync(() => listCustomers(tenantId.value, branchId.value), { immediate: true });
 
-const customers = computed(() => customersData.value ?? []);
+const customers = computed(() => customersRes.value?.data ?? []);
 
 const search = ref('');
 const modalOpen = ref(false);
 const editingCustomer = ref<Customer>();
-const deleteConfirm = ref<Customer>();
-const saving = ref(false);
 
 function defaultAddress(row: CustomerWithArea): AddressLite | null {
   const live = (row.addresses ?? []).filter((a) => !a.deleted_at);
@@ -62,53 +54,59 @@ function openEdit(c: Customer) {
   modalOpen.value = true;
 }
 
-async function save(payload: {
-  name: string;
-  phone: string | null;
-  type: 'residential' | 'commercial';
-  notes: string | null;
-  address: { label: string; address_line: string } | null;
-}) {
-  saving.value = true;
+const { loading: saving, run: save } = useAsync(
+  async (payload: {
+    name: string;
+    phone: string | null;
+    type: 'residential' | 'commercial';
+    notes: string | null;
+    address: { label: string; address_line: string } | null;
+  }) => {
+    const { address, ...customerPayload } = payload;
 
-  const { address, ...customerPayload } = payload;
+    if (editingCustomer.value) {
+      await updateCustomer(editingCustomer.value.id, customerPayload);
+    } else {
+      const { data: created } = await createCustomer({ tenant_id: tenantId.value, branch_id: branchId.value, ...customerPayload });
 
-  if (editingCustomer.value) {
-    await updateCustomer(editingCustomer.value.id, customerPayload);
-  } else {
-    const { data: created } = await createCustomer({ tenant_id: tenantId.value, branch_id: branchId.value, ...customerPayload });
-
-    if (created && address) {
-      await createAddress({
-        tenant_id: tenantId.value,
-        branch_id: branchId.value,
-        customer_id: created.id,
-        label: address.label,
-        address_line: address.address_line,
-        is_default: true,
-      });
+      if (created && address) {
+        await createAddress({
+          tenant_id: tenantId.value,
+          branch_id: branchId.value,
+          customer_id: created.id,
+          label: address.label,
+          address_line: address.address_line,
+          is_default: true,
+        });
+      }
     }
-  }
 
-  modalOpen.value = false;
-  await load();
-  saving.value = false;
-}
-
-async function confirmDelete() {
-  if (!deleteConfirm.value || !auth.authUser) {
-    return;
-  }
-
-  await softDeleteCustomer(deleteConfirm.value.id, auth.authUser.id);
-  deleteConfirm.value = undefined;
-  await load();
-}
+    modalOpen.value = false;
+    await load();
+  },
+);
 
 function rowMenu(row: Customer) {
   return [
     { label: 'Edit', icon: IconEdit, onClick: () => openEdit(row) },
-    { label: 'Delete', icon: IconTrash, danger: true, onClick: () => (deleteConfirm.value = row) },
+    {
+      label: 'Delete',
+      icon: IconTrash,
+      danger: true,
+      onClick: () =>
+        confirm({
+          title: 'Delete customer?',
+          message: `Delete '${row.name}'?`,
+          onConfirm: async () => {
+            if (!auth.authUser) {
+              return;
+            }
+
+            await softDeleteCustomer(row.id, auth.authUser.id);
+            await load();
+          },
+        }),
+    },
   ];
 }
 </script>
@@ -174,13 +172,5 @@ function rowMenu(row: Customer) {
     </div>
 
     <CustomerFormModal v-model:open="modalOpen" :customer="editingCustomer" :saving="saving" @submit="save" />
-
-    <BaseConfirm
-      :open="!!deleteConfirm"
-      title="Delete customer?"
-      :message="`Delete '${deleteConfirm?.name}'?`"
-      @confirm="confirmDelete"
-      @cancel="deleteConfirm = undefined"
-    />
   </div>
 </template>

@@ -5,6 +5,7 @@ import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
 
 const auth = useAuthStore();
+const { confirm } = useConfirm();
 const tenantId = computed(() => auth.tenantId ?? '');
 const branchId = computed(() => auth.branchId ?? '');
 
@@ -22,8 +23,6 @@ const employees = computed(() => data.value ?? []);
 
 const modalOpen = ref(false);
 const editingEmployee = ref<Employee>();
-const deleteConfirm = ref<Employee>();
-const saving = ref(false);
 
 function openAdd() {
   editingEmployee.value = undefined;
@@ -35,41 +34,47 @@ function openEdit(e: Employee) {
   modalOpen.value = true;
 }
 
-async function save(payload: {
-  full_name: string;
-  phone: string | undefined;
-  hire_date: string | undefined;
-  role: UserRole;
-  monthly_salary_centavos: number;
-  daily_quota_jugs: number | null;
-}) {
-  saving.value = true;
+const { loading: saving, run: save } = useAsync(
+  async (payload: {
+    full_name: string;
+    phone: string | undefined;
+    hire_date: string | undefined;
+    role: UserRole;
+    monthly_salary_centavos: number;
+    daily_quota_jugs: number | null;
+  }) => {
+    if (editingEmployee.value) {
+      await updateEmployee(editingEmployee.value.id, payload);
+    } else {
+      await createEmployee({ tenant_id: tenantId.value, branch_id: branchId.value, ...payload });
+    }
 
-  if (editingEmployee.value) {
-    await updateEmployee(editingEmployee.value.id, payload);
-  } else {
-    await createEmployee({ tenant_id: tenantId.value, branch_id: branchId.value, ...payload });
-  }
-
-  modalOpen.value = false;
-  await load();
-  saving.value = false;
-}
-
-async function confirmDelete() {
-  if (!deleteConfirm.value || !auth.authUser) {
-    return;
-  }
-
-  await softDeleteEmployee(deleteConfirm.value.id, auth.authUser.id);
-  deleteConfirm.value = undefined;
-  await load();
-}
+    modalOpen.value = false;
+    await load();
+  },
+);
 
 function rowMenu(row: Employee) {
   return [
     { label: 'Edit', icon: IconEdit, onClick: () => openEdit(row) },
-    { label: 'Delete', icon: IconTrash, danger: true, onClick: () => (deleteConfirm.value = row) },
+    {
+      label: 'Delete',
+      icon: IconTrash,
+      danger: true,
+      onClick: () =>
+        confirm({
+          title: 'Delete employee?',
+          message: `Delete '${row.full_name}'?`,
+          onConfirm: async () => {
+            if (!auth.authUser) {
+              return;
+            }
+
+            await softDeleteEmployee(row.id, auth.authUser.id);
+            await load();
+          },
+        }),
+    },
   ];
 }
 </script>
@@ -124,13 +129,5 @@ function rowMenu(row: Employee) {
     </div>
 
     <EmployeeFormModal v-model:open="modalOpen" :employee="editingEmployee" :saving="saving" @submit="save" />
-
-    <BaseConfirm
-      :open="!!deleteConfirm"
-      title="Delete employee?"
-      :message="`Delete '${deleteConfirm?.full_name}'?`"
-      @confirm="confirmDelete"
-      @cancel="deleteConfirm = undefined"
-    />
   </div>
 </template>

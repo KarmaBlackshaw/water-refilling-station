@@ -15,6 +15,7 @@ import {
 import type { Product, ContainerType } from '@/types/database';
 
 const auth = useAuthStore();
+const { confirm } = useConfirm();
 
 const activeTab = ref<'products' | 'containers'>('products');
 
@@ -22,45 +23,19 @@ const tenantId = computed(() => auth.tenantId ?? '');
 const branchId = computed(() => auth.branchId ?? '');
 
 const {
-  data: products,
+  data: productsRes,
   loading: productsLoading,
   run: loadProducts,
-} = useAsync<Product[]>(() => listProducts(tenantId.value, branchId.value).then((r) => r.data ?? []), {
+} = useAsync(() => listProducts(tenantId.value, branchId.value), {
   immediate: true,
-  defaultValue: [],
   disableResetValue: true,
 });
+
+const products = computed(() => productsRes.value?.data ?? []);
 const productModalOpen = ref(false);
 const editingProduct = ref<Product>();
-const productSaving = ref(false);
-const deleteProductConfirm = ref<Product>();
 
-const {
-  data: containerTypes,
-  loading: containerTypesLoading,
-  run: loadContainerTypes,
-} = useAsync<ContainerType[]>(() => listContainerTypes(tenantId.value, branchId.value).then((r) => r.data ?? []), {
-  immediate: true,
-  defaultValue: [],
-  disableResetValue: true,
-});
-const containerModalOpen = ref(false);
-const editingContainer = ref<ContainerType>();
-const containerSaving = ref(false);
-const deleteContainerConfirm = ref<ContainerType>();
-
-function openAddProduct() {
-  editingProduct.value = undefined;
-  productModalOpen.value = true;
-}
-
-function openEditProduct(p: Product) {
-  editingProduct.value = p;
-  productModalOpen.value = true;
-}
-
-async function saveProduct(payload: { name: string; active: boolean }) {
-  productSaving.value = true;
+const { loading: productSaving, run: saveProduct } = useAsync(async (payload: { name: string; active: boolean }) => {
   if (editingProduct.value) {
     await updateProduct(editingProduct.value.id, payload);
   } else {
@@ -69,32 +44,22 @@ async function saveProduct(payload: { name: string; active: boolean }) {
 
   productModalOpen.value = false;
   await loadProducts();
-  productSaving.value = false;
-}
+});
 
-async function confirmDeleteProduct() {
-  if (!deleteProductConfirm.value || !auth.authUser) {
-    return;
-  }
+const {
+  data: containerTypesRes,
+  loading: containerTypesLoading,
+  run: loadContainerTypes,
+} = useAsync(() => listContainerTypes(tenantId.value, branchId.value), {
+  immediate: true,
+  disableResetValue: true,
+});
 
-  await softDeleteProduct(deleteProductConfirm.value.id, auth.authUser.id);
-  deleteProductConfirm.value = undefined;
-  await loadProducts();
-}
+const containerTypes = computed(() => containerTypesRes.value?.data ?? []);
+const containerModalOpen = ref(false);
+const editingContainer = ref<ContainerType>();
 
-function openAddContainer() {
-  editingContainer.value = undefined;
-  containerModalOpen.value = true;
-}
-
-function openEditContainer(c: ContainerType) {
-  editingContainer.value = c;
-  containerModalOpen.value = true;
-}
-
-async function saveContainer(payload: { name: string; deposit_centavos: number; active: boolean }) {
-  containerSaving.value = true;
-
+const { loading: containerSaving, run: saveContainer } = useAsync(async (payload: { name: string; deposit_centavos: number; active: boolean }) => {
   if (editingContainer.value) {
     await updateContainerType(editingContainer.value.id, payload);
   } else {
@@ -108,30 +73,73 @@ async function saveContainer(payload: { name: string; deposit_centavos: number; 
 
   containerModalOpen.value = false;
   await loadContainerTypes();
-  containerSaving.value = false;
+});
+
+function openAddProduct() {
+  editingProduct.value = undefined;
+  productModalOpen.value = true;
 }
 
-async function confirmDeleteContainer() {
-  if (!deleteContainerConfirm.value || !auth.authUser) {
-    return;
-  }
+function openEditProduct(p: Product) {
+  editingProduct.value = p;
+  productModalOpen.value = true;
+}
 
-  await softDeleteContainerType(deleteContainerConfirm.value.id, auth.authUser.id);
-  deleteContainerConfirm.value = undefined;
-  await loadContainerTypes();
+function openAddContainer() {
+  editingContainer.value = undefined;
+  containerModalOpen.value = true;
+}
+
+function openEditContainer(c: ContainerType) {
+  editingContainer.value = c;
+  containerModalOpen.value = true;
 }
 
 function productMenu(row: Product) {
   return [
     { label: 'Edit', icon: IconEdit, onClick: () => openEditProduct(row) },
-    { label: 'Delete', icon: IconTrash, danger: true, onClick: () => (deleteProductConfirm.value = row) },
+    {
+      label: 'Delete',
+      icon: IconTrash,
+      danger: true,
+      onClick: () =>
+        confirm({
+          title: 'Delete product?',
+          message: `Delete '${row.name}'? This cannot be undone.`,
+          onConfirm: async () => {
+            if (!auth.authUser) {
+              return;
+            }
+
+            await softDeleteProduct(row.id, auth.authUser.id);
+            await loadProducts();
+          },
+        }),
+    },
   ];
 }
 
 function containerMenu(row: ContainerType) {
   return [
     { label: 'Edit', icon: IconEdit, onClick: () => openEditContainer(row) },
-    { label: 'Delete', icon: IconTrash, danger: true, onClick: () => (deleteContainerConfirm.value = row) },
+    {
+      label: 'Delete',
+      icon: IconTrash,
+      danger: true,
+      onClick: () =>
+        confirm({
+          title: 'Delete container type?',
+          message: `Delete '${row.name}'? This cannot be undone.`,
+          onConfirm: async () => {
+            if (!auth.authUser) {
+              return;
+            }
+
+            await softDeleteContainerType(row.id, auth.authUser.id);
+            await loadContainerTypes();
+          },
+        }),
+    },
   ];
 }
 </script>
@@ -224,20 +232,5 @@ function containerMenu(row: ContainerType) {
     <ProductFormModal v-model:open="productModalOpen" :product="editingProduct" :saving="productSaving" @submit="saveProduct" />
 
     <ContainerTypeFormModal v-model:open="containerModalOpen" :container-type="editingContainer" :saving="containerSaving" @submit="saveContainer" />
-
-    <BaseConfirm
-      :open="!!deleteProductConfirm"
-      title="Delete product?"
-      :message="`Delete '${deleteProductConfirm?.name}'? This cannot be undone.`"
-      @confirm="confirmDeleteProduct"
-      @cancel="deleteProductConfirm = undefined"
-    />
-    <BaseConfirm
-      :open="!!deleteContainerConfirm"
-      title="Delete container type?"
-      :message="`Delete '${deleteContainerConfirm?.name}'? This cannot be undone.`"
-      @confirm="confirmDeleteContainer"
-      @cancel="deleteContainerConfirm = undefined"
-    />
   </div>
 </template>

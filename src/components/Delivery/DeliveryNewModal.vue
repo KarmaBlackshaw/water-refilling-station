@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { ContainerType, CustomerAddress, Product, User } from '@/types/database';
-
 const open = defineModel<boolean>({ required: true });
 
 const { defaultDate } = defineProps<{
@@ -12,8 +10,6 @@ const emit = defineEmits<{
 }>();
 
 const auth = useAuthStore();
-
-type CustomerLite = { id: string; name: string; phone: string | null };
 
 const form = reactive({
   customer_id: '',
@@ -36,8 +32,6 @@ const lines = ref<
   }>
 >([]);
 
-const saving = ref(false);
-
 function emptyLine() {
   return {
     product_id: '',
@@ -56,54 +50,29 @@ function removeLine(idx: number) {
   lines.value.splice(idx, 1);
 }
 
-const { data: customers, run: loadCustomers } = useAsync<CustomerLite[]>(
-  async () => {
-    const { data } = await listCustomers(auth.tenantId ?? '', auth.branchId ?? '');
+const { data: customersRes, run: loadCustomers } = useAsync(() => listCustomers(auth.tenantId ?? '', auth.branchId ?? ''));
+const customers = computed(() => customersRes.value?.data ?? []);
 
-    return data ?? [];
-  },
-  { defaultValue: [] },
-);
+const { data: ridersRes, run: loadRiders } = useAsync(() => listRiders(auth.tenantId ?? '', auth.branchId ?? ''));
+const riders = computed(() => ridersRes.value?.data ?? []);
 
-const { data: riders, run: loadRiders } = useAsync<Array<Pick<User, 'id' | 'full_name'>>>(
-  async () => {
-    const { data } = await listRiders(auth.tenantId ?? '', auth.branchId ?? '');
+const { data: productsRes, run: loadProducts } = useAsync(() => listProducts(auth.tenantId ?? '', auth.branchId ?? ''));
+const products = computed(() => productsRes.value?.data ?? []);
 
-    return data ?? [];
-  },
-  { defaultValue: [] },
-);
+const { data: containerTypesRes, run: loadContainerTypes } = useAsync(() => listContainerTypes(auth.tenantId ?? '', auth.branchId ?? ''));
+const containerTypes = computed(() => containerTypesRes.value?.data ?? []);
 
-const { data: products, run: loadProducts } = useAsync<Product[]>(
-  async () => {
-    const { data } = await listProducts(auth.tenantId ?? '', auth.branchId ?? '');
-
-    return data ?? [];
-  },
-  { defaultValue: [] },
-);
-
-const { data: containerTypes, run: loadContainerTypes } = useAsync<ContainerType[]>(
-  async () => {
-    const { data } = await listContainerTypes(auth.tenantId ?? '', auth.branchId ?? '');
-
-    return data ?? [];
-  },
-  { defaultValue: [] },
-);
-
-const { data: customerAddresses } = useAsync<CustomerAddress[]>(
-  async () => {
+const { data: customerAddressesRes } = useAsync(
+  () => {
     if (!form.customer_id) {
-      return [];
+      return Promise.resolve(null);
     }
 
-    const { data } = await listAddresses(form.customer_id);
-
-    return data ?? [];
+    return listAddresses(form.customer_id);
   },
-  { watch: () => form.customer_id, defaultValue: [] },
+  { watch: () => form.customer_id },
 );
+const customerAddresses = computed(() => customerAddressesRes.value?.data ?? []);
 
 watch(customerAddresses, (list) => {
   const def = (list ?? []).find((a) => a.is_default);
@@ -141,42 +110,35 @@ const containerTypeOptions = computed(() => (containerTypes.value ?? []).map((c)
 
 const total = computed(() => lines.value.reduce((s, l) => s + l.quantity * l.unit_price_centavos, 0));
 
-async function submit() {
-  saving.value = true;
+const { loading: saving, run: submit } = useAsync(async () => {
   const amountCentavos = Math.round(parseFloat(form.payment_amount || '0') * 100);
-  const [error] = await tryToCatch(() =>
-    createDeliverySale({
-      tenant_id: auth.tenantId ?? '',
-      branch_id: auth.branchId ?? '',
-      customer_id: form.customer_id,
-      address_id: form.address_id || null,
-      rider_id: form.rider_id || null,
-      sale_date: form.sale_date,
-      notes: form.notes || null,
-      lines: lines.value.filter((l) => l.product_id && l.container_type_id),
-      payments:
-        amountCentavos > 0
-          ? [
-              {
-                method: form.payment_method,
-                amount_centavos: amountCentavos,
-                gcash_ref: form.payment_method === 'gcash' ? form.payment_gcash_ref || null : null,
-              },
-            ]
-          : [],
-    }),
-  );
 
-  saving.value = false;
-  if (error) {
-    return;
-  }
+  await createDeliverySale({
+    tenant_id: auth.tenantId ?? '',
+    branch_id: auth.branchId ?? '',
+    customer_id: form.customer_id,
+    address_id: form.address_id || null,
+    rider_id: form.rider_id || null,
+    sale_date: form.sale_date,
+    notes: form.notes || null,
+    lines: lines.value.filter((l) => l.product_id && l.container_type_id),
+    payments:
+      amountCentavos > 0
+        ? [
+            {
+              method: form.payment_method,
+              amount_centavos: amountCentavos,
+              gcash_ref: form.payment_method === 'gcash' ? form.payment_gcash_ref || null : null,
+            },
+          ]
+        : [],
+  });
 
   const saleDate = form.sale_date;
 
   open.value = false;
   emit('created', saleDate);
-}
+});
 </script>
 
 <template>

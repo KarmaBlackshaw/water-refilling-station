@@ -15,7 +15,6 @@ const auth = useAuthStore();
 
 const returns = ref<Array<{ container_type_id: string; name: string; maxQty: number; qty: number }>>([]);
 const notes = ref('');
-const saving = ref(false);
 
 watch(open, (isOpen) => {
   if (!isOpen) {
@@ -51,36 +50,28 @@ watch(open, (isOpen) => {
   }));
 });
 
-async function submit() {
+const { loading: saving, run: submit } = useAsync(async () => {
   const currentSale = sale;
 
   if (!currentSale) {
     return;
   }
 
-  saving.value = true;
-  const [error] = await tryToCatch(() =>
-    reconcileDelivery({
-      saleId: currentSale.id,
-      customerId: currentSale.customer_id,
-      tenantId: auth.tenantId ?? '',
-      branchId: auth.branchId ?? '',
-      containersReturned: returns.value.map((r) => ({
-        container_type_id: r.container_type_id,
-        quantity: r.qty,
-      })),
-      notes: notes.value || null,
-    }),
-  );
-
-  saving.value = false;
-  if (error) {
-    return;
-  }
+  await reconcileDelivery({
+    saleId: currentSale.id,
+    customerId: currentSale.customer_id,
+    tenantId: auth.tenantId ?? '',
+    branchId: auth.branchId ?? '',
+    containersReturned: returns.value.map((r) => ({
+      container_type_id: r.container_type_id,
+      quantity: r.qty,
+    })),
+    notes: notes.value || null,
+  });
 
   open.value = false;
   emit('reconciled');
-}
+});
 </script>
 
 <template>

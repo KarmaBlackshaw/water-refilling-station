@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import type { Sale, Customer, Product, ContainerType, SaleLine, SalePayment } from '@/types/database';
+import type { Sale, SaleLine, SalePayment } from '@/types/database';
 import type { WalkInSubmitPayload } from '@/components/Sale/SaleWalkInModal.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
 
 const auth = useAuthStore();
+const { confirm } = useConfirm();
 const tenantId = computed(() => auth.tenantId ?? '');
 const branchId = computed(() => auth.branchId ?? '');
 const { success: toastSuccess, error: toastError } = useToast();
@@ -103,23 +104,6 @@ function statusLabel(status: string) {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
-const voidTarget = ref<SaleRow>();
-
-async function confirmVoid() {
-  if (!voidTarget.value) {
-    return;
-  }
-
-  try {
-    await voidSale(voidTarget.value.id);
-    toastSuccess('Sale voided');
-    voidTarget.value = undefined;
-    await loadSales();
-  } catch {
-    toastError('Failed to void sale');
-  }
-}
-
 const detailOpen = ref(false);
 const detailSale = ref<Sale & { customer?: { name: string } | null }>();
 const detailLines = ref<(SaleLine & { product?: { name: string }; container_type?: { name: string } })[]>([]);
@@ -145,24 +129,23 @@ async function openDetail(sale: SaleRow) {
 const posOpen = ref(false);
 const saving = ref(false);
 
-type CustomerWithArea = Customer & { area: { id: string; name: string } | null };
+const { data: customersRes } = useAsync(() => listCustomers(tenantId.value, branchId.value), {
+  immediate: true,
+  disableResetValue: true,
+});
+const customers = computed(() => customersRes.value?.data ?? []);
 
-const { data: customers } = useAsync<CustomerWithArea[]>(() => listCustomers(tenantId.value, branchId.value).then((r) => r.data ?? []), {
+const { data: productsRes } = useAsync(() => listProducts(tenantId.value, branchId.value), {
   immediate: true,
-  defaultValue: [],
   disableResetValue: true,
 });
+const products = computed(() => productsRes.value?.data ?? []);
 
-const { data: products } = useAsync<Product[]>(() => listProducts(tenantId.value, branchId.value).then((r) => r.data ?? []), {
+const { data: containerTypesRes } = useAsync(() => listContainerTypes(tenantId.value, branchId.value), {
   immediate: true,
-  defaultValue: [],
   disableResetValue: true,
 });
-const { data: containerTypes } = useAsync<ContainerType[]>(() => listContainerTypes(tenantId.value, branchId.value).then((r) => r.data ?? []), {
-  immediate: true,
-  defaultValue: [],
-  disableResetValue: true,
-});
+const containerTypes = computed(() => containerTypesRes.value?.data ?? []);
 
 async function submitWalkIn(payload: WalkInSubmitPayload) {
   saving.value = true;
@@ -190,7 +173,26 @@ async function submitWalkIn(payload: WalkInSubmitPayload) {
 function rowMenu(row: SaleRow) {
   return [
     { label: 'View', onClick: () => openDetail(row) },
-    { label: 'Void', icon: IconTrash, danger: true, hidden: row.status === 'void', onClick: () => (voidTarget.value = row) },
+    {
+      label: 'Void',
+      icon: IconTrash,
+      danger: true,
+      hidden: row.status === 'void',
+      onClick: () =>
+        confirm({
+          title: 'Void this sale?',
+          message: `This will void the sale from ${row.sale_date}. This action cannot be undone.`,
+          onConfirm: async () => {
+            try {
+              await voidSale(row.id);
+              toastSuccess('Sale voided');
+              await loadSales();
+            } catch {
+              toastError('Failed to void sale');
+            }
+          },
+        }),
+    },
   ];
 }
 </script>
@@ -254,14 +256,6 @@ function rowMenu(row: SaleRow) {
       :source-label="sourceLabel"
       :status-badge-variant="statusBadgeVariant"
       :status-label="statusLabel"
-    />
-
-    <BaseConfirm
-      :open="!!voidTarget"
-      title="Void this sale?"
-      :message="`This will void the sale from ${voidTarget?.sale_date}. This action cannot be undone.`"
-      @confirm="confirmVoid"
-      @cancel="voidTarget = undefined"
     />
 
     <SaleWalkInModal
