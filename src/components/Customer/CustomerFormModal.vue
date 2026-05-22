@@ -66,7 +66,7 @@ function submit() {
 <template>
   <BaseModal v-model:open="open" :title="customer ? 'Edit customer' : 'Add customer'">
     <form id="customer-form" class="space-y-4" @submit.prevent="submit">
-      <BaseInput v-model="form.name" label="Name" :required="true" />
+      <BaseInput v-model="form.name" label="Name" required />
       <BaseInput v-model="form.phone" label="Phone" type="tel" />
       <BaseSelect v-model="form.type" label="Type" :options="typeOptions" />
       <BaseTextarea v-model="form.notes" label="Notes" :rows="2" />

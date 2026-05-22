@@ -36,7 +36,6 @@ const lines = ref<
   }>
 >([]);
 
-const customerSearch = ref('');
 const saving = ref(false);
 
 function emptyLine() {
@@ -125,23 +124,11 @@ watch(open, (isOpen) => {
   form.payment_method = 'cash';
   form.payment_amount = '';
   form.payment_gcash_ref = '';
-  customerSearch.value = '';
   lines.value = [emptyLine()];
   Promise.all([loadCustomers(), loadRiders(), loadProducts(), loadContainerTypes()]);
 });
 
-const filteredCustomers = computed(() => {
-  const q = customerSearch.value.toLowerCase();
-  const list = customers.value ?? [];
-
-  if (!q) {
-    return list;
-  }
-
-  return list.filter((c) => c.name.toLowerCase().includes(q));
-});
-
-const customerOptions = computed(() => filteredCustomers.value.map((c) => ({ label: c.name, value: c.id })));
+const customerOptions = computed(() => (customers.value ?? []).map((c) => ({ label: c.name, value: c.id })));
 const riderOptions = computed(() => [{ label: '— No rider —', value: '' }, ...(riders.value ?? []).map((r) => ({ label: r.full_name, value: r.id }))]);
 const addressOptions = computed(() =>
   (customerAddresses.value ?? []).map((a) => ({
@@ -195,16 +182,15 @@ async function submit() {
 <template>
   <BaseModal v-model:open="open" title="New Delivery" size="xl">
     <form id="new-delivery-form" class="space-y-5" @submit.prevent="submit">
-      <div class="space-y-1">
-        <label class="text-xs font-medium text-oslo">Customer <span class="text-blaze-red">*</span></label>
-        <input
-          v-model="customerSearch"
-          type="search"
-          placeholder="Search customer..."
-          class="mb-1 w-full rounded-md border border-sparkling-silver bg-full-white px-3 py-2 text-sm text-casual-navy placeholder:text-oslo focus:outline-none focus:ring-2 focus:ring-turquoise-stone"
-        />
-        <BaseSelect v-model="form.customer_id" :options="customerOptions" placeholder="Select customer..." :required="true" />
-      </div>
+      <BaseSelect
+        v-model="form.customer_id"
+        label="Customer"
+        :options="customerOptions"
+        placeholder="Select customer..."
+        search-placeholder="Search customer..."
+        searchable
+        required
+      />
       <div class="grid gap-4 grid-cols-2">
         <BaseSelect v-model="form.rider_id" label="Rider" :options="riderOptions" placeholder="Select rider..." />
         <BaseSelect
@@ -215,7 +201,7 @@ async function submit() {
           :disabled="!form.customer_id"
         />
       </div>
-      <BaseDatePicker v-model="form.sale_date" label="Delivery Date" :required="true" />
+      <BaseDatePicker v-model="form.sale_date" label="Delivery Date" required />
       <div class="space-y-2">
         <p class="text-sm font-medium text-casual-navy">Items</p>
         <div v-for="(line, idx) in lines" :key="idx" class="grid grid-cols-[1fr_1fr_4rem_6rem_auto] items-end gap-2">

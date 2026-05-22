@@ -77,7 +77,7 @@ function submit() {
 <template>
   <BaseModal v-model:open="open" :title="employee ? 'Edit employee' : 'Add employee'">
     <form id="employee-form" class="space-y-4" @submit.prevent="submit">
-      <BaseInput v-model="form.full_name" label="Full name" :required="true" />
+      <BaseInput v-model="form.full_name" label="Full name" required />
       <BaseInput v-model="form.phone" label="Phone" type="tel" />
       <BaseDatePicker v-model="form.hire_date" label="Hire date" />
       <BaseSelect v-model="form.role" label="Role" :options="roleOptions" />

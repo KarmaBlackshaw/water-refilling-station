@@ -151,7 +151,7 @@ async function saveCoverage() {
     <!-- Area modal -->
     <BaseModal v-model:open="areaModalOpen" :title="editingArea ? 'Edit area' : 'Add area'">
       <form id="area-form" class="space-y-4" @submit.prevent="saveArea">
-        <BaseInput v-model="areaForm.name" label="Area name" :required="true" />
+        <BaseInput v-model="areaForm.name" label="Area name" required />
         <BaseSelect v-model="areaForm.primary_rider_id" label="Primary rider" :options="riderOptions" placeholder="Select rider..." />
         <BaseTextarea v-model="areaForm.notes" label="Notes" :rows="2" />
       </form>
@@ -164,8 +164,8 @@ async function saveCoverage() {
     <!-- Coverage modal -->
     <BaseModal v-model:open="coverageModalOpen" :title="`Add coverage — ${coverageArea?.name ?? ''}`">
       <form id="coverage-form" class="space-y-4" @submit.prevent="saveCoverage">
-        <BaseSelect v-model="coverageForm.covering_rider_id" label="Covering rider" :options="riderOptions" :required="true" />
-        <BaseDatePicker v-model="coverageForm.starts_on" label="Starts on" :required="true" />
+        <BaseSelect v-model="coverageForm.covering_rider_id" label="Covering rider" :options="riderOptions" required />
+        <BaseDatePicker v-model="coverageForm.starts_on" label="Starts on" required />
         <BaseDatePicker v-model="coverageForm.ends_on" label="Ends on (leave blank for open-ended)" />
       </form>
       <template #footer>

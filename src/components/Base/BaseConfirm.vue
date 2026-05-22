@@ -22,7 +22,7 @@ function onUpdateOpen(v: boolean) {
 </script>
 
 <template>
-  <BaseModal :open="open" :title="title ?? 'Are you sure?'" :closable="true" @update:open="onUpdateOpen">
+  <BaseModal :open="open" :title="title ?? 'Are you sure?'" closable @update:open="onUpdateOpen">
     <p v-if="message" class="text-sm text-independence">{{ message }}</p>
 
     <template #footer>

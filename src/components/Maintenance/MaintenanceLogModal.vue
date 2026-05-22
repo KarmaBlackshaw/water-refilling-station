@@ -50,7 +50,7 @@ function submit() {
         Task: <span class="font-medium text-casual-navy">{{ task?.task_type }}</span>
       </p>
 
-      <BaseDatePicker v-model="form.performed_at" label="Performed at" :required="true" />
+      <BaseDatePicker v-model="form.performed_at" label="Performed at" required />
 
       <BaseInput v-model="form.cost_display" label="Cost" placeholder="₱0.00" />
 

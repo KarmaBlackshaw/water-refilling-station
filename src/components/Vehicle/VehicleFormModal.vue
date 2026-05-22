@@ -76,9 +76,9 @@ function submit() {
 <template>
   <BaseModal v-model:open="open" :title="vehicle ? 'Edit Vehicle' : 'Add Vehicle'">
     <form id="vehicle-form" class="space-y-4" @submit.prevent="submit">
-      <BaseSelect v-model="form.type" label="Type" :options="vehicleTypeOptions" placeholder="Select type..." :required="true" />
-      <BaseInput v-model="form.brand_model" label="Brand / Model" placeholder="e.g. Honda Wave 125" :required="true" />
-      <BaseInput v-model="form.plate_number" label="Plate Number" placeholder="e.g. ABC 1234" :required="true" />
+      <BaseSelect v-model="form.type" label="Type" :options="vehicleTypeOptions" placeholder="Select type..." required />
+      <BaseInput v-model="form.brand_model" label="Brand / Model" placeholder="e.g. Honda Wave 125" required />
+      <BaseInput v-model="form.plate_number" label="Plate Number" placeholder="e.g. ABC 1234" required />
       <BaseInput v-model="form.year" label="Year (optional)" type="number" :min="1990" :max="year" placeholder="e.g. 2022" />
       <BaseTextarea v-model="form.notes" label="Notes (optional)" :rows="3" />
     </form>

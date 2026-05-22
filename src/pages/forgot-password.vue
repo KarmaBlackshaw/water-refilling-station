@@ -43,7 +43,7 @@ async function handleSubmit() {
         </div>
 
         <form class="space-y-4" @submit.prevent="handleSubmit">
-          <BaseInput v-model="email" label="Email" type="email" placeholder="admin@example.com" :required="true" />
+          <BaseInput v-model="email" label="Email" type="email" placeholder="admin@example.com" required />
           <p v-if="errorMsg" class="text-sm text-blaze-red">{{ errorMsg }}</p>
           <p v-if="successMsg" class="text-sm text-dark-green-turquoise">{{ successMsg }}</p>
           <BaseButton size="xl" type="submit" class="w-full" :loading="loading"> Send reset link </BaseButton>

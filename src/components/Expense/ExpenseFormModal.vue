@@ -88,17 +88,17 @@ function submit() {
 <template>
   <BaseModal v-model:open="open" :title="expense ? 'Edit Expense' : 'Add Expense'">
     <form id="expense-form" class="space-y-4" @submit.prevent="submit">
-      <BaseDatePicker v-model="form.expense_date" label="Date" :required="true" />
+      <BaseDatePicker v-model="form.expense_date" label="Date" required />
 
       <BaseSelect
         v-model="form.category"
         label="Category"
         :options="categories.map((c) => ({ label: categoryLabel[c], value: c }))"
         placeholder="Select category..."
-        :required="true"
+        required
       />
 
-      <BaseInput v-model="form.amountInput" label="Amount (₱)" type="number" :required="true" placeholder="0.00" step="0.01" min="0" />
+      <BaseInput v-model="form.amountInput" label="Amount (₱)" type="number" required placeholder="0.00" step="0.01" min="0" />
 
       <BaseSelect v-model="form.payee_employee_id" label="Payee Employee" :options="employeeOptions" />
 

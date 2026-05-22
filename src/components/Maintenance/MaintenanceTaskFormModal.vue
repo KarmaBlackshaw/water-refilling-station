@@ -97,7 +97,7 @@ function submit() {
     <form id="task-form" class="space-y-4" @submit.prevent="submit">
       <BaseSelect v-if="scope === 'vehicle'" v-model="form.vehicle_id" label="Vehicle" :options="vehicleOptions" />
 
-      <BaseInput v-model="form.task_type" label="Task type" placeholder="e.g. Filter Swap, Oil Change" :required="true" />
+      <BaseInput v-model="form.task_type" label="Task type" placeholder="e.g. Filter Swap, Oil Change" required />
 
       <BaseSelect v-model="form.schedule_kind" label="Schedule" :options="scheduleOptions" />
 

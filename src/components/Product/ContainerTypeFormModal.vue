@@ -47,7 +47,7 @@ function submit() {
 <template>
   <BaseModal v-model:open="open" :title="containerType ? 'Edit container type' : 'Add container type'">
     <form id="container-form" class="space-y-4" @submit.prevent="submit">
-      <BaseInput v-model="form.name" label="Name" :required="true" />
+      <BaseInput v-model="form.name" label="Name" required />
       <BaseInput v-model="form.deposit_display" label="Deposit amount" placeholder="₱0.00" />
       <BaseCheckbox v-model="form.active" label="Active" />
     </form>

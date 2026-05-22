@@ -156,15 +156,15 @@ function submit() {
           label="Customer"
           :options="customerOptions"
           placeholder="Select customer..."
-          :required="true"
+          required
           :disabled="!!template"
         />
         <BaseSelect v-model="form.address_id" label="Address" :options="addressOptions" placeholder="Select address..." :disabled="!form.customer_id" />
       </div>
       <div class="grid grid-cols-3 gap-3">
         <BaseSelect v-model="form.rider_id" label="Rider" :options="riderOptions" placeholder="Select rider..." />
-        <BaseSelect v-model="form.cadence" label="Cadence" :options="cadenceOptions" :required="true" />
-        <BaseSelect v-model="form.day_of_week" label="Day of Week" :options="dayOptions" :required="true" />
+        <BaseSelect v-model="form.cadence" label="Cadence" :options="cadenceOptions" required />
+        <BaseSelect v-model="form.day_of_week" label="Day of Week" :options="dayOptions" required />
       </div>
 
       <div class="space-y-2">

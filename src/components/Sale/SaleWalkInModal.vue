@@ -232,7 +232,7 @@ function submit() {
   <BaseModal v-model:open="open" title="New Walk-in Sale" size="xl">
     <form id="pos-form" class="space-y-6" @submit.prevent="submit">
       <div class="grid grid-cols-2 gap-4">
-        <BaseDatePicker v-model="posDate" label="Sale Date" :required="true" />
+        <BaseDatePicker v-model="posDate" label="Sale Date" required />
         <BaseInput v-model="posNotes" label="Notes (optional)" placeholder="Any notes..." />
       </div>
 
@@ -289,7 +289,7 @@ function submit() {
               <span class="text-xs text-oslo whitespace-nowrap">New?</span>
               <BaseCheckbox v-model="line.is_new_container" @update:model-value="onNewContainerChange(line)" />
             </div>
-            <BaseInput v-model.number="line.quantity" type="number" label="Qty" min="1" :required="true" />
+            <BaseInput v-model.number="line.quantity" type="number" label="Qty" min="1" required />
             <BaseInput v-model.number="line.unit_price_centavos" type="number" label="Unit Price (¢)" min="0" />
             <div class="flex flex-col justify-end pb-0.5">
               <span class="text-xs text-independence whitespace-nowrap num">

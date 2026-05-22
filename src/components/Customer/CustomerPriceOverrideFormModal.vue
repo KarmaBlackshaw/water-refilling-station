@@ -49,10 +49,10 @@ function submit() {
 <template>
   <BaseModal v-model:open="open" title="Add price override">
     <form id="override-form" class="space-y-4" @submit.prevent="submit">
-      <BaseInput v-model="form.product_id" label="Product ID" :required="true" />
-      <BaseInput v-model="form.container_type_id" label="Container type ID" :required="true" />
-      <BaseInput v-model="form.refill_price" label="Refill price (₱)" type="number" :required="true" />
-      <BaseInput v-model="form.new_container_price" label="New container price (₱)" type="number" :required="true" />
+      <BaseInput v-model="form.product_id" label="Product ID" required />
+      <BaseInput v-model="form.container_type_id" label="Container type ID" required />
+      <BaseInput v-model="form.refill_price" label="Refill price (₱)" type="number" required />
+      <BaseInput v-model="form.new_container_price" label="New container price (₱)" type="number" required />
     </form>
     <template #footer>
       <BaseButton variant="independence" @click="open = false">Cancel</BaseButton>

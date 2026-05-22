@@ -5,19 +5,23 @@ const {
   options,
   label,
   placeholder = 'Select...',
+  searchPlaceholder = 'Search...',
   error,
   helperText,
   disabled = false,
   required = false,
+  searchable = false,
   id,
 } = defineProps<{
   options: Array<{ label: string; value: string | number }>;
   label?: string;
   placeholder?: string;
+  searchPlaceholder?: string;
   error?: string;
   helperText?: string;
   disabled?: boolean;
   required?: boolean;
+  searchable?: boolean;
   id?: string;
 }>();
 
@@ -31,21 +35,48 @@ const selectedLabel = computed(() => {
   return match?.label ?? '';
 });
 
+const searchQuery = ref('');
+const searchInputRef = ref<HTMLInputElement | null>(null);
+
+const filteredOptions = computed(() => {
+  if (!searchable) {
+    return options;
+  }
+
+  const q = searchQuery.value.trim().toLowerCase();
+
+  if (!q) {
+    return options;
+  }
+
+  return options.filter((o) => o.label.toLowerCase().includes(q));
+});
+
 const activeIndex = ref(-1);
 
-watch(isVisible, (open) => {
+watch(isVisible, async (open) => {
   if (!open) {
     activeIndex.value = -1;
+    searchQuery.value = '';
     return;
   }
 
-  const current = options.findIndex((o) => o.value === model.value);
+  const current = filteredOptions.value.findIndex((o) => o.value === model.value);
 
   activeIndex.value = current >= 0 ? current : 0;
+
+  if (searchable) {
+    await nextTick();
+    searchInputRef.value?.focus();
+  }
+});
+
+watch(searchQuery, () => {
+  activeIndex.value = filteredOptions.value.length > 0 ? 0 : -1;
 });
 
 function selectAt(index: number) {
-  const option = options[index];
+  const option = filteredOptions.value[index];
 
   if (!option) {
     return;
@@ -56,7 +87,9 @@ function selectAt(index: number) {
 }
 
 function moveActive(delta: number) {
-  if (options.length === 0) {
+  const list = filteredOptions.value;
+
+  if (list.length === 0) {
     return;
   }
 
@@ -68,8 +101,8 @@ function moveActive(delta: number) {
   const next = activeIndex.value + delta;
 
   if (next < 0) {
-    activeIndex.value = options.length - 1;
-  } else if (next >= options.length) {
+    activeIndex.value = list.length - 1;
+  } else if (next >= list.length) {
     activeIndex.value = 0;
   } else {
     activeIndex.value = next;
@@ -104,10 +137,22 @@ function onKeydown(event: KeyboardEvent) {
       }
 
       event.preventDefault();
-      activeIndex.value = options.length - 1;
+      activeIndex.value = filteredOptions.value.length - 1;
       break;
     case 'Enter':
+      event.preventDefault();
+      if (!isVisible.value) {
+        show();
+      } else if (activeIndex.value >= 0) {
+        selectAt(activeIndex.value);
+      }
+
+      break;
     case ' ':
+      if (searchable && isVisible.value) {
+        return;
+      }
+
       event.preventDefault();
       if (!isVisible.value) {
         show();
@@ -184,31 +229,40 @@ function onTriggerClick() {
         </svg>
       </button>
 
-      <ul
-        :id="`${controlId}-listbox`"
-        :ref="POPPER_REF"
-        role="listbox"
-        :aria-labelledby="controlId"
-        class="m-0 max-h-60 list-none overflow-y-auto rounded-md border border-sparkling-silver bg-full-white p-1 text-sm shadow-lg"
-      >
-        <li
-          v-for="(option, index) in options"
-          :id="`${controlId}-option-${index}`"
-          :key="option.value"
-          role="option"
-          :aria-selected="option.value === model"
-          :class="[
-            'cursor-pointer rounded px-3 py-2 text-casual-navy',
-            index === activeIndex ? 'bg-turquoise-stone/10' : '',
-            option.value === model ? 'font-medium' : '',
-          ]"
-          @mouseenter="activeIndex = index"
-          @click="selectAt(index)"
-        >
-          {{ option.label }}
-        </li>
-        <li v-if="options.length === 0" class="px-3 py-2 text-oslo">No options</li>
-      </ul>
+      <div :ref="POPPER_REF" class="rounded-md border border-sparkling-silver bg-full-white text-sm shadow-lg">
+        <div v-if="searchable" class="border-b border-sparkling-silver p-1">
+          <input
+            :ref="(el) => (searchInputRef = el as HTMLInputElement | null)"
+            v-model="searchQuery"
+            type="search"
+            :placeholder="searchPlaceholder"
+            :aria-controls="`${controlId}-listbox`"
+            class="w-full rounded px-2 py-1.5 text-sm text-casual-navy placeholder:text-oslo focus:outline-none focus:ring-2 focus:ring-turquoise-stone"
+            @keydown="onKeydown"
+          />
+        </div>
+        <ul :id="`${controlId}-listbox`" role="listbox" :aria-labelledby="controlId" class="m-0 max-h-60 list-none overflow-y-auto p-1">
+          <li
+            v-for="(option, index) in filteredOptions"
+            :id="`${controlId}-option-${index}`"
+            :key="option.value"
+            role="option"
+            :aria-selected="option.value === model"
+            :class="[
+              'cursor-pointer rounded px-3 py-2 text-casual-navy',
+              index === activeIndex ? 'bg-turquoise-stone/10' : '',
+              option.value === model ? 'font-medium' : '',
+            ]"
+            @mouseenter="activeIndex = index"
+            @click="selectAt(index)"
+          >
+            {{ option.label }}
+          </li>
+          <li v-if="filteredOptions.length === 0" class="px-3 py-2 text-oslo">
+            {{ searchable && searchQuery ? 'No matches' : 'No options' }}
+          </li>
+        </ul>
+      </div>
     </template>
   </BaseFormField>
 </template>

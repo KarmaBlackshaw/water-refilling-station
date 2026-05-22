@@ -40,9 +40,9 @@ async function handleLogin() {
         </div>
 
         <form class="space-y-4" @submit.prevent="handleLogin">
-          <BaseInput v-model="email" label="Email" type="email" placeholder="admin@example.com" :required="true" />
+          <BaseInput v-model="email" label="Email" type="email" placeholder="admin@example.com" required />
 
-          <BaseInput v-model="password" label="Password" type="password" placeholder="••••••••" :required="true" />
+          <BaseInput v-model="password" label="Password" type="password" placeholder="••••••••" required />
 
           <p v-if="errorMsg" class="text-sm text-blaze-red">{{ errorMsg }}</p>
 

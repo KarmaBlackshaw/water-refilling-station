@@ -57,8 +57,8 @@ async function handleSubmit() {
         </div>
 
         <form class="space-y-4" @submit.prevent="handleSubmit">
-          <BaseInput v-model="password" label="New password" type="password" placeholder="••••••••" :required="true" />
-          <BaseInput v-model="confirm" label="Confirm password" type="password" placeholder="••••••••" :required="true" />
+          <BaseInput v-model="password" label="New password" type="password" placeholder="••••••••" required />
+          <BaseInput v-model="confirm" label="Confirm password" type="password" placeholder="••••••••" required />
           <p v-if="errorMsg" class="text-sm text-blaze-red">{{ errorMsg }}</p>
           <BaseButton size="xl" type="submit" class="w-full" :loading="loading"> Update password </BaseButton>
         </form>

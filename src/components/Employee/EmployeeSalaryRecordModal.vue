@@ -80,8 +80,8 @@ function submit() {
   <BaseModal v-model:open="open" title="Create salary record">
     <form id="salary-record-form" class="space-y-4" @submit.prevent="submit">
       <div class="grid grid-cols-2 gap-3">
-        <BaseDatePicker v-model="form.period_start" label="Period start" :required="true" />
-        <BaseDatePicker v-model="form.period_end" label="Period end" :required="true" />
+        <BaseDatePicker v-model="form.period_start" label="Period start" required />
+        <BaseDatePicker v-model="form.period_end" label="Period end" required />
       </div>
       <BaseInput v-model="form.base_pay_display" label="Base pay" placeholder="₱0.00" />
       <BaseInput v-model="form.commission_display" label="Commission" placeholder="₱0.00" />

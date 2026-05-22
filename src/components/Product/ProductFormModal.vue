@@ -40,7 +40,7 @@ function submit() {
 <template>
   <BaseModal v-model:open="open" :title="product ? 'Edit product' : 'Add product'">
     <form id="product-form" class="space-y-4" @submit.prevent="submit">
-      <BaseInput v-model="form.name" label="Name" :required="true" />
+      <BaseInput v-model="form.name" label="Name" required />
       <BaseCheckbox v-model="form.active" label="Active" />
     </form>
     <template #footer>

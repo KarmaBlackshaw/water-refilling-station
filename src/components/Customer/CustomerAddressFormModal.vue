@@ -43,8 +43,8 @@ function submit() {
 <template>
   <BaseModal v-model:open="open" :title="address ? 'Edit address' : 'Add address'">
     <form id="addr-form" class="space-y-4" @submit.prevent="submit">
-      <BaseInput v-model="form.label" label="Label (e.g. Home, Office)" :required="true" />
-      <BaseTextarea v-model="form.address_line" label="Address" :required="true" :rows="2" />
+      <BaseInput v-model="form.label" label="Label (e.g. Home, Office)" required />
+      <BaseTextarea v-model="form.address_line" label="Address" required :rows="2" />
       <BaseCheckbox v-model="form.is_default" label="Set as default address" />
     </form>
     <template #footer>

@@ -61,6 +61,18 @@ export async function getEmployee(id: string) {
 }
 ```
 
+### Boolean props: use shorthand, not `:prop="true"`
+
+When passing `true` to a boolean prop in a template, write the attribute name alone. Do not write `:prop="true"`.
+
+**Why:** In Vue, attribute presence implies `true`. `:prop="true"` is noisier and inconsistent with how the rest of the codebase passes booleans.
+
+**How to apply:**
+- `<BaseInput :required="true" />` → `<BaseInput required />`
+- `<BaseSelect :searchable="true" :disabled="true" />` → `<BaseSelect searchable disabled />`
+- Dynamic boolean stays bound: `:disabled="!form.customer_id"` — leave as-is.
+- Explicit `false` stays bound: `:open="false"` — needed since the prop default may be `true`.
+
 ### Auto-generated barrel files
 
 `plugins/index-generator.ts` regenerates `src/**/index.ts` on Vite `buildStart`. Edit the generator, not the output. Generator emits single-quoted import paths to match prettier (`singleQuote: true`).
