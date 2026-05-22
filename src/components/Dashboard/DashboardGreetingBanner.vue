@@ -44,19 +44,21 @@ function go() {
 </script>
 
 <template>
-  <div class="flex items-center gap-3 rounded-2xl border border-sparkling-silver bg-full-white p-4 shadow-card">
-    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-casual-navy text-white">
-      <IconBell :size="18" />
+  <BaseCard padding="md">
+    <div class="flex items-center gap-3">
+      <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-casual-navy text-white">
+        <IconBell :size="18" />
+      </div>
+      <div class="min-w-0 flex-1">
+        <p class="text-sm font-semibold text-casual-navy">{{ title }}</p>
+        <p class="mt-0.5 text-xs text-oslo">
+          <template v-for="(part, idx) in bodyParts" :key="idx">
+            <span v-if="part.highlight" class="mx-0.5 rounded-md bg-turquoise-stone/10 px-1.5 py-0.5 font-medium text-turquoise-stone">{{ part.text }}</span>
+            <span v-else>{{ part.text }}</span>
+          </template>
+        </p>
+      </div>
+      <BaseButton v-if="to" variant="turquoise-stone" @click="go">View Detail</BaseButton>
     </div>
-    <div class="min-w-0 flex-1">
-      <p class="text-sm font-semibold text-casual-navy">{{ title }}</p>
-      <p class="mt-0.5 text-xs text-oslo">
-        <template v-for="(part, idx) in bodyParts" :key="idx">
-          <span v-if="part.highlight" class="mx-0.5 rounded-md bg-turquoise-stone/10 px-1.5 py-0.5 font-medium text-turquoise-stone">{{ part.text }}</span>
-          <span v-else>{{ part.text }}</span>
-        </template>
-      </p>
-    </div>
-    <BaseButton v-if="to" variant="turquoise-stone" @click="go">View Detail</BaseButton>
-  </div>
+  </BaseCard>
 </template>
