@@ -28,6 +28,7 @@ defineProps<{
     <template #default="{ controlId, describedBy, hasError }">
       <VueDatePicker
         v-model="model"
+        teleport="body"
         :uid="controlId"
         :placeholder="placeholder"
         :disabled="disabled"
