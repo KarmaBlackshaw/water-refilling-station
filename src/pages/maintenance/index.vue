@@ -3,6 +3,8 @@ import type { MaintenanceTask, MaintenanceScope, ScheduleKind, Vehicle } from '@
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
 
+const auth = useAuthStore();
+const { tenantId, branchId } = storeToRefs(auth);
 const { confirm } = useConfirm();
 
 const tabs = [
@@ -123,7 +125,7 @@ async function saveTask(formPayload: {
   if (editingTask.value) {
     await updateTask(editingTask.value.id, payload);
   } else {
-    await createTask({ ...payload, scope: activeTab.value });
+    await createTask(tenantId.value, branchId.value, { ...payload, scope: activeTab.value });
   }
 
   taskModalOpen.value = false;

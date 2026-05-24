@@ -1,31 +1,10 @@
 import { today } from '@/helpers/date';
 import { supabase } from '@/helpers/supabase';
-import type { Sale } from '@/types/database';
+import type { PaymentMethod, Sale } from '@/types/database';
 
-export interface DeliverySaleRow {
-  id: string;
-  status: string;
-  customer_id: string | null;
-  address_id: string | null;
-  rider_id: string | null;
-  sale_date: string;
-  notes: string | null;
-  customer: { name: string; phone: string | null } | null;
-  address: { address_line: string; label: string } | null;
-  rider: { full_name: string } | null;
-  lines: Array<{
-    id: string;
-    product_id: string;
-    container_type_id: string;
-    quantity: number;
-    unit_price_centavos: number;
-    is_new_container: boolean;
-    product: { name: string } | null;
-    container_type: { name: string } | null;
-  }>;
-}
+export type DeliverySaleRow = Awaited<ReturnType<typeof listDeliverySales>>[number];
 
-export async function listDeliverySales(date?: string): Promise<DeliverySaleRow[]> {
+export async function listDeliverySales(date?: string) {
   const targetDate = date ?? today();
 
   const { data, error } = await supabase
@@ -43,8 +22,7 @@ export async function listDeliverySales(date?: string): Promise<DeliverySaleRow[
     .neq('status', 'void')
     .is('deleted_at', null)
     .eq('sale_date', targetDate)
-    .order('created_at', { ascending: true })
-    .overrideTypes<DeliverySaleRow[], { merge: false }>();
+    .order('created_at', { ascending: true });
 
   if (error) {
     throw error;
@@ -68,7 +46,7 @@ export async function createDeliverySale(data: {
     is_new_container: boolean;
   }>;
   payments: Array<{
-    method: string;
+    method: PaymentMethod;
     amount_centavos: number;
     gcash_ref?: string | null;
   }>;
@@ -88,8 +66,7 @@ export async function createDeliverySale(data: {
       notes: data.notes ?? null,
     })
     .select()
-    .single()
-    .overrideTypes<Sale, { merge: false }>();
+    .single();
 
   if (saleError) {
     throw saleError;
@@ -134,25 +111,18 @@ export async function createDeliverySale(data: {
   return sale;
 }
 
-export interface TopRiderRow {
-  rider_id: string;
-  full_name: string;
-  count: number;
-}
+export type TopRiderRow = Awaited<ReturnType<typeof listTopRiders>>[number];
 
-type RiderQueryRow = { rider_id: string | null; rider: { full_name: string } | null };
-
-export async function listTopRiders(from: string, to: string, limit = 4): Promise<TopRiderRow[]> {
+export async function listTopRiders(from: string, to: string, limit = 4) {
   const { data, error } = await supabase
     .from('sales')
     .select('rider_id, rider:users!rider_id(full_name)')
     .in('source', ['delivery', 'booking_fulfilled'])
-    .in('status', ['completed', 'booking_fulfilled'])
+    .eq('status', 'completed')
     .gte('sale_date', from)
     .lte('sale_date', to)
     .not('rider_id', 'is', null)
-    .is('deleted_at', null)
-    .overrideTypes<RiderQueryRow[], { merge: false }>();
+    .is('deleted_at', null);
 
   if (error) {
     throw error;
@@ -210,7 +180,7 @@ export async function reconcileDelivery(data: {
       customer_id: data.customerId,
       container_type_id: c.container_type_id,
       sale_id: data.saleId,
-      movement_type: 'in',
+      movement_type: 'in' as const,
       quantity: c.quantity,
       movement_date: today(),
       notes: data.notes ?? null,

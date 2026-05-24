@@ -499,17 +499,26 @@ declare global {
   export type { BookingRow, TemplateRow } from './services/bookings'
   import('./services/bookings')
   // @ts-ignore
-  export type { Customer, CustomerAddress, CustomerPriceOverride } from './services/customers'
+  export type { CustomerWithArea, CustomerDetail, Customer, CustomerAddress, CustomerPriceOverride } from './services/customers'
   import('./services/customers')
   // @ts-ignore
   export type { DeliverySaleRow, TopRiderRow } from './services/deliveries'
   import('./services/deliveries')
+  // @ts-ignore
+  export type { ExpenseWithPayee } from './services/expenses'
+  import('./services/expenses')
+  // @ts-ignore
+  export type { MaintenanceTaskRow } from './services/maintenance'
+  import('./services/maintenance')
   // @ts-ignore
   export type { IncomeBreakdown } from './services/payroll'
   import('./services/payroll')
   // @ts-ignore
   export type { PricingData } from './services/pricing'
   import('./services/pricing')
+  // @ts-ignore
+  export type { SaleWithCustomer, SaleDetail } from './services/sales'
+  import('./services/sales')
   // @ts-ignore
   export type { SidebarBadgeKey, SidebarNavChild, SidebarNavItem } from './constants/sidebarNav'
   import('./constants/sidebarNav')

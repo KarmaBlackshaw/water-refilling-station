@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Customer } from '@/types/database';
+import type { CustomerWithArea } from '@/services/customers';
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
 
@@ -7,18 +8,7 @@ const auth = useAuthStore();
 const { confirm } = useConfirm();
 const { tenantId, branchId } = storeToRefs(auth);
 
-type AddressLite = {
-  id: string;
-  label: string;
-  address_line: string;
-  is_default: boolean;
-  deleted_at: string | null;
-};
-
-type CustomerWithArea = Customer & {
-  area: { id: string; name: string } | null;
-  addresses: AddressLite[] | null;
-};
+type AddressLite = NonNullable<CustomerWithArea['addresses']>[number];
 
 const { data: customersRes, loading, run: load } = useAsync(() => listCustomers(tenantId.value, branchId.value), { immediate: true });
 

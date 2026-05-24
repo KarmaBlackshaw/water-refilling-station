@@ -1,11 +1,11 @@
 import { nowISO } from '@/helpers/date';
 import { supabase, getCurrentUserId } from '@/helpers/supabase';
-import type { Sale, SaleLine, SalePayment } from '@/types/database';
+import type { PaymentMethod, Sale, SaleSource, SaleStatus } from '@/types/database';
 
-type SaleWithCustomer = Sale & { customer?: { name: string } | null };
-type SaleLineWithJoins = SaleLine & { product?: { name: string }; container_type?: { name: string } };
+export type SaleWithCustomer = Awaited<ReturnType<typeof listSales>>[number];
+export type SaleDetail = NonNullable<Awaited<ReturnType<typeof getSale>>>;
 
-export async function listSales(params?: { source?: string; status?: string; from?: string; to?: string; customerId?: string }): Promise<SaleWithCustomer[]> {
+export async function listSales(params?: { source?: SaleSource; status?: SaleStatus; from?: string; to?: string; customerId?: string }) {
   let query = supabase.from('sales').select('*, customer:customers(name)').is('deleted_at', null).order('created_at', { ascending: false }).limit(100);
 
   if (params?.source) {
@@ -28,7 +28,7 @@ export async function listSales(params?: { source?: string; status?: string; fro
     query = query.eq('customer_id', params.customerId);
   }
 
-  const { data, error } = await query.overrideTypes<SaleWithCustomer[], { merge: false }>();
+  const { data, error } = await query;
 
   if (error) {
     throw error;
@@ -37,19 +37,11 @@ export async function listSales(params?: { source?: string; status?: string; fro
   return data ?? [];
 }
 
-export async function getSale(id: string): Promise<{
-  sale: SaleWithCustomer;
-  lines: SaleLineWithJoins[];
-  payments: SalePayment[];
-} | null> {
+export async function getSale(id: string) {
   const [saleRes, linesRes, paymentsRes] = await Promise.all([
-    supabase.from('sales').select('*, customer:customers(name)').eq('id', id).single().overrideTypes<SaleWithCustomer, { merge: false }>(),
-    supabase
-      .from('sale_lines')
-      .select('*, product:products(name), container_type:container_types(name)')
-      .eq('sale_id', id)
-      .overrideTypes<SaleLineWithJoins[], { merge: false }>(),
-    supabase.from('sale_payments').select('*').eq('sale_id', id).overrideTypes<SalePayment[], { merge: false }>(),
+    supabase.from('sales').select('*, customer:customers(name)').eq('id', id).single(),
+    supabase.from('sale_lines').select('*, product:products(name), container_type:container_types(name)').eq('sale_id', id),
+    supabase.from('sale_payments').select('*').eq('sale_id', id),
   ]);
 
   if (saleRes.error || !saleRes.data) {
@@ -78,7 +70,7 @@ export async function createWalkInSale(data: {
     is_new_container: boolean;
   }>;
   payments: Array<{
-    method: string;
+    method: PaymentMethod;
     amount_centavos: number;
     gcash_ref?: string | null;
   }>;
@@ -93,8 +85,7 @@ export async function createWalkInSale(data: {
       status: 'completed',
     })
     .select()
-    .single()
-    .overrideTypes<Sale, { merge: false }>();
+    .single();
 
   if (saleError || !sale) {
     throw saleError ?? new Error('Failed to create sale');

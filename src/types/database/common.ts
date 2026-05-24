@@ -1,39 +1,10 @@
-export type UserRole = 'admin' | 'manager' | 'cashier' | 'rider';
+import type { Database } from './supabase';
+
+export type UserRole = Database['public']['Enums']['user_role'];
 
 export type SettingKey = 'staleness_days_delivery' | 'staleness_days_walkin' | 'booking_horizon_days' | 'default_quota_jugs' | 'commission_per_jug_centavos';
 
-export interface Tenant {
-  id: string;
-  name: string;
-  created_at: string;
-}
-
-export interface Branch {
-  id: string;
-  tenant_id: string;
-  name: string;
-  created_at: string;
-}
-
-export interface User {
-  id: string;
-  tenant_id: string;
-  branch_id: string;
-  full_name: string;
-  phone: string | null;
-  role: UserRole;
-  active: boolean;
-  created_at: string;
-  deleted_at: string | null;
-  deleted_by: string | null;
-}
-
-export interface Setting {
-  id: string;
-  tenant_id: string;
-  branch_id: string;
-  key: SettingKey;
-  value: string;
-  updated_at: string;
-  updated_by: string | null;
-}
+export type Tenant = Database['public']['Tables']['tenants']['Row'];
+export type Branch = Database['public']['Tables']['branches']['Row'];
+export type User = Database['public']['Tables']['users']['Row'];
+export type Setting = Database['public']['Tables']['settings']['Row'];

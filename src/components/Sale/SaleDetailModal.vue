@@ -1,16 +1,13 @@
 <script setup lang="ts">
-import type { Sale, SaleLine, SalePayment } from '@/types/database';
+import type { SaleDetail } from '@/services/sales';
 import { formatMoney } from '@/helpers/money';
-
-type SaleWithCustomer = Sale & { customer?: { name: string } | null };
-type LineWithRels = SaleLine & { product?: { name: string }; container_type?: { name: string } };
 
 const open = defineModel<boolean>('open', { required: true });
 
 const { sale, lines, payments, loading, sourceBadgeVariant, sourceLabel, statusBadgeVariant, statusLabel } = defineProps<{
-  sale?: SaleWithCustomer;
-  lines: LineWithRels[];
-  payments: SalePayment[];
+  sale?: SaleDetail['sale'];
+  lines: SaleDetail['lines'];
+  payments: SaleDetail['payments'];
   loading?: boolean;
   sourceBadgeVariant: (s: string) => 'default' | 'info' | 'warning' | 'success' | 'danger';
   sourceLabel: (s: string) => string;

@@ -3,11 +3,9 @@ import { supabase } from '@/helpers/supabase';
 import { getCurrentUserId } from '@/helpers/supabase';
 import type { OperationalExpense, ExpenseCategory } from '@/types/database';
 
-type ExpenseWithPayee = OperationalExpense & {
-  employees: { full_name: string } | null;
-};
+export type ExpenseWithPayee = Awaited<ReturnType<typeof listExpenses>>[number];
 
-export async function listExpenses(params: { tenantId: string; branchId: string; from: string; to: string; category?: string }): Promise<ExpenseWithPayee[]> {
+export async function listExpenses(params: { tenantId: string; branchId: string; from: string; to: string; category?: ExpenseCategory }) {
   let query = supabase
     .from('operational_expenses')
     .select('*, employees(full_name)')
@@ -22,7 +20,7 @@ export async function listExpenses(params: { tenantId: string; branchId: string;
     query = query.eq('category', params.category);
   }
 
-  const { data, error } = await query.overrideTypes<ExpenseWithPayee[], { merge: false }>();
+  const { data, error } = await query;
 
   if (error) {
     throw error;
@@ -47,8 +45,7 @@ export async function createExpense(
     .from('operational_expenses')
     .insert({ tenant_id: tenantId, branch_id: branchId, ...data })
     .select()
-    .single()
-    .overrideTypes<OperationalExpense, { merge: false }>();
+    .single();
 
   if (error) {
     throw error;
@@ -68,13 +65,7 @@ export async function updateExpense(
     reference_number?: string | null;
   },
 ): Promise<OperationalExpense> {
-  const { data: row, error } = await supabase
-    .from('operational_expenses')
-    .update(data)
-    .eq('id', id)
-    .select()
-    .single()
-    .overrideTypes<OperationalExpense, { merge: false }>();
+  const { data: row, error } = await supabase.from('operational_expenses').update(data).eq('id', id).select().single();
 
   if (error) {
     throw error;

@@ -12,7 +12,6 @@ function statusVariant(status: string): BadgeVariant {
     pending_delivery: 'warning',
     completed: 'success',
     void: 'danger',
-    booking_fulfilled: 'info',
   };
 
   return map[status] ?? 'default';
@@ -23,14 +22,13 @@ function statusLabel(status: string): string {
     pending_delivery: 'On Going',
     completed: 'Delivered',
     void: 'Void',
-    booking_fulfilled: 'Fulfilled',
   };
 
   return map[status] ?? status;
 }
 
 function progressPct(d: DeliverySaleRow): string {
-  if (d.status === 'completed' || d.status === 'booking_fulfilled') {
+  if (d.status === 'completed') {
     return '100%';
   }
 

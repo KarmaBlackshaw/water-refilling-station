@@ -14,6 +14,7 @@
     "lint:eslint": "eslint . --fix --cache",
     "lint:theme": "! grep -rEn '(bg-white|bg-gray-(50|100|200|300|400)|border-lightgray|text-dark|text-neutral)' src --include='*.vue'",
     "format": "prettier --write --experimental-cli src/",
+    "db:types": "supabase gen types typescript --linked --schema public > src/types/database/supabase.ts && eslint src/types/database/supabase.ts --fix",
     "onboard": "node scripts/onboard-admin.mjs"
   },
   "dependencies": {

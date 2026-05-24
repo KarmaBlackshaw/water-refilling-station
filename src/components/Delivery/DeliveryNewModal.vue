@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { PaymentMethod } from '@/types/database';
+
 const open = defineModel<boolean>({ required: true });
 
 const { defaultDate } = defineProps<{
@@ -11,7 +13,16 @@ const emit = defineEmits<{
 
 const auth = useAuthStore();
 
-const form = reactive({
+const form = reactive<{
+  customer_id: string;
+  rider_id: string;
+  address_id: string;
+  sale_date: string;
+  notes: string;
+  payment_method: PaymentMethod;
+  payment_amount: string;
+  payment_gcash_ref: string;
+}>({
   customer_id: '',
   rider_id: '',
   address_id: '',

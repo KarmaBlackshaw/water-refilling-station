@@ -14,6 +14,11 @@ const {
 } = useAsync(
   async () => {
     const id = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id;
+
+    if (!id) {
+      throw new Error('Employee ID is required');
+    }
+
     const [empRes, attRes, salRes] = await Promise.all([getEmployee(id), listAttendanceForMonth(id, currentYear(), currentMonth()), listSalaryRecords(id)]);
 
     return {
@@ -75,7 +80,7 @@ const salaryInitial = ref<{
   base_pay_centavos: number;
   commission_centavos: number;
   gross_centavos: number;
-} | null>(null);
+}>();
 const salarySaving = ref(false);
 
 function openCreateSalary(period: 'today' | 'this_week' | 'this_month') {

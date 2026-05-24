@@ -7,7 +7,7 @@ interface RiderRoute {
   done: number;
 }
 
-const { data: routes, loading } = useAsync(
+const { data: routesData, loading } = useAsync(
   async () => {
     const deliveries = await listDeliverySales(todayDate);
     const map = new Map<string, RiderRoute>();
@@ -17,7 +17,7 @@ const { data: routes, loading } = useAsync(
       const existing = map.get(key) ?? { name: key, total: 0, done: 0 };
 
       existing.total++;
-      if (d.status === 'completed' || d.status === 'booking_fulfilled') {
+      if (d.status === 'completed') {
         existing.done++;
       }
 
@@ -32,6 +32,8 @@ const { data: routes, loading } = useAsync(
     disableResetValue: true,
   },
 );
+
+const routes = computed(() => routesData.value ?? []);
 </script>
 
 <template>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { Sale, SaleLine, SalePayment } from '@/types/database';
+import type { SaleSource, SaleStatus } from '@/types/database';
+import type { SaleDetail, SaleWithCustomer } from '@/services/sales';
 import type { WalkInSubmitPayload } from '@/components/Sale/SaleWalkInModal.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
 
@@ -8,13 +9,10 @@ const { confirm } = useConfirm();
 const { tenantId, branchId } = storeToRefs(auth);
 const { success: toastSuccess, error: toastError } = useToast();
 
-type SaleRow = Sale & {
-  customer?: { name: string } | null;
-  total?: number;
-};
+type SaleRow = SaleWithCustomer & { total?: number };
 
-const filterSource = ref('');
-const filterStatus = ref('');
+const filterSource = ref<SaleSource | ''>('');
+const filterStatus = ref<SaleStatus | ''>('');
 const filterFrom = ref('');
 const filterTo = ref('');
 
@@ -104,9 +102,9 @@ function statusLabel(status: string) {
 }
 
 const detailOpen = ref(false);
-const detailSale = ref<Sale & { customer?: { name: string } | null }>();
-const detailLines = ref<(SaleLine & { product?: { name: string }; container_type?: { name: string } })[]>([]);
-const detailPayments = ref<SalePayment[]>([]);
+const detailSale = ref<SaleDetail['sale']>();
+const detailLines = ref<SaleDetail['lines']>([]);
+const detailPayments = ref<SaleDetail['payments']>([]);
 const loadingDetail = ref(false);
 
 async function openDetail(sale: SaleRow) {

@@ -1,17 +1,18 @@
 import { addDays, nowISO } from '@/helpers/date';
 import { supabase } from '@/helpers/supabase';
 import { getCurrentUserId } from '@/helpers/supabase';
-import type { MaintenanceTask, MaintenanceLog } from '@/types/database';
+import type { MaintenanceLog, MaintenanceScope, MaintenanceTask, ScheduleKind } from '@/types/database';
 
-export async function listTasks(scope: 'water_plant' | 'vehicle'): Promise<MaintenanceTask[]> {
+export type MaintenanceTaskRow = Awaited<ReturnType<typeof listTasks>>[number];
+
+export async function listTasks(scope: MaintenanceScope) {
   const { data, error } = await supabase
     .from('maintenance_tasks')
     .select('*, vehicles(brand_model, plate_number)')
     .eq('scope', scope)
     .eq('active', true)
     .is('deleted_at', null)
-    .order('created_at', { ascending: false })
-    .overrideTypes<MaintenanceTask[], { merge: false }>();
+    .order('created_at', { ascending: false });
 
   if (error) {
     throw error;
@@ -20,17 +21,25 @@ export async function listTasks(scope: 'water_plant' | 'vehicle'): Promise<Maint
   return data ?? [];
 }
 
-export async function createTask(data: {
-  scope: 'water_plant' | 'vehicle';
-  vehicle_id?: string | null;
-  task_type: string;
-  schedule_kind: 'time' | 'usage';
-  interval_days?: number | null;
-  interval_usage?: number | null;
-  last_done_at?: string | null;
-  next_due_at?: string | null;
-}): Promise<MaintenanceTask> {
-  const { data: row, error } = await supabase.from('maintenance_tasks').insert(data).select().single().overrideTypes<MaintenanceTask, { merge: false }>();
+export async function createTask(
+  tenantId: string,
+  branchId: string,
+  data: {
+    scope: MaintenanceScope;
+    vehicle_id?: string | null;
+    task_type: string;
+    schedule_kind: ScheduleKind;
+    interval_days?: number | null;
+    interval_usage?: number | null;
+    last_done_at?: string | null;
+    next_due_at?: string | null;
+  },
+): Promise<MaintenanceTask> {
+  const { data: row, error } = await supabase
+    .from('maintenance_tasks')
+    .insert({ tenant_id: tenantId, branch_id: branchId, ...data })
+    .select()
+    .single();
 
   if (error) {
     throw error;
@@ -43,7 +52,7 @@ export async function updateTask(
   id: string,
   data: Partial<{
     task_type: string;
-    schedule_kind: 'time' | 'usage';
+    schedule_kind: ScheduleKind;
     interval_days: number | null;
     interval_usage: number | null;
     last_done_at: string | null;
@@ -51,13 +60,7 @@ export async function updateTask(
     active: boolean;
   }>,
 ): Promise<MaintenanceTask> {
-  const { data: row, error } = await supabase
-    .from('maintenance_tasks')
-    .update(data)
-    .eq('id', id)
-    .select()
-    .single()
-    .overrideTypes<MaintenanceTask, { merge: false }>();
+  const { data: row, error } = await supabase.from('maintenance_tasks').update(data).eq('id', id).select().single();
 
   if (error) {
     throw error;
@@ -76,12 +79,7 @@ export async function deleteTask(id: string): Promise<void> {
 }
 
 export async function listLogs(taskId: string): Promise<MaintenanceLog[]> {
-  const { data, error } = await supabase
-    .from('maintenance_logs')
-    .select('*')
-    .eq('task_id', taskId)
-    .order('performed_at', { ascending: false })
-    .overrideTypes<MaintenanceLog[], { merge: false }>();
+  const { data, error } = await supabase.from('maintenance_logs').select('*').eq('task_id', taskId).order('performed_at', { ascending: false });
 
   if (error) {
     throw error;
@@ -97,12 +95,7 @@ export async function createLog(data: {
   notes?: string | null;
 }): Promise<MaintenanceLog> {
   // Fetch task to compute next_due_at
-  const { data: task, error: taskError } = await supabase
-    .from('maintenance_tasks')
-    .select('*')
-    .eq('id', data.task_id)
-    .single()
-    .overrideTypes<MaintenanceTask, { merge: false }>();
+  const { data: task, error: taskError } = await supabase.from('maintenance_tasks').select('*').eq('id', data.task_id).single();
 
   if (taskError) {
     throw taskError;
@@ -119,8 +112,7 @@ export async function createLog(data: {
       notes: data.notes ?? null,
     })
     .select()
-    .single()
-    .overrideTypes<MaintenanceLog, { merge: false }>();
+    .single();
 
   if (error) {
     throw error;

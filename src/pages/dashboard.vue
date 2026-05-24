@@ -70,7 +70,7 @@ const { data: weeklyByDay, loading: loadingWeeklyDeliveries } = useAsync(
       const items = results[i] ?? [];
 
       map[d] = {
-        completed: items.filter((x) => x.status === 'completed' || x.status === 'booking_fulfilled').length,
+        completed: items.filter((x) => x.status === 'completed').length,
         pending: items.filter((x) => x.status === 'pending_delivery').length,
         void: items.filter((x) => x.status === 'void').length,
       };
@@ -85,11 +85,13 @@ const { data: weeklyByDay, loading: loadingWeeklyDeliveries } = useAsync(
   },
 );
 
-const { data: deliveries, loading: loadingDeliveries } = useAsync(() => listDeliverySales(todayDate), {
+const { data: deliveriesData, loading: loadingDeliveries } = useAsync(() => listDeliverySales(todayDate), {
   immediate: true,
   defaultValue: [],
   disableResetValue: true,
 });
+
+const deliveries = computed(() => deliveriesData.value ?? []);
 
 const { loading: loadingBookings } = useAsync(() => listBookings({ from: todayDate, to: todayPlus3Date, status: 'pending' }), {
   immediate: true,
@@ -97,7 +99,7 @@ const { loading: loadingBookings } = useAsync(() => listBookings({ from: todayDa
   disableResetValue: true,
 });
 
-const { data: topPerformers, loading: loadingTopPerformers } = useAsync(
+const { data: topPerformersData, loading: loadingTopPerformers } = useAsync(
   () => {
     const { from, to } = monthRange();
 
@@ -110,11 +112,13 @@ const { data: topPerformers, loading: loadingTopPerformers } = useAsync(
   },
 );
 
+const topPerformers = computed(() => topPerformersData.value ?? []);
+
 const loading = computed(
   () => loadingWeeklyRevenue.value || loadingWeeklyDeliveries.value || loadingDeliveries.value || loadingBookings.value || loadingTopPerformers.value,
 );
 
-const pendingDeliveries = computed(() => (deliveries.value ?? []).filter((d) => d.status === 'pending_delivery'));
+const pendingDeliveries = computed(() => deliveries.value.filter((d) => d.status === 'pending_delivery'));
 
 const deliveryCompletionPct = computed(() => {
   let total = 0;

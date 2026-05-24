@@ -1,25 +1,10 @@
 import { addDays, dayjs, nowISO, today } from '@/helpers/date';
 import { supabase, getCurrentUserId } from '@/helpers/supabase';
-import type { Booking, BookingTemplate, BookingTemplateItem, BookingItem } from '@/types/database';
+import type { Booking, BookingCadence, BookingStatus, BookingTemplate } from '@/types/database';
 import type { Dayjs } from 'dayjs';
 
-export interface BookingRow extends Booking {
-  customer: { name: string } | null;
-  rider: { full_name: string } | null;
-  items: (BookingItem & {
-    product: { name: string } | null;
-    container_type: { name: string } | null;
-  })[];
-}
-
-export interface TemplateRow extends BookingTemplate {
-  customer: { name: string; phone: string | null } | null;
-  rider: { full_name: string } | null;
-  items: (BookingTemplateItem & {
-    product: { name: string } | null;
-    container_type: { name: string } | null;
-  })[];
-}
+export type BookingRow = Awaited<ReturnType<typeof listBookings>>[number];
+export type TemplateRow = Awaited<ReturnType<typeof listTemplates>>[number];
 
 // Day-of-week mapping: 0=Mon..5=Sat (no Sunday)
 function jsToMon0(jsDay: number): number {
@@ -57,7 +42,7 @@ function matchesCadence(template: TemplateRow, date: Dayjs, from: Dayjs): boolea
   return false;
 }
 
-export async function listBookings(params?: { from?: string; to?: string; status?: string; customerId?: string }): Promise<BookingRow[]> {
+export async function listBookings(params?: { from?: string; to?: string; status?: BookingStatus; customerId?: string }) {
   const start = today();
   const defaultTo = addDays(start, 14);
 
@@ -84,7 +69,7 @@ export async function listBookings(params?: { from?: string; to?: string; status
     query = query.eq('customer_id', params.customerId);
   }
 
-  const { data, error } = await query.overrideTypes<BookingRow[], { merge: false }>();
+  const { data, error } = await query;
 
   if (error) {
     throw error;
@@ -93,15 +78,14 @@ export async function listBookings(params?: { from?: string; to?: string; status
   return data ?? [];
 }
 
-export async function listTemplates(): Promise<TemplateRow[]> {
+export async function listTemplates() {
   const { data, error } = await supabase
     .from('booking_templates')
     .select(
       '*, customer:customers(name, phone), rider:users!rider_id(full_name), items:booking_template_items(*, product:products(name), container_type:container_types(name))',
     )
     .is('deleted_at', null)
-    .order('created_at', { ascending: false })
-    .overrideTypes<TemplateRow[], { merge: false }>();
+    .order('created_at', { ascending: false });
 
   if (error) {
     throw error;
@@ -117,7 +101,7 @@ export async function createTemplate(
     customer_id: string;
     address_id?: string | null;
     rider_id?: string | null;
-    cadence: string;
+    cadence: BookingCadence;
     day_of_week: number;
     items: Array<{
       product_id: string;
@@ -141,8 +125,7 @@ export async function createTemplate(
       day_of_week: templateData.day_of_week,
     })
     .select()
-    .single()
-    .overrideTypes<BookingTemplate, { merge: false }>();
+    .single();
 
   if (error || !template) {
     throw error ?? new Error('Failed to create template');
@@ -172,18 +155,12 @@ export async function updateTemplate(
   data: {
     address_id?: string | null;
     rider_id?: string | null;
-    cadence?: string;
+    cadence?: BookingCadence;
     day_of_week?: number;
     active?: boolean;
   },
 ): Promise<BookingTemplate> {
-  const { data: template, error } = await supabase
-    .from('booking_templates')
-    .update(data)
-    .eq('id', id)
-    .select()
-    .single()
-    .overrideTypes<BookingTemplate, { merge: false }>();
+  const { data: template, error } = await supabase.from('booking_templates').update(data).eq('id', id).select().single();
 
   if (error || !template) {
     throw error ?? new Error('Failed to update template');
@@ -240,8 +217,7 @@ export async function createBooking(
       status: 'pending',
     })
     .select()
-    .single()
-    .overrideTypes<Booking, { merge: false }>();
+    .single();
 
   if (error || !booking) {
     throw error ?? new Error('Failed to create booking');
@@ -292,8 +268,7 @@ export async function materializeBookings(tenantId: string, branchId: string, fr
     .eq('tenant_id', tenantId)
     .eq('branch_id', branchId)
     .eq('active', true)
-    .is('deleted_at', null)
-    .overrideTypes<TemplateRow[], { merge: false }>();
+    .is('deleted_at', null);
 
   if (templatesError) {
     throw templatesError;
@@ -381,6 +356,10 @@ export async function materializeBookings(tenantId: string, branchId: string, fr
     }> = [];
 
     for (const booking of createdBookings) {
+      if (!booking.template_id) {
+        continue;
+      }
+
       const template = templateMap.get(booking.template_id);
 
       if (!template) {
@@ -422,14 +401,7 @@ export async function fulfillBooking(
     unit_price_centavos: number;
   }>,
 ): Promise<string> {
-  // 1. Load booking + items
-  type BookingWithItems = Booking & { items: BookingItem[] };
-  const { data: booking, error: bookingError } = await supabase
-    .from('bookings')
-    .select('*, items:booking_items(*)')
-    .eq('id', bookingId)
-    .single()
-    .overrideTypes<BookingWithItems, { merge: false }>();
+  const { data: booking, error: bookingError } = await supabase.from('bookings').select('*, items:booking_items(*)').eq('id', bookingId).single();
 
   if (bookingError || !booking) {
     throw bookingError ?? new Error('Booking not found');

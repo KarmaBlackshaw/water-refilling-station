@@ -4,7 +4,7 @@ import { getCurrentUserId } from '@/helpers/supabase';
 import type { Vehicle, MaintenanceTask } from '@/types/database';
 
 export async function listVehicles(): Promise<Vehicle[]> {
-  const { data, error } = await supabase.from('vehicles').select('*').is('deleted_at', null).order('brand_model').overrideTypes<Vehicle[], { merge: false }>();
+  const { data, error } = await supabase.from('vehicles').select('*').is('deleted_at', null).order('brand_model');
 
   if (error) {
     throw error;
@@ -24,8 +24,7 @@ export async function listVehicleMaintenanceTasks(vehicleIds: string[]): Promise
     .eq('scope', 'vehicle')
     .in('vehicle_id', vehicleIds)
     .eq('active', true)
-    .is('deleted_at', null)
-    .overrideTypes<MaintenanceTask[], { merge: false }>();
+    .is('deleted_at', null);
 
   if (error) {
     throw error;
@@ -34,14 +33,22 @@ export async function listVehicleMaintenanceTasks(vehicleIds: string[]): Promise
   return data ?? [];
 }
 
-export async function createVehicle(data: {
-  type: string;
-  brand_model: string;
-  plate_number: string;
-  year?: number | null;
-  notes?: string | null;
-}): Promise<Vehicle> {
-  const { data: row, error } = await supabase.from('vehicles').insert(data).select().single().overrideTypes<Vehicle, { merge: false }>();
+export async function createVehicle(
+  tenantId: string,
+  branchId: string,
+  data: {
+    type: string;
+    brand_model: string;
+    plate_number: string;
+    year?: number | null;
+    notes?: string | null;
+  },
+): Promise<Vehicle> {
+  const { data: row, error } = await supabase
+    .from('vehicles')
+    .insert({ tenant_id: tenantId, branch_id: branchId, ...data })
+    .select()
+    .single();
 
   if (error) {
     throw error;
@@ -60,7 +67,7 @@ export async function updateVehicle(
     notes?: string | null;
   },
 ): Promise<Vehicle> {
-  const { data: row, error } = await supabase.from('vehicles').update(data).eq('id', id).select().single().overrideTypes<Vehicle, { merge: false }>();
+  const { data: row, error } = await supabase.from('vehicles').update(data).eq('id', id).select().single();
 
   if (error) {
     throw error;

@@ -30,7 +30,7 @@ const CATEGORY_VARIANT: Record<ExpenseCategory, BadgeVariant> = {
 
 const filterFrom = ref(startOfMonth());
 const filterTo = ref(today());
-const filterCategory = ref('');
+const filterCategory = ref<ExpenseCategory | ''>('');
 
 const categoryOptions = computed(() => [
   {

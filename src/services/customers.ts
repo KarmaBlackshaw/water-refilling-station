@@ -2,6 +2,9 @@ import { dayjs, nowISO } from '@/helpers/date';
 import { supabase } from '@/helpers/supabase';
 import type { Customer, CustomerAddress, CustomerPriceOverride, CustomerType } from '@/types/database';
 
+export type CustomerWithArea = NonNullable<Awaited<ReturnType<typeof listCustomers>>['data']>[number];
+export type CustomerDetail = NonNullable<Awaited<ReturnType<typeof getCustomer>>['data']>;
+
 export function listCustomers(tenantId: string, branchId: string) {
   return supabase
     .from('customers')

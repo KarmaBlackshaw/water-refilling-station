@@ -3,6 +3,8 @@ import type { Vehicle } from '@/types/database';
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
 
+const auth = useAuthStore();
+const { tenantId, branchId } = storeToRefs(auth);
 const { confirm } = useConfirm();
 
 const {
@@ -67,7 +69,7 @@ const { loading: saving, run: save } = useAsync(
     if (editingVehicle.value) {
       await updateVehicle(editingVehicle.value.id, payload);
     } else {
-      await createVehicle(payload);
+      await createVehicle(tenantId.value, branchId.value, payload);
     }
 
     modalOpen.value = false;

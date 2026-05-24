@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Customer, Product, ContainerType, User } from '@/types/database';
+import type { Customer, Product, ContainerType, User, BookingStatus, BookingCadence } from '@/types/database';
 import type { BookingRow, TemplateRow } from '@/services/bookings';
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
@@ -34,7 +34,7 @@ const tabs = [
   { key: 'templates', label: 'Templates' },
 ];
 
-const bookingFilter = reactive({
+const bookingFilter = reactive<{ from: string; to: string; status: BookingStatus | '' }>({
   from: today(),
   to: addDays(today(), 14),
   status: '',
@@ -199,7 +199,7 @@ const { loading: templateSaving, run: saveTemplate } = useAsync(
     customer_id: string;
     address_id: string | null;
     rider_id: string | null;
-    cadence: string;
+    cadence: BookingCadence;
     day_of_week: number;
     items: { product_id: string; container_type_id: string; quantity: number; is_new_container: boolean }[];
   }) => {

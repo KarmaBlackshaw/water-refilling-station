@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import type { Customer, Product, ContainerType } from '@/types/database';
+import type { Product, ContainerType, PaymentMethod } from '@/types/database';
+import type { CustomerWithArea } from '@/services/customers';
 import { loadPricing as fetchPricing, resolvePrice as resolvePriceFn, type PricingData } from '@/services/pricing';
 import { formatMoney } from '@/helpers/money';
 import IconClose from '@/components/Icon/IconClose.vue';
-
-type CustomerWithArea = Customer & { area: { id: string; name: string } | null };
 
 interface PosLine {
   id: number;
@@ -17,7 +16,7 @@ interface PosLine {
 
 interface PosPayment {
   id: number;
-  method: string;
+  method: PaymentMethod;
   amount_centavos: number;
   gcash_ref: string;
 }
@@ -33,7 +32,7 @@ export interface WalkInSubmitPayload {
     unit_price_centavos: number;
     is_new_container: boolean;
   }>;
-  payments: Array<{ method: string; amount_centavos: number; gcash_ref: string | null }>;
+  payments: Array<{ method: PaymentMethod; amount_centavos: number; gcash_ref: string | null }>;
 }
 
 const open = defineModel<boolean>('open', { required: true });
