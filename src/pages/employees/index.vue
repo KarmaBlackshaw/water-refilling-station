@@ -22,16 +22,21 @@ const employees = computed(() => data.value ?? []);
 
 const modalOpen = ref(false);
 const editingEmployee = ref<Employee>();
+const saveError = ref<string>();
 
 function openAdd() {
   editingEmployee.value = undefined;
+  saveError.value = undefined;
   modalOpen.value = true;
 }
 
 function openEdit(e: Employee) {
   editingEmployee.value = e;
+  saveError.value = undefined;
   modalOpen.value = true;
 }
+
+const hasAccount = computed(() => !!editingEmployee.value?.user_id);
 
 const { loading: saving, run: save } = useAsync(
   async (payload: {
@@ -41,11 +46,52 @@ const { loading: saving, run: save } = useAsync(
     role: UserRole;
     monthly_salary_centavos: number;
     daily_quota_jugs: number | null;
+    account?: { username: string; password: string };
   }) => {
+    saveError.value = undefined;
+    let userId: string | undefined;
+
+    if (payload.account) {
+      try {
+        userId = await createUserAccount({
+          username: payload.account.username,
+          password: payload.account.password,
+          tenantId: tenantId.value,
+          branchId: branchId.value,
+          fullName: payload.full_name,
+          role: payload.role,
+        });
+      } catch (err) {
+        saveError.value = err instanceof Error ? err.message : 'Failed to create account.';
+        return;
+      }
+    }
+
     if (editingEmployee.value) {
-      await updateEmployee(editingEmployee.value.id, payload);
+      await updateEmployee(editingEmployee.value.id, {
+        full_name: payload.full_name,
+        phone: payload.phone,
+        hire_date: payload.hire_date,
+        monthly_salary_centavos: payload.monthly_salary_centavos,
+        daily_quota_jugs: payload.daily_quota_jugs,
+        ...(userId ? { user_id: userId } : {}),
+      });
     } else {
-      await createEmployee({ tenant_id: tenantId.value, branch_id: branchId.value, ...payload });
+      if (!userId) {
+        saveError.value = 'Account creation is required for new employees.';
+        return;
+      }
+      await createEmployee({
+        tenant_id: tenantId.value,
+        branch_id: branchId.value,
+        user_id: userId,
+        full_name: payload.full_name,
+        phone: payload.phone,
+        hire_date: payload.hire_date,
+        role: payload.role,
+        monthly_salary_centavos: payload.monthly_salary_centavos,
+        daily_quota_jugs: payload.daily_quota_jugs,
+      });
     }
 
     modalOpen.value = false;
@@ -65,10 +111,7 @@ function rowMenu(row: Employee) {
           title: 'Delete employee?',
           message: `Delete '${row.full_name}'?`,
           onConfirm: async () => {
-            if (!auth.authUser) {
-              return;
-            }
-
+            if (!auth.authUser) return;
             await softDeleteEmployee(row.id, auth.authUser.id);
             await load();
           },
@@ -127,6 +170,13 @@ function rowMenu(row: Employee) {
       </BaseCard>
     </div>
 
-    <EmployeeFormModal v-model:open="modalOpen" :employee="editingEmployee" :saving="saving" @submit="save" />
+    <EmployeeFormModal
+      v-model:open="modalOpen"
+      :employee="editingEmployee"
+      :saving="saving"
+      :has-account="hasAccount"
+      @submit="save"
+    />
+    <p v-if="saveError" class="mt-2 text-sm text-blaze-red">{{ saveError }}</p>
   </div>
 </template>

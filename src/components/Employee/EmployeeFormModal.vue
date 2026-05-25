@@ -4,9 +4,10 @@ import { formatMoney, parseMoney } from '@/helpers/money';
 
 const open = defineModel<boolean>('open', { required: true });
 
-const { employee, saving } = defineProps<{
+const { employee, saving, hasAccount } = defineProps<{
   employee?: Employee;
   saving?: boolean;
+  hasAccount?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -18,6 +19,7 @@ const emit = defineEmits<{
       role: UserRole;
       monthly_salary_centavos: number;
       daily_quota_jugs: number | null;
+      account?: { username: string; password: string };
     },
   ];
 }>();
@@ -29,6 +31,8 @@ type FormState = {
   role: UserRole;
   monthly_salary_display: string;
   daily_quota_jugs: string;
+  username: string;
+  password: string;
 };
 
 const form = reactive<FormState>({
@@ -38,19 +42,30 @@ const form = reactive<FormState>({
   role: 'rider',
   monthly_salary_display: '',
   daily_quota_jugs: '',
+  username: '',
+  password: '',
 });
 
 const roleOptions = [
   { label: 'Rider', value: 'rider' },
+  { label: 'Cashier', value: 'cashier' },
+  { label: 'Manager', value: 'manager' },
   { label: 'Admin', value: 'admin' },
 ];
+
+const showAccountFields = computed(() => !hasAccount);
+
+const usernameError = computed(() => {
+  if (!form.username) return null;
+  return /^[a-zA-Z0-9_.]{3,30}$/.test(form.username)
+    ? null
+    : 'Username must be 3–30 characters: letters, numbers, underscore, dot only.';
+});
 
 watch(
   () => open.value,
   (isOpen) => {
-    if (!isOpen) {
-      return;
-    }
+    if (!isOpen) return;
 
     if (employee) {
       form.full_name = employee.full_name;
@@ -67,6 +82,8 @@ watch(
       form.monthly_salary_display = formatMoney(0);
       form.daily_quota_jugs = '';
     }
+    form.username = '';
+    form.password = '';
   },
   { immediate: true },
 );
@@ -79,6 +96,7 @@ function submit() {
     role: form.role,
     monthly_salary_centavos: parseMoney(form.monthly_salary_display),
     daily_quota_jugs: form.daily_quota_jugs ? parseInt(form.daily_quota_jugs, 10) : null,
+    account: showAccountFields.value ? { username: form.username, password: form.password } : undefined,
   });
 }
 </script>
@@ -92,6 +110,29 @@ function submit() {
       <BaseSelect v-model="form.role" label="Role" :options="roleOptions" />
       <BaseInput v-model="form.monthly_salary_display" label="Monthly salary" placeholder="₱0.00" />
       <BaseInput v-model="form.daily_quota_jugs" label="Daily quota (jugs) — riders only" type="number" helper-text="Leave blank to use the tenant default" />
+
+      <template v-if="showAccountFields">
+        <div class="border-t pt-4">
+          <p class="mb-3 text-sm font-medium text-casual-navy">App account</p>
+          <p class="mb-3 text-xs text-oslo">Sets up login credentials for this employee.</p>
+          <div class="space-y-3">
+            <BaseInput
+              v-model="form.username"
+              label="Username"
+              required
+              :error="usernameError ?? undefined"
+              helper-text="Short, simple — e.g. juan or dela_cruz"
+            />
+            <BaseInput v-model="form.password" label="Password" type="password" required minlength="8" />
+          </div>
+        </div>
+      </template>
+      <template v-else-if="employee">
+        <div class="border-t pt-4 flex items-center gap-2">
+          <p class="text-sm font-medium text-casual-navy">App account</p>
+          <BaseBadge variant="success">Account exists</BaseBadge>
+        </div>
+      </template>
     </form>
     <template #footer>
       <BaseButton variant="independence" @click="open = false">Cancel</BaseButton>
