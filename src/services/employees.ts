@@ -26,6 +26,7 @@ export function getEmployee(id: string) {
 export function createEmployee(data: {
   tenant_id: string;
   branch_id: string;
+  user_id: string;
   full_name: string;
   phone?: string;
   hire_date?: string;
@@ -38,7 +39,7 @@ export function createEmployee(data: {
 
 export function updateEmployee(
   id: string,
-  data: Partial<Pick<Employee, 'full_name' | 'phone' | 'hire_date' | 'monthly_salary_centavos' | 'daily_quota_jugs' | 'active'>>,
+  data: Partial<Pick<Employee, 'full_name' | 'phone' | 'hire_date' | 'monthly_salary_centavos' | 'daily_quota_jugs' | 'active' | 'user_id'>>,
 ) {
   return supabase.from('employees').update(data).eq('id', id).select().single();
 }
