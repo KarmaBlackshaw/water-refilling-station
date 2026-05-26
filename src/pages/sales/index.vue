@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { SaleSource, SaleStatus } from '@/types/database';
+import type { FilterDefinition, FilterValues } from '@/types';
 import type { SaleDetail, SaleWithCustomer } from '@/services/sales';
 import type { WalkInSubmitPayload } from '@/components/Sale/SaleWalkInModal.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
@@ -11,23 +11,29 @@ const { success: toastSuccess, error: toastError } = useToast();
 
 type SaleRow = SaleWithCustomer & { total?: number };
 
-const filterSource = ref<SaleSource | ''>('');
-const filterStatus = ref<SaleStatus | ''>('');
-const filterFrom = ref('');
-const filterTo = ref('');
-
 const sourceOptions = [
-  { label: 'All Sources', value: '' },
   { label: 'Walk-in', value: 'walk_in' },
   { label: 'Delivery', value: 'delivery' },
   { label: 'Booking', value: 'booking_fulfilled' },
 ];
 const statusOptions = [
-  { label: 'All Statuses', value: '' },
   { label: 'Completed', value: 'completed' },
   { label: 'Void', value: 'void' },
   { label: 'Pending Delivery', value: 'pending_delivery' },
 ];
+
+const filterValues = ref<FilterValues>({
+  source: '',
+  status: '',
+  from: '',
+  to: '',
+});
+
+const filterDefinitions = computed<FilterDefinition[]>(() => [
+  { key: 'source', label: 'Source', field: 'select', options: sourceOptions },
+  { key: 'status', label: 'Status', field: 'select', options: statusOptions },
+  { label: 'Date', field: 'date-range', keyFrom: 'from', keyTo: 'to' },
+]);
 
 const {
   data: sales,
@@ -36,16 +42,16 @@ const {
 } = useAsync(
   () =>
     listSales({
-      source: filterSource.value || undefined,
-      status: filterStatus.value || undefined,
-      from: filterFrom.value || undefined,
-      to: filterTo.value || undefined,
+      source: filterValues.value.source || undefined,
+      status: filterValues.value.status || undefined,
+      from: filterValues.value.from || undefined,
+      to: filterValues.value.to || undefined,
     }),
   {
     immediate: true,
     defaultValue: [],
     disableResetValue: true,
-    watch: [filterSource, filterStatus, filterFrom, filterTo],
+    watch: filterValues,
   },
 );
 
@@ -167,6 +173,18 @@ async function submitWalkIn(payload: WalkInSubmitPayload) {
   }
 }
 
+const search = ref('');
+
+const filteredSales = computed(() => {
+  const q = search.value.trim().toLowerCase();
+
+  if (!q) {
+    return sales.value ?? [];
+  }
+
+  return (sales.value ?? []).filter((s) => s.customer?.name?.toLowerCase().includes(q));
+});
+
 function rowMenu(row: SaleRow) {
   return [
     { label: 'View', onClick: () => openDetail(row) },
@@ -196,52 +214,55 @@ function rowMenu(row: SaleRow) {
 
 <template>
   <div class="h-full overflow-y-auto p-6">
-    <div class="space-y-4">
-      <div class="flex items-center justify-between">
+    <BaseCard padding="none">
+      <div class="flex items-center justify-between gap-4 px-5 py-4 border-b border-sparkling-silver">
         <div>
-          <h1 class="text-2xl font-bold text-casual-navy">Sales</h1>
-          <p class="text-sm text-oslo">Record and manage walk-in and delivery sales</p>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg font-bold text-casual-navy">Sales</h1>
+            <span class="rounded-full border border-sparkling-silver bg-bright-chrome px-2 py-0.5 text-xs font-medium text-independence">
+              {{ filteredSales.length }}
+            </span>
+          </div>
+          <p class="text-xs text-oslo">Record and manage walk-in and delivery sales</p>
         </div>
-        <BaseButton @click="posOpen = true">New Walk-in Sale</BaseButton>
+        <div class="flex items-center gap-2">
+          <BaseSearch v-model="search" />
+          <BaseButton @click="posOpen = true">New Walk-in Sale</BaseButton>
+        </div>
       </div>
 
-      <div class="flex flex-wrap gap-3">
-        <BaseSelect v-model="filterSource" :options="sourceOptions" class="w-40" />
-        <BaseSelect v-model="filterStatus" :options="statusOptions" class="w-44" />
-        <BaseDatePicker v-model="filterFrom" label="" placeholder="From" class="w-40" />
-        <BaseDatePicker v-model="filterTo" label="" placeholder="To" class="w-40" />
+      <div class="px-5 py-4 border-b border-sparkling-silver">
+        <FilterBar v-model="filterValues" :definitions="filterDefinitions" />
       </div>
 
-      <BaseCard padding="none">
-        <BaseTable
-          :columns="[
-            { key: 'sale_date', label: 'Date' },
-            { key: 'customer', label: 'Customer' },
-            { key: 'source', label: 'Source' },
-            { key: 'items', label: 'Items' },
-            { key: 'total', label: 'Total', align: 'right', class: 'num' },
-            { key: 'status', label: 'Status' },
-            { key: 'actions', label: '', align: 'right' },
-          ]"
-          :data="sales"
-          :loading="loadingSales"
-          empty-title="No sales found"
-        >
-          <template #cell-customer="{ row }">{{ row.customer?.name ?? '—' }}</template>
-          <template #cell-source="{ row }">
-            <BaseBadge :variant="sourceBadgeVariant(row.source)">{{ sourceLabel(row.source) }}</BaseBadge>
-          </template>
-          <template #cell-items>—</template>
-          <template #cell-total>—</template>
-          <template #cell-status="{ row }">
-            <BaseBadge :variant="statusBadgeVariant(row.status)">{{ statusLabel(row.status) }}</BaseBadge>
-          </template>
-          <template #cell-actions="{ row }">
-            <BaseTableActions :menu="rowMenu(row)" />
-          </template>
-        </BaseTable>
-      </BaseCard>
-    </div>
+      <BaseTable
+        :columns="[
+          { key: 'sale_date', label: 'Date' },
+          { key: 'customer', label: 'Customer' },
+          { key: 'source', label: 'Source' },
+          { key: 'items', label: 'Items' },
+          { key: 'total', label: 'Total', align: 'right', class: 'num' },
+          { key: 'status', label: 'Status' },
+          { key: 'actions', label: '', align: 'right' },
+        ]"
+        :data="filteredSales"
+        :loading="loadingSales"
+        empty-title="No sales found"
+      >
+        <template #cell-customer="{ row }">{{ row.customer?.name ?? '—' }}</template>
+        <template #cell-source="{ row }">
+          <BaseBadge :variant="sourceBadgeVariant(row.source)">{{ sourceLabel(row.source) }}</BaseBadge>
+        </template>
+        <template #cell-items>—</template>
+        <template #cell-total>—</template>
+        <template #cell-status="{ row }">
+          <BaseBadge :variant="statusBadgeVariant(row.status)">{{ statusLabel(row.status) }}</BaseBadge>
+        </template>
+        <template #cell-actions="{ row }">
+          <BaseTableActions :menu="rowMenu(row)" />
+        </template>
+      </BaseTable>
+    </BaseCard>
 
     <SaleDetailModal
       v-model:open="detailOpen"

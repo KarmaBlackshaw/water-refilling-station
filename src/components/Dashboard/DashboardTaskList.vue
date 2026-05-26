@@ -131,7 +131,7 @@ const visible = computed(() => props.deliveries.slice(0, 6));
     </ul>
 
     <div v-if="deliveries.length > 6" class="mt-3 text-right">
-      <RouterLink :to="ROUTES.DELIVERIES" class="text-xs text-turquoise-stone hover:underline">View all →</RouterLink>
+      <RouterLink :to="ROUTES.DELIVERIES" class="text-xs text-tampa hover:underline">View all →</RouterLink>
     </div>
   </BaseCard>
 </template>

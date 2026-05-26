@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ExpenseCategory } from '@/types/database';
+import type { ExpenseCategory, FilterDefinition, FilterValues } from '@/types';
 import { formatMoney } from '@/helpers/money';
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
@@ -28,16 +28,17 @@ const CATEGORY_VARIANT: Record<ExpenseCategory, BadgeVariant> = {
   other: 'default',
 };
 
-const filterFrom = ref(startOfMonth());
-const filterTo = ref(today());
-const filterCategory = ref<ExpenseCategory | ''>('');
+const filterValues = ref<FilterValues>({
+  from: startOfMonth(),
+  to: today(),
+  category: '',
+});
 
-const categoryOptions = computed(() => [
-  {
-    label: 'All Categories',
-    value: '',
-  },
-  ...CATEGORIES.map((c) => ({ label: CATEGORY_LABEL[c], value: c })),
+const categoryOptions = computed(() => CATEGORIES.map((c) => ({ label: CATEGORY_LABEL[c], value: c })));
+
+const filterDefinitions = computed<FilterDefinition[]>(() => [
+  { label: 'Date', field: 'date-range', keyFrom: 'from', keyTo: 'to' },
+  { key: 'category', label: 'Category', field: 'select', options: categoryOptions.value },
 ]);
 
 type ExpenseRow = Awaited<ReturnType<typeof listExpenses>>[number];
@@ -55,13 +56,14 @@ const {
     return listExpenses({
       tenantId: tenantId.value,
       branchId: branchId.value,
-      from: filterFrom.value,
-      to: filterTo.value,
-      category: filterCategory.value || undefined,
+      from: filterValues.value.from,
+      to: filterValues.value.to,
+      category: filterValues.value.category || undefined,
     });
   },
   {
     immediate: true,
+    watch: filterValues,
     defaultValue: [],
     disableResetValue: true,
   },
@@ -136,6 +138,30 @@ const { loading: saving, run: saveExpense } = useAsync(
   },
 );
 
+const search = ref('');
+
+const filteredExpenses = computed(() => {
+  const q = search.value.trim().toLowerCase();
+
+  if (!q) {
+    return expenses.value ?? [];
+  }
+
+  return (expenses.value ?? []).filter((e) => {
+    if (e.description?.toLowerCase().includes(q)) {
+      return true;
+    }
+
+    const emp = e.employees;
+
+    if (emp && typeof emp === 'object' && 'full_name' in emp) {
+      return String(emp.full_name).toLowerCase().includes(q);
+    }
+
+    return false;
+  });
+});
+
 function rowMenu(row: ExpenseRow) {
   return [
     {
@@ -163,92 +189,86 @@ function rowMenu(row: ExpenseRow) {
 
 <template>
   <div class="h-full overflow-y-auto p-6">
-    <div class="space-y-4">
-      <div class="flex items-center justify-between">
+    <BaseCard padding="none">
+      <div class="flex items-center justify-between gap-4 px-5 py-4 border-b border-sparkling-silver">
         <div>
-          <h1 class="text-2xl font-bold text-casual-navy">Expenses</h1>
-          <p class="text-sm text-oslo">Track and categorize operational expenses</p>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg font-bold text-casual-navy">Expenses</h1>
+            <span class="rounded-full border border-sparkling-silver bg-bright-chrome px-2 py-0.5 text-xs font-medium text-independence">
+              {{ filteredExpenses.length }}
+            </span>
+          </div>
+          <p class="text-xs text-oslo">Track and categorize operational expenses</p>
         </div>
-        <BaseButton @click="openAdd">Add Expense</BaseButton>
+        <div class="flex items-center gap-2">
+          <BaseSearch v-model="search" />
+          <BaseButton @click="openAdd">Add Expense</BaseButton>
+        </div>
       </div>
 
-      <BaseCard padding="sm">
-        <div class="flex flex-wrap items-end gap-3">
-          <BaseDatePicker v-model="filterFrom" label="From" class="w-36" />
-          <BaseDatePicker v-model="filterTo" label="To" class="w-36" />
-          <BaseSelect v-model="filterCategory" label="Category" :options="categoryOptions" class="w-44" />
-          <div class="flex items-end">
-            <BaseButton @click="load">Filter</BaseButton>
-          </div>
+      <div class="px-5 py-4 border-b border-sparkling-silver">
+        <FilterBar v-model="filterValues" :definitions="filterDefinitions" />
+      </div>
+
+      <div class="px-4 py-3 border-b border-sparkling-silver">
+        <div class="flex items-baseline gap-2">
+          <span class="text-xs text-independence">Total in range:</span>
+          <span class="num text-2xl font-semibold text-casual-navy">{{ formatMoney(totalCentavos) }}</span>
         </div>
-      </BaseCard>
-
-      <BaseCard padding="sm">
-        <div class="space-y-2">
-          <div class="flex items-baseline gap-2">
-            <span class="text-xs text-independence">Total in range:</span>
-            <span class="num text-2xl font-semibold text-casual-navy">
-              {{ formatMoney(totalCentavos) }}
-            </span>
-          </div>
-
-          <div v-if="Object.keys(byCategory).length > 0" class="flex flex-wrap gap-2">
-            <span
-              v-for="cat in CATEGORIES"
-              v-show="byCategory[cat] !== undefined"
-              :key="cat"
-              class="inline-flex items-center gap-1 rounded bg-bright-chrome px-2 py-0.5 text-xs text-independence"
-            >
-              <span class="font-medium text-casual-navy">{{ CATEGORY_LABEL[cat] }}:</span>
-              <span class="num">{{ formatMoney(byCategory[cat] ?? 0) }}</span>
-            </span>
-          </div>
+        <div v-if="Object.keys(byCategory).length > 0" class="mt-1.5 flex flex-wrap gap-2">
+          <span
+            v-for="cat in CATEGORIES"
+            v-show="byCategory[cat] !== undefined"
+            :key="cat"
+            class="inline-flex items-center gap-1 rounded bg-bright-chrome px-2 py-0.5 text-xs text-independence"
+          >
+            <span class="font-medium text-casual-navy">{{ CATEGORY_LABEL[cat] }}:</span>
+            <span class="num">{{ formatMoney(byCategory[cat] ?? 0) }}</span>
+          </span>
         </div>
-      </BaseCard>
+      </div>
 
-      <BaseCard padding="none">
-        <BaseTable
-          :columns="[
-            { key: 'expense_date', label: 'Date' },
-            { key: 'category', label: 'Category' },
-            { key: 'description', label: 'Description' },
-            { key: 'payee', label: 'Payee' },
-            { key: 'reference_number', label: 'Ref #' },
-            { key: 'amount', label: 'Amount', align: 'right', class: 'num' },
-            { key: 'actions', label: '' },
-          ]"
-          :data="expenses"
-          :loading="loading"
-        >
-          <template #cell-category="{ row }">
-            <BaseBadge :variant="CATEGORY_VARIANT[row.category]">
-              {{ CATEGORY_LABEL[row.category] }}
-            </BaseBadge>
-          </template>
-          <template #cell-description="{ row }">
-            <span class="text-independence">{{ row.description ?? '—' }}</span>
-          </template>
-          <template #cell-payee="{ row }">
-            <span v-if="row.employees">{{ (row.employees as { full_name: string }).full_name }}</span>
-            <span v-else class="text-independence">—</span>
-          </template>
-          <template #cell-reference_number="{ row }">
-            <span class="text-independence">{{ row.reference_number ?? '—' }}</span>
-          </template>
-          <template #cell-amount="{ row }">{{ formatMoney(row.amount_centavos) }}</template>
-          <template #cell-actions="{ row }">
-            <BaseTableActions :menu="rowMenu(row)" />
-          </template>
-          <template #empty>
-            <BaseEmptyState title="No expenses found" description="Add your first expense or adjust the filters.">
-              <template #actions>
-                <BaseButton @click="openAdd">Add Expense</BaseButton>
-              </template>
-            </BaseEmptyState>
-          </template>
-        </BaseTable>
-      </BaseCard>
-    </div>
+      <BaseTable
+        :columns="[
+          { key: 'expense_date', label: 'Date' },
+          { key: 'category', label: 'Category' },
+          { key: 'description', label: 'Description' },
+          { key: 'payee', label: 'Payee' },
+          { key: 'reference_number', label: 'Ref #' },
+          { key: 'amount', label: 'Amount', align: 'right', class: 'num' },
+          { key: 'actions', label: '' },
+        ]"
+        :data="filteredExpenses"
+        :loading="loading"
+      >
+        <template #cell-category="{ row }">
+          <BaseBadge :variant="CATEGORY_VARIANT[row.category]">
+            {{ CATEGORY_LABEL[row.category] }}
+          </BaseBadge>
+        </template>
+        <template #cell-description="{ row }">
+          <span class="text-independence">{{ row.description ?? '—' }}</span>
+        </template>
+        <template #cell-payee="{ row }">
+          <span v-if="row.employees">{{ (row.employees as { full_name: string }).full_name }}</span>
+          <span v-else class="text-independence">—</span>
+        </template>
+        <template #cell-reference_number="{ row }">
+          <span class="text-independence">{{ row.reference_number ?? '—' }}</span>
+        </template>
+        <template #cell-amount="{ row }">{{ formatMoney(row.amount_centavos) }}</template>
+        <template #cell-actions="{ row }">
+          <BaseTableActions :menu="rowMenu(row)" />
+        </template>
+        <template #empty>
+          <BaseEmptyState title="No expenses found" description="Add your first expense or adjust the filters.">
+            <template #actions>
+              <BaseButton @click="openAdd">Add Expense</BaseButton>
+            </template>
+          </BaseEmptyState>
+        </template>
+      </BaseTable>
+    </BaseCard>
 
     <ExpenseFormModal
       v-model:open="modalOpen"

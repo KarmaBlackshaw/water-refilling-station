@@ -361,7 +361,7 @@ function toggleRider(id: string) {
                 class="rounded-full border px-2.5 py-0.5 text-xs transition-colors"
                 :class="
                   selectedAreaIds.includes(area.id)
-                    ? 'border-turquoise-stone bg-turquoise-stone text-full-white'
+                    ? 'border-tampa bg-tampa text-full-white'
                     : 'border-sparkling-silver bg-full-white text-casual-navy hover:bg-bright-chrome'
                 "
                 @click="toggleArea(area.id)"
@@ -381,7 +381,7 @@ function toggleRider(id: string) {
                 class="flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs transition-colors"
                 :class="
                   selectedRiderIds.includes(rider.id)
-                    ? 'border-turquoise-stone bg-turquoise-stone text-full-white'
+                    ? 'border-tampa bg-tampa text-full-white'
                     : 'border-sparkling-silver bg-full-white text-casual-navy hover:bg-bright-chrome'
                 "
                 @click="toggleRider(rider.id)"
@@ -393,7 +393,7 @@ function toggleRider(id: string) {
           </div>
 
           <label class="flex cursor-pointer items-center gap-2 text-xs text-casual-navy">
-            <input v-model="needsPinOnly" type="checkbox" class="size-3.5 rounded border border-sparkling-silver accent-turquoise-stone" />
+            <input v-model="needsPinOnly" type="checkbox" class="size-3.5 rounded border border-sparkling-silver accent-tampa" />
             Needs pin review only
           </label>
         </div>

@@ -180,7 +180,7 @@ function submit() {
           <BaseSelect v-model="item.container_type_id" :options="containerTypeOptions" placeholder="Container..." />
           <BaseInput v-model="item.quantity" type="number" placeholder="Qty" />
           <label class="flex items-center gap-1.5 text-xs text-independence mb-1.5 cursor-pointer">
-            <input v-model="item.is_new_container" type="checkbox" class="rounded border-sparkling-silver accent-turquoise-stone" />
+            <input v-model="item.is_new_container" type="checkbox" class="rounded border-sparkling-silver accent-tampa" />
             New container
           </label>
           <BaseButton variant="independence" type="button" class="text-blaze-red mb-0.5" @click="removeItem(idx)"> ✕ </BaseButton>

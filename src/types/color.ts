@@ -8,7 +8,7 @@ export type Color =
   | 'bondi-blue'
   | 'independence'
   | 'oslo'
-  | 'turquoise-stone'
+  | 'tampa'
   | 'psychedelic-aqua'
   | 'cerulean'
   | 'dark-green-turquoise'

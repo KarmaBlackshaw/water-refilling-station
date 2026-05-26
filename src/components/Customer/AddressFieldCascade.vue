@@ -206,12 +206,12 @@ onBeforeUnmount(() => {
         placeholder="Search street..."
         @search="onStreetSearch"
       />
-      <button type="button" class="text-xs text-turquoise-stone underline" @click="manualStreet = true">Can't find your street? Enter manually</button>
+      <button type="button" class="text-xs text-tampa underline" @click="manualStreet = true">Can't find your street? Enter manually</button>
     </template>
 
     <template v-else>
       <BaseInput v-model="manualStreetText" label="Street / House # (manual)" />
-      <button type="button" class="text-xs text-turquoise-stone underline" @click="manualStreet = false">Use search instead</button>
+      <button type="button" class="text-xs text-tampa underline" @click="manualStreet = false">Use search instead</button>
     </template>
 
     <div v-if="model.lat != null && model.lng != null" ref="mapEl" class="h-[220px] w-full rounded-lg border border-sparkling-silver" />

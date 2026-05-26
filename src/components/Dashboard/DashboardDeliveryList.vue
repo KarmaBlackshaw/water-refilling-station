@@ -34,7 +34,7 @@ const visible = computed(() => props.deliveries.slice(0, 8));
 <template>
   <BaseCard padding="md">
     <template #action>
-      <RouterLink v-if="deliveries.length > 8" :to="ROUTES.DELIVERIES" class="text-xs text-turquoise-stone hover:underline">View all →</RouterLink>
+      <RouterLink v-if="deliveries.length > 8" :to="ROUTES.DELIVERIES" class="text-xs text-tampa hover:underline">View all →</RouterLink>
     </template>
     <template #default>
       <p class="mb-3 text-sm font-semibold text-casual-navy">Today's Deliveries</p>

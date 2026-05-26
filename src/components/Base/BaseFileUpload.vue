@@ -74,7 +74,7 @@ function clearFile() {
     <div
       ref="dropZoneEl"
       class="relative flex aspect-video w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed transition-colors"
-      :class="isOverDropZone ? 'border-turquoise-stone bg-bright-chrome' : 'border-sparkling-silver bg-bright-chrome/50 hover:bg-bright-chrome'"
+      :class="isOverDropZone ? 'border-tampa bg-bright-chrome' : 'border-sparkling-silver bg-bright-chrome/50 hover:bg-bright-chrome'"
       role="button"
       tabindex="0"
       @click="open()"

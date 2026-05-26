@@ -46,7 +46,7 @@ const routes = computed(() => routesData.value ?? []);
         <p class="text-xs font-semibold text-casual-navy">{{ r.name }}</p>
         <p class="mt-0.5 text-[10px] text-oslo">{{ r.total }} stops · {{ r.done }} done</p>
         <div class="mt-1.5 h-1 w-full rounded-full bg-sparkling-silver">
-          <div class="h-1 rounded-full bg-turquoise-stone transition-all" :style="{ width: r.total > 0 ? `${Math.round((r.done / r.total) * 100)}%` : '0%' }" />
+          <div class="h-1 rounded-full bg-tampa transition-all" :style="{ width: r.total > 0 ? `${Math.round((r.done / r.total) * 100)}%` : '0%' }" />
         </div>
       </div>
     </div>

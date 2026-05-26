@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { Customer, Product, ContainerType, User, BookingStatus, BookingCadence } from '@/types/database';
+import type { Customer, Product, ContainerType, User, BookingCadence, FilterDefinition } from '@/types';
+import type { BookingStatus } from '@/types/database';
 import type { BookingRow, TemplateRow } from '@/services/bookings';
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
@@ -34,11 +35,24 @@ const tabs = [
   { key: 'templates', label: 'Templates' },
 ];
 
-const bookingFilter = reactive<{ from: string; to: string; status: BookingStatus | '' }>({
+const statusOptions = [
+  { label: 'Pending', value: 'pending' },
+  { label: 'Fulfilled', value: 'fulfilled' },
+  { label: 'Cancelled', value: 'cancelled' },
+];
+
+type BookingFilterValues = { from: string; to: string; status: BookingStatus | '' };
+
+const filterValues = ref<BookingFilterValues>({
   from: today(),
   to: addDays(today(), 14),
   status: '',
 });
+
+const filterDefinitions = computed<FilterDefinition[]>(() => [
+  { label: 'Date', field: 'date-range', keyFrom: 'from', keyTo: 'to' },
+  { key: 'status', label: 'Status', field: 'select', options: statusOptions },
+]);
 
 const {
   data: bookings,
@@ -47,24 +61,17 @@ const {
 } = useAsync(
   () =>
     listBookings({
-      from: bookingFilter.from,
-      to: bookingFilter.to,
-      status: bookingFilter.status || undefined,
+      from: filterValues.value.from,
+      to: filterValues.value.to,
+      status: filterValues.value.status || undefined,
     }),
   {
     immediate: true,
     defaultValue: [],
     disableResetValue: true,
-    watch: [() => bookingFilter.from, () => bookingFilter.to, () => bookingFilter.status],
+    watch: filterValues,
   },
 );
-
-const statusOptions = [
-  { label: 'All (non-cancelled)', value: '' },
-  { label: 'Pending', value: 'pending' },
-  { label: 'Fulfilled', value: 'fulfilled' },
-  { label: 'Cancelled', value: 'cancelled' },
-];
 
 function statusVariant(status: string): 'warning' | 'success' | 'default' {
   if (status === 'pending') {
@@ -87,7 +94,7 @@ function openGenerateConfirm() {
     title: 'Generate bookings?',
     message: 'Generate bookings from all active templates for the next 14 days?',
     confirmLabel: 'Generate',
-    variant: 'turquoise-stone',
+    variant: 'tampa',
     onConfirm: async () => {
       try {
         const count = await materializeBookings(tenantId.value, branchId.value, today(), addDays(today(), 14));
@@ -283,115 +290,131 @@ function templateRowMenu(row: TemplateRow) {
   ];
 }
 
+const search = ref('');
+
+const filteredBookings = computed(() => {
+  const q = search.value.trim().toLowerCase();
+
+  if (!q) {
+    return bookings.value ?? [];
+  }
+
+  return (bookings.value ?? []).filter((b) => b.customer?.name?.toLowerCase().includes(q));
+});
+
+const filteredTemplates = computed(() => {
+  const q = search.value.trim().toLowerCase();
+
+  if (!q) {
+    return templates.value ?? [];
+  }
+
+  return (templates.value ?? []).filter((t) => t.customer?.name?.toLowerCase().includes(q));
+});
+
 onMounted(loadShared);
 </script>
 
 <template>
   <div class="h-full overflow-y-auto p-6">
-    <div class="space-y-4">
-      <div>
-        <h1 class="text-2xl font-bold text-casual-navy">Bookings</h1>
-        <p class="text-sm text-oslo">Schedule and manage customer bookings</p>
-      </div>
-
-      <BaseTabs v-model="activeTab" :tabs="tabs" />
-
-      <div v-if="activeTab === 'bookings'" class="space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <h2 class="text-base font-medium text-casual-navy">Upcoming Bookings</h2>
-          <div class="flex gap-2">
-            <BaseButton variant="full-white" @click="openGenerateConfirm"> Generate </BaseButton>
-            <BaseButton @click="newBookingOpen = true">New Booking</BaseButton>
-          </div>
-        </div>
-
-        <div class="flex flex-wrap gap-3 items-end">
+    <BaseCard padding="none" class="flex flex-col gap-5">
+      <div class="flex items-center justify-between gap-4 px-5 py-4">
+        <div>
           <div class="flex items-center gap-2">
-            <BaseDatePicker v-model="bookingFilter.from" label="From" />
-            <BaseDatePicker v-model="bookingFilter.to" label="To" />
+            <h1 class="text-lg font-bold text-casual-navy">Bookings</h1>
+            <span class="rounded-full border border-sparkling-silver bg-bright-chrome px-2 py-0.5 text-xs font-medium text-independence">
+              {{ activeTab === 'bookings' ? filteredBookings.length : filteredTemplates.length }}
+            </span>
           </div>
-          <BaseSelect v-model="bookingFilter.status" label="Status" :options="statusOptions" placeholder="All" class="min-w-[160px]" />
+          <p class="text-xs text-oslo">Schedule and manage customer bookings</p>
         </div>
-
-        <BaseCard padding="none">
-          <BaseTable
-            :columns="[
-              { key: 'scheduled_date', label: 'Date', class: 'num whitespace-nowrap' },
-              { key: 'customer', label: 'Customer' },
-              { key: 'rider', label: 'Rider' },
-              { key: 'items', label: 'Items', class: 'max-w-xs truncate text-sm text-independence' },
-              { key: 'status', label: 'Status' },
-              { key: 'actions', label: 'Actions' },
-            ]"
-            :data="bookings"
-            :loading="bookingsLoading"
-            empty-title="No bookings found"
-            empty-description="Adjust filters or generate bookings from templates."
-          >
-            <template #cell-customer="{ row }">{{ row.customer?.name ?? '—' }}</template>
-            <template #cell-rider="{ row }">{{ row.rider?.full_name ?? '—' }}</template>
-            <template #cell-items="{ row }">{{ itemsSummary(row.items) }}</template>
-            <template #cell-status="{ row }">
-              <BaseBadge :variant="statusVariant(row.status)">
-                {{ row.status.charAt(0).toUpperCase() + row.status.slice(1) }}
-              </BaseBadge>
-            </template>
-            <template #cell-actions="{ row }">
-              <BaseTableActions :menu="bookingRowMenu(row)" />
-            </template>
-          </BaseTable>
-        </BaseCard>
+        <div class="flex items-center gap-2">
+          <BaseSearch v-model="search" />
+          <BaseButton v-if="activeTab === 'bookings'" variant="full-white" @click="openGenerateConfirm">Generate</BaseButton>
+          <BaseButton v-if="activeTab === 'bookings'" @click="newBookingOpen = true">New Booking</BaseButton>
+          <BaseButton v-if="activeTab === 'templates'" @click="openAddTemplate">New Template</BaseButton>
+        </div>
       </div>
 
-      <div v-if="activeTab === 'templates'" class="space-y-4">
-        <div class="flex items-center justify-between">
-          <h2 class="text-base font-medium text-casual-navy">Booking Templates</h2>
-          <BaseButton @click="openAddTemplate">New Template</BaseButton>
+      <div class="px-5">
+        <BaseTabs v-model="activeTab" :tabs="tabs" />
+      </div>
+
+      <template v-if="activeTab === 'bookings'">
+        <div class="px-5">
+          <FilterBar v-model="filterValues" :definitions="filterDefinitions" />
         </div>
 
-        <BaseCard padding="none">
-          <BaseTable
-            :columns="[
-              { key: 'customer', label: 'Customer' },
-              { key: 'rider', label: 'Rider' },
-              { key: 'cadence', label: 'Cadence' },
-              { key: 'day', label: 'Day' },
-              { key: 'items', label: 'Items', class: 'max-w-xs truncate text-sm text-independence' },
-              { key: 'active', label: 'Active' },
-              { key: 'actions', label: 'Actions' },
-            ]"
-            :data="templates"
-            :loading="templatesLoading"
-          >
-            <template #cell-customer="{ row }">
-              <span class="font-medium text-casual-navy">{{ row.customer?.name ?? '—' }}</span>
-              <span v-if="row.customer?.phone" class="ml-1.5 text-xs text-independence">
-                {{ row.customer.phone }}
-              </span>
-            </template>
-            <template #cell-rider="{ row }">{{ row.rider?.full_name ?? '—' }}</template>
-            <template #cell-cadence="{ row }">{{ cadenceLabel(row.cadence) }}</template>
-            <template #cell-day="{ row }">{{ dayLabel(row.day_of_week) }}</template>
-            <template #cell-items="{ row }">{{ itemsSummary(row.items) }}</template>
-            <template #cell-active="{ row }">
-              <BaseBadge :variant="row.active ? 'success' : 'danger'">
-                {{ row.active ? 'Active' : 'Inactive' }}
-              </BaseBadge>
-            </template>
-            <template #cell-actions="{ row }">
-              <BaseTableActions :menu="templateRowMenu(row)" />
-            </template>
-            <template #empty>
-              <BaseEmptyState title="No templates yet" description="Create a template to auto-generate recurring bookings.">
-                <template #actions>
-                  <BaseButton @click="openAddTemplate">New Template</BaseButton>
-                </template>
-              </BaseEmptyState>
-            </template>
-          </BaseTable>
-        </BaseCard>
-      </div>
-    </div>
+        <BaseTable
+          :columns="[
+            { key: 'scheduled_date', label: 'Date', class: 'num whitespace-nowrap' },
+            { key: 'customer', label: 'Customer' },
+            { key: 'rider', label: 'Rider' },
+            { key: 'items', label: 'Items', class: 'max-w-xs truncate text-sm text-independence' },
+            { key: 'status', label: 'Status' },
+            { key: 'actions', label: 'Actions' },
+          ]"
+          :data="filteredBookings"
+          :loading="bookingsLoading"
+          empty-title="No bookings found"
+          empty-description="Adjust filters or generate bookings from templates."
+        >
+          <template #cell-customer="{ row }">{{ row.customer?.name ?? '—' }}</template>
+          <template #cell-rider="{ row }">{{ row.rider?.full_name ?? '—' }}</template>
+          <template #cell-items="{ row }">{{ itemsSummary(row.items) }}</template>
+          <template #cell-status="{ row }">
+            <BaseBadge :variant="statusVariant(row.status)">
+              {{ row.status.charAt(0).toUpperCase() + row.status.slice(1) }}
+            </BaseBadge>
+          </template>
+          <template #cell-actions="{ row }">
+            <BaseTableActions :menu="bookingRowMenu(row)" />
+          </template>
+        </BaseTable>
+      </template>
+
+      <template v-if="activeTab === 'templates'">
+        <BaseTable
+          :columns="[
+            { key: 'customer', label: 'Customer' },
+            { key: 'rider', label: 'Rider' },
+            { key: 'cadence', label: 'Cadence' },
+            { key: 'day', label: 'Day' },
+            { key: 'items', label: 'Items', class: 'max-w-xs truncate text-sm text-independence' },
+            { key: 'active', label: 'Active' },
+            { key: 'actions', label: 'Actions' },
+          ]"
+          :data="filteredTemplates"
+          :loading="templatesLoading"
+        >
+          <template #cell-customer="{ row }">
+            <span class="font-medium text-casual-navy">{{ row.customer?.name ?? '—' }}</span>
+            <span v-if="row.customer?.phone" class="ml-1.5 text-xs text-independence">
+              {{ row.customer.phone }}
+            </span>
+          </template>
+          <template #cell-rider="{ row }">{{ row.rider?.full_name ?? '—' }}</template>
+          <template #cell-cadence="{ row }">{{ cadenceLabel(row.cadence) }}</template>
+          <template #cell-day="{ row }">{{ dayLabel(row.day_of_week) }}</template>
+          <template #cell-items="{ row }">{{ itemsSummary(row.items) }}</template>
+          <template #cell-active="{ row }">
+            <BaseBadge :variant="row.active ? 'success' : 'danger'">
+              {{ row.active ? 'Active' : 'Inactive' }}
+            </BaseBadge>
+          </template>
+          <template #cell-actions="{ row }">
+            <BaseTableActions :menu="templateRowMenu(row)" />
+          </template>
+          <template #empty>
+            <BaseEmptyState title="No templates yet" description="Create a template to auto-generate recurring bookings.">
+              <template #actions>
+                <BaseButton @click="openAddTemplate">New Template</BaseButton>
+              </template>
+            </BaseEmptyState>
+          </template>
+        </BaseTable>
+      </template>
+    </BaseCard>
 
     <BookingNewModal
       v-model:open="newBookingOpen"

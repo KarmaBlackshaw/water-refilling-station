@@ -26,7 +26,7 @@ defineProps<{
         :aria-invalid="hasError"
         :aria-describedby="describedBy"
         :class="[
-          'h-10 w-full rounded-md border bg-full-white px-3 text-sm text-casual-navy placeholder:text-oslo focus:outline-none focus:ring-2 focus:ring-turquoise-stone disabled:cursor-not-allowed disabled:opacity-50',
+          'h-10 w-full rounded-md border bg-full-white px-3 text-sm text-casual-navy placeholder:text-oslo focus:outline-none focus:ring-2 focus:ring-tampa disabled:cursor-not-allowed disabled:opacity-50',
           hasError ? 'border-blaze-red' : 'border-sparkling-silver',
         ]"
       />

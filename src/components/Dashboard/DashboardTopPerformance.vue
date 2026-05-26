@@ -28,7 +28,7 @@ const monthName = dayjs().tz(MANILA_TZ).format('MMMM');
 
     <div v-else class="grid grid-cols-4 gap-3">
       <div v-for="(p, idx) in performers" :key="p.rider_id" class="flex flex-col items-center">
-        <div class="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-linear-to-br from-turquoise-stone to-cerulean">
+        <div class="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-linear-to-br from-tampa to-cerulean">
           <div class="absolute inset-0 flex items-center justify-center text-2xl font-bold text-white">
             {{ initials(p.full_name) }}
           </div>

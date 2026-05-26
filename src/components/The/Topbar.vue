@@ -41,7 +41,7 @@ const displayName = computed(() => authStore.profile?.full_name ?? displayEmail.
 
     <!-- Avatar + user info -->
     <div class="flex items-center gap-2">
-      <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-turquoise-stone to-cerulean text-xs font-bold text-white">
+      <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-tampa to-cerulean text-xs font-bold text-white">
         {{ initials }}
       </div>
       <div class="flex flex-col leading-tight">

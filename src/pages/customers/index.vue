@@ -148,7 +148,7 @@ function rowMenu(row: Customer) {
           :loading="loading"
         >
           <template #cell-name="{ row }">
-            <RouterLink :to="`/customers/${row.id}`" class="font-medium text-turquoise-stone hover:underline">
+            <RouterLink :to="`/customers/${row.id}`" class="font-medium text-tampa hover:underline">
               {{ row.name }}
             </RouterLink>
           </template>

@@ -5,7 +5,7 @@ import BaseConfirm from '@/components/Base/BaseConfirm.vue';
 
 import { tryToCatch } from './useAsync';
 
-type ConfirmVariant = 'blaze-red' | 'turquoise-stone';
+type ConfirmVariant = 'blaze-red' | 'tampa';
 
 export type ConfirmOptions = {
   title?: string;

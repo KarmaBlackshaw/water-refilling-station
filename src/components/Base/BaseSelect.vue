@@ -227,7 +227,7 @@ function onTriggerClick() {
         :aria-required="required || undefined"
         :disabled="disabled"
         :class="[
-          'flex h-10 w-full items-center justify-between gap-2 rounded-md border bg-full-white px-3 text-left text-sm text-casual-navy focus:outline-none focus:ring-2 focus:ring-turquoise-stone disabled:cursor-not-allowed disabled:opacity-50',
+          'flex h-10 w-full items-center justify-between gap-2 rounded-md border bg-full-white px-3 text-left text-sm text-casual-navy focus:outline-none focus:ring-2 focus:ring-tampa disabled:cursor-not-allowed disabled:opacity-50',
           hasError ? 'border-blaze-red' : 'border-sparkling-silver',
         ]"
         @click="onTriggerClick"
@@ -247,7 +247,7 @@ function onTriggerClick() {
             type="search"
             :placeholder="searchPlaceholder"
             :aria-controls="`${controlId}-listbox`"
-            class="w-full rounded px-2 py-1.5 text-sm text-casual-navy placeholder:text-oslo focus:outline-none focus:ring-2 focus:ring-turquoise-stone"
+            class="w-full rounded px-2 py-1.5 text-sm text-casual-navy placeholder:text-oslo focus:outline-none focus:ring-2 focus:ring-tampa"
             @keydown="onKeydown"
           />
         </div>
@@ -265,7 +265,7 @@ function onTriggerClick() {
               :aria-selected="option.value === model"
               :class="[
                 'cursor-pointer rounded px-3 py-2 text-casual-navy',
-                index === activeIndex ? 'bg-turquoise-stone/10' : '',
+                index === activeIndex ? 'bg-tampa/10' : '',
                 option.value === model ? 'font-medium' : '',
               ]"
               @mouseenter="activeIndex = index"

@@ -13,7 +13,7 @@ withDefaults(defineProps<Props>(), {
 <template>
   <div class="border-b border-sparkling-silver px-4 py-4">
     <div class="flex items-center gap-2">
-      <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-linear-to-br from-turquoise-stone to-cerulean">
+      <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-linear-to-br from-tampa to-cerulean">
         <span class="text-[10px] font-black text-white tracking-tight">{{ initials }}</span>
       </div>
       <div class="flex flex-col leading-none">

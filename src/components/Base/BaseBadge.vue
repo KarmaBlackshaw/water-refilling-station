@@ -14,7 +14,7 @@ const variantClass = computed(() => {
     success: 'bg-emerald-subtle text-dark-green-turquoise',
     warning: 'bg-amber-subtle text-strong-amber',
     danger: 'bg-red-subtle text-blaze-red',
-    info: 'bg-turquoise-stone/10 text-bondi-blue',
+    info: 'bg-tampa/10 text-bondi-blue',
   }[variant];
 });
 

@@ -533,7 +533,7 @@ declare global {
   export type { SaleWithCustomer, SaleDetail } from './services/sales'
   import('./services/sales')
   // @ts-ignore
-  export type { SidebarBadgeKey, SidebarNavChild, SidebarNavItem } from './constants/sidebarNav'
+  export type { SidebarBadgeKey, SidebarNavItem } from './constants/sidebarNav'
   import('./constants/sidebarNav')
 }
 
@@ -939,7 +939,6 @@ declare module 'vue' {
     readonly useScrollLock: UnwrapRef<typeof import('@vueuse/core')['useScrollLock']>
     readonly useSessionStorage: UnwrapRef<typeof import('@vueuse/core')['useSessionStorage']>
     readonly useShare: UnwrapRef<typeof import('@vueuse/core')['useShare']>
-    readonly useSidebarExpanded: UnwrapRef<typeof import('./composables/useSidebarExpanded')['useSidebarExpanded']>
     readonly useSlots: UnwrapRef<typeof import('vue')['useSlots']>
     readonly useSorted: UnwrapRef<typeof import('@vueuse/core')['useSorted']>
     readonly useSpeechRecognition: UnwrapRef<typeof import('@vueuse/core')['useSpeechRecognition']>

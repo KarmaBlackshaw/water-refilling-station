@@ -13,7 +13,7 @@ const router = useRouter();
 const iconBgClass = computed(() => {
   const tone = props.iconTone ?? 'turquoise';
 
-  return tone === 'gray' ? 'bg-american-diamond text-independence' : 'bg-turquoise-stone/10 text-turquoise-stone';
+  return tone === 'gray' ? 'bg-american-diamond text-independence' : 'bg-tampa/10 text-tampa';
 });
 
 function handleClick() {

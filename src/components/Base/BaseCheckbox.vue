@@ -17,7 +17,7 @@ const checkboxId = computed(() => `${uid}`);
       v-model="model"
       type="checkbox"
       :disabled="disabled"
-      class="size-4 rounded border border-sparkling-silver bg-full-white text-turquoise-stone accent-turquoise-stone focus:outline-none focus:ring-2 focus:ring-turquoise-stone disabled:cursor-not-allowed"
+      class="size-4 rounded border border-sparkling-silver bg-full-white text-tampa accent-tampa focus:outline-none focus:ring-2 focus:ring-tampa disabled:cursor-not-allowed"
     />
     <span v-if="label" class="text-sm text-casual-navy">{{ label }}</span>
   </label>

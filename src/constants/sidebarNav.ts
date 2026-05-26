@@ -15,17 +15,10 @@ import { ROUTES } from '@/constants/routes';
 
 export type SidebarBadgeKey = 'maintenanceAlertCount';
 
-export interface SidebarNavChild {
-  label: string;
-  to: string;
-  dotClass: string;
-}
-
 export interface SidebarNavItem {
   label: string;
   to: string;
   icon: Component;
-  children?: SidebarNavChild[];
   badgeKey?: SidebarBadgeKey;
 }
 

@@ -5,7 +5,7 @@ defineProps<{
   message?: string;
   confirmLabel?: string;
   cancelLabel?: string;
-  variant?: 'blaze-red' | 'turquoise-stone';
+  variant?: 'blaze-red' | 'tampa';
   loading?: boolean;
 }>();
 

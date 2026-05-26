@@ -53,12 +53,12 @@ function go() {
         <p class="text-sm font-semibold text-casual-navy">{{ title }}</p>
         <p class="mt-0.5 text-xs text-oslo">
           <template v-for="(part, idx) in bodyParts" :key="idx">
-            <span v-if="part.highlight" class="mx-0.5 rounded-md bg-turquoise-stone/10 px-1.5 py-0.5 font-medium text-turquoise-stone">{{ part.text }}</span>
+            <span v-if="part.highlight" class="mx-0.5 rounded-md bg-tampa/10 px-1.5 py-0.5 font-medium text-tampa">{{ part.text }}</span>
             <span v-else>{{ part.text }}</span>
           </template>
         </p>
       </div>
-      <BaseButton v-if="to" variant="turquoise-stone" @click="go">View Detail</BaseButton>
+      <BaseButton v-if="to" variant="tampa" @click="go">View Detail</BaseButton>
     </div>
   </BaseCard>
 </template>

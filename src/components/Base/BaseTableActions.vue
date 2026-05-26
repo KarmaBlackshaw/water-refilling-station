@@ -38,7 +38,7 @@ function onClick(item: TableActionMenuItem) {
       type="button"
       :disabled="loading"
       :class="[
-        'inline-flex size-8 items-center justify-center rounded-md border border-transparent text-oslo transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turquoise-stone',
+        'inline-flex size-8 items-center justify-center rounded-md border border-transparent text-oslo transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tampa',
         loading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-bright-chrome hover:text-casual-navy',
         isVisible ? 'bg-bright-chrome text-casual-navy' : '',
       ]"

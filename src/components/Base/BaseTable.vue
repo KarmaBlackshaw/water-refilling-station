@@ -83,7 +83,7 @@ function alignClass(a?: TableColumn<TRow>['align']): string {
 </script>
 
 <template>
-  <div class="w-full overflow-x-auto">
+  <div class="w-full overflow-x-auto border-t border-sparkling-silver">
     <table class="w-full text-sm text-left">
       <thead>
         <tr>

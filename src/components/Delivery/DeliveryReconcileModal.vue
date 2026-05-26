@@ -93,7 +93,7 @@ const { loading: saving, run: submit } = useAsync(async () => {
               type="number"
               :min="0"
               :max="ret.maxQty"
-              class="w-full rounded-md border border-sparkling-silver bg-full-white px-3 py-1.5 text-sm text-casual-navy focus:outline-none focus:ring-2 focus:ring-turquoise-stone"
+              class="w-full rounded-md border border-sparkling-silver bg-full-white px-3 py-1.5 text-sm text-casual-navy focus:outline-none focus:ring-2 focus:ring-tampa"
             />
           </div>
           <span class="w-16 text-right text-xs text-independence">of {{ ret.maxQty }}</span>

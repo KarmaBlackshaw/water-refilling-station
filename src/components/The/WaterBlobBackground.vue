@@ -1,6 +1,6 @@
 <template>
   <div class="pointer-events-none absolute inset-0 overflow-hidden">
-    <div class="blob blob-a bg-turquoise-stone" />
+    <div class="blob blob-a bg-tampa" />
     <div class="blob blob-b bg-psychedelic-aqua" />
     <div class="blob blob-c bg-bondi-blue" />
     <div class="blob blob-d bg-cerulean" />

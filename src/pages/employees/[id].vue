@@ -155,7 +155,7 @@ function salaryRowMenu(row: SalaryRecord) {
           <BaseBadge :variant="employee.role === 'admin' ? 'info' : 'default'" class="mt-1">{{ employee.role }}</BaseBadge>
         </div>
         <div class="flex gap-2">
-          <BaseButton :variant="todayAttendance?.status === 'present' ? 'full-white' : 'turquoise-stone'" @click="toggleTodayAttendance">
+          <BaseButton :variant="todayAttendance?.status === 'present' ? 'full-white' : 'tampa'" @click="toggleTodayAttendance">
             {{ todayAttendance?.status === 'present' ? 'Mark absent' : 'Mark present' }}
           </BaseButton>
         </div>

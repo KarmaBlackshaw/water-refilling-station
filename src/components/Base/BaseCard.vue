@@ -15,7 +15,7 @@ const paddingClasses = computed(() => {
 </script>
 
 <template>
-  <div :class="[paddingClasses]" class="rounded-lg bg-full-white shadow overflow-hidden">
+  <div :class="[paddingClasses]" class="rounded-md bg-full-white shadow overflow-hidden">
     <div v-if="title || $slots.action" class="mb-3 flex items-center justify-between">
       <p v-if="title" class="text-sm font-semibold text-casual-navy">{{ title }}</p>
 

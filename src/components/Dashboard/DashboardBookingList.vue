@@ -26,7 +26,7 @@ const visible = computed(() => props.bookings.slice(0, 8));
 <template>
   <BaseCard padding="md">
     <template #action>
-      <RouterLink v-if="bookings.length > 8" :to="ROUTES.BOOKINGS" class="text-xs text-turquoise-stone hover:underline">View all →</RouterLink>
+      <RouterLink v-if="bookings.length > 8" :to="ROUTES.BOOKINGS" class="text-xs text-tampa hover:underline">View all →</RouterLink>
     </template>
     <template #default>
       <p class="mb-3 text-sm font-semibold text-casual-navy">Upcoming Bookings</p>

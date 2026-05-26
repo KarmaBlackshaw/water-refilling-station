@@ -113,7 +113,7 @@ function submit() {
             type="number"
             step="0.01"
             min="0"
-            class="num w-[100px] rounded-md border border-sparkling-silver bg-full-white px-2 py-1 text-sm text-right text-casual-navy focus:outline-none focus:ring-2 focus:ring-turquoise-stone"
+            class="num w-[100px] rounded-md border border-sparkling-silver bg-full-white px-2 py-1 text-sm text-right text-casual-navy focus:outline-none focus:ring-2 focus:ring-tampa"
             @change="(e) => onPriceChange(e, fp)"
           />
         </div>

@@ -74,7 +74,7 @@ onUnmounted(() => {
             <h2 v-if="title" id="modal-title" class="text-base font-semibold text-casual-navy">{{ title }}</h2>
             <button
               v-if="closable"
-              class="ml-auto text-independence hover:text-casual-navy transition-colors focus:outline-none focus:ring-2 focus:ring-turquoise-stone rounded"
+              class="ml-auto text-independence hover:text-casual-navy transition-colors focus:outline-none focus:ring-2 focus:ring-tampa rounded"
               aria-label="Close"
               @click="handleClose"
             >

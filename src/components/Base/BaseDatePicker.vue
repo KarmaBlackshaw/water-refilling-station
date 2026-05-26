@@ -55,12 +55,12 @@ defineProps<{
   --dp-font-size: 0.875rem;
   --dp-input-padding: 0 0.75rem;
   --dp-border-color: var(--color-sparkling-silver, #d1d5db);
-  --dp-border-color-hover: var(--color-turquoise-stone, #14b8a6);
-  --dp-border-color-focus: var(--color-turquoise-stone, #14b8a6);
+  --dp-border-color-hover: var(--color-tampa, #1A73E8);
+  --dp-border-color-focus: var(--color-tampa, #1A73E8);
   --dp-text-color: var(--color-casual-navy, #1f2937);
   --dp-icon-color: var(--color-oslo, #6b7280);
   --dp-background-color: var(--color-full-white, #ffffff);
-  --dp-primary-color: var(--color-turquoise-stone, #14b8a6);
+  --dp-primary-color: var(--color-tampa, #1A73E8);
 }
 .base-datepicker .dp__input {
   height: 2.5rem;
