@@ -15,7 +15,15 @@ const emit = defineEmits<{
       phone: string | null;
       type: 'residential' | 'commercial';
       notes: string | null;
-      address: { label: string; address_line: string } | null;
+      address: {
+        label: string;
+        street: string;
+        barangay: string;
+        city: string;
+        landmark: string | null;
+        lat: number | null;
+        lng: number | null;
+      } | null;
     },
   ];
 }>();
@@ -25,14 +33,33 @@ const form = reactive({
   phone: '',
   type: 'residential' as 'residential' | 'commercial',
   notes: '',
-  address_label: '',
-  address_line: '',
 });
+
+const addressFields = reactive({
+  street: '',
+  barangay: '',
+  city: '',
+  lat: null as number | null,
+  lng: null as number | null,
+});
+
+const addressLabel = ref('');
+const addressLandmark = ref('');
 
 const typeOptions = [
   { label: 'Residential', value: 'residential' },
   { label: 'Commercial', value: 'commercial' },
 ];
+
+function resetAddress() {
+  addressFields.street = '';
+  addressFields.barangay = '';
+  addressFields.city = '';
+  addressFields.lat = null;
+  addressFields.lng = null;
+  addressLabel.value = '';
+  addressLandmark.value = '';
+}
 
 watch(
   () => open.value,
@@ -51,23 +78,33 @@ watch(
       form.phone = '';
       form.type = 'residential';
       form.notes = '';
-      form.address_label = '';
-      form.address_line = '';
     }
+
+    resetAddress();
   },
   { immediate: true },
 );
 
 function submit() {
-  const addressLine = form.address_line.trim();
-  const addressLabel = form.address_label.trim();
+  const hasAddress = addressFields.street || addressFields.barangay || addressFields.city;
 
   emit('submit', {
     name: form.name,
     phone: form.phone || null,
     type: form.type,
     notes: form.notes || null,
-    address: !customer && addressLine ? { label: addressLabel || 'Home', address_line: addressLine } : null,
+    address:
+      !customer && hasAddress
+        ? {
+            label: addressLabel.value || 'Home',
+            street: addressFields.street,
+            barangay: addressFields.barangay,
+            city: addressFields.city,
+            landmark: addressLandmark.value || null,
+            lat: addressFields.lat,
+            lng: addressFields.lng,
+          }
+        : null,
   });
 }
 </script>
@@ -83,8 +120,9 @@ function submit() {
       <div v-if="!customer" class="space-y-3 rounded-md border border-sparkling-silver p-3">
         <p class="text-sm font-medium text-casual-navy">Default address (optional)</p>
         <p class="text-xs text-independence">Add more addresses later from the customer profile.</p>
-        <BaseInput v-model="form.address_label" label="Label" placeholder="Home" />
-        <BaseTextarea v-model="form.address_line" label="Address" :rows="2" />
+        <BaseInput v-model="addressLabel" label="Address label (e.g. Home)" placeholder="Home" />
+        <AddressFieldCascade v-model="addressFields" />
+        <BaseInput v-model="addressLandmark" label="Landmark (optional)" />
       </div>
     </form>
     <template #footer>

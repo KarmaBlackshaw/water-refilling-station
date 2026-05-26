@@ -2,6 +2,7 @@
 import { ROUTES } from '@/constants/routes';
 import type { DeliverySaleRow } from '@/services/deliveries';
 import { avatarColor, initials } from '@/helpers/avatar';
+import { formatAddress } from '@/helpers/address';
 
 const props = defineProps<{ deliveries: DeliverySaleRow[] }>();
 
@@ -90,7 +91,7 @@ const visible = computed(() => props.deliveries.slice(0, 6));
 
         <div class="min-w-0 flex-1">
           <p class="truncate text-sm font-semibold text-casual-navy">{{ d.customer?.name ?? '—' }}</p>
-          <p class="truncate text-xs text-oslo">{{ d.address?.address_line ?? d.rider?.full_name ?? 'Unassigned' }}</p>
+          <p class="truncate text-xs text-oslo">{{ d.address ? formatAddress(d.address) : (d.rider?.full_name ?? 'Unassigned') }}</p>
 
           <div class="mt-2 flex items-center gap-4 text-[11px]">
             <span class="flex items-center gap-1">

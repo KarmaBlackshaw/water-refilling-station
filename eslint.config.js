@@ -135,7 +135,8 @@ export default defineConfigWithVueTs(
           endOfLine: 'auto',
         },
       ],
-      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
       '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
       '@typescript-eslint/naming-convention': [
         'error',

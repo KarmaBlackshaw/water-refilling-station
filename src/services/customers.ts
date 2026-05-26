@@ -3,12 +3,15 @@ import { supabase } from '@/helpers/supabase';
 import type { Customer, CustomerAddress, CustomerPriceOverride, CustomerType } from '@/types/database';
 
 export type CustomerWithArea = NonNullable<Awaited<ReturnType<typeof listCustomers>>['data']>[number];
+export type MapAddrRow = NonNullable<Awaited<ReturnType<typeof listAddressesForMap>>['data']>[number];
 export type CustomerDetail = NonNullable<Awaited<ReturnType<typeof getCustomer>>['data']>;
 
 export function listCustomers(tenantId: string, branchId: string) {
   return supabase
     .from('customers')
-    .select('*, area:areas(id, name), addresses:customer_addresses(id, label, address_line, is_default, deleted_at)')
+    .select(
+      '*, area:areas(id, name), addresses:customer_addresses(id, label, street, barangay, city, landmark, lat, lng, is_default, needs_pin_review, photo_path, deleted_at)',
+    )
     .eq('tenant_id', tenantId)
     .eq('branch_id', branchId)
     .is('deleted_at', null)
@@ -18,7 +21,9 @@ export function listCustomers(tenantId: string, branchId: string) {
 export function getCustomer(id: string) {
   return supabase
     .from('customers')
-    .select('*, area:areas(id, name), addresses:customer_addresses(id, label, address_line, is_default, deleted_at)')
+    .select(
+      '*, area:areas(id, name), addresses:customer_addresses(id, label, street, barangay, city, landmark, lat, lng, is_default, needs_pin_review, photo_path, deleted_at)',
+    )
     .eq('id', id)
     .single();
 }
@@ -45,7 +50,12 @@ export function softDeleteCustomer(id: string, deletedBy: string) {
 
 // Addresses
 export function listAddresses(customerId: string) {
-  return supabase.from('customer_addresses').select('*').eq('customer_id', customerId).is('deleted_at', null).order('is_default', { ascending: false });
+  return supabase
+    .from('customer_addresses')
+    .select('id, label, street, barangay, city, landmark, lat, lng, is_default, needs_pin_review, photo_path, deleted_at')
+    .eq('customer_id', customerId)
+    .is('deleted_at', null)
+    .order('is_default', { ascending: false });
 }
 
 export function createAddress(data: {
@@ -53,20 +63,45 @@ export function createAddress(data: {
   branch_id: string;
   customer_id: string;
   label: string;
-  address_line: string;
+  street: string;
+  barangay: string;
+  city: string;
+  landmark?: string | null;
   lat?: number | null;
   lng?: number | null;
   is_default?: boolean;
+  needs_pin_review?: boolean;
+  photo_path?: string | null;
 }) {
   return supabase.from('customer_addresses').insert(data).select().single();
 }
 
-export function updateAddress(id: string, data: Partial<Pick<CustomerAddress, 'label' | 'address_line' | 'lat' | 'lng' | 'is_default'>>) {
+export function updateAddress(
+  id: string,
+  data: Partial<
+    Pick<CustomerAddress, 'label' | 'street' | 'barangay' | 'city' | 'landmark' | 'lat' | 'lng' | 'is_default' | 'needs_pin_review' | 'photo_path'>
+  >,
+) {
   return supabase.from('customer_addresses').update(data).eq('id', id).select().single();
 }
 
 export function softDeleteAddress(id: string, deletedBy: string) {
   return supabase.from('customer_addresses').update({ deleted_at: nowISO(), deleted_by: deletedBy }).eq('id', id);
+}
+
+export function listAddressesForMap(tenantId: string, branchId: string) {
+  return supabase
+    .from('customer_addresses')
+    .select(
+      `
+      id, label, street, barangay, city, landmark, lat, lng,
+      needs_pin_review, photo_path,
+      customer:customers!customer_id(id, name, phone, area_id, area:areas(id, name, primary_rider_id))
+    `,
+    )
+    .eq('tenant_id', tenantId)
+    .eq('branch_id', branchId)
+    .is('deleted_at', null);
 }
 
 // Price overrides

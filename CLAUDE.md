@@ -49,6 +49,7 @@ const products = computed(() => productsRes.value?.data ?? []);
 - Name the raw ref `xRes` (or `xData` if the service already returns the array directly).
 - Drop `defaultValue: []` when the response type isn't an array — the `computed` provides the `?? []` fallback.
 - Only fetch lives inside `useAsync`. Filtering, mapping, sorting, label-building → `computed`.
+- Never annotate `computed`'s return type manually. If the service return type is correct, TypeScript infers the `computed` type automatically. `computed((): T[] => ...)` is a sign the upstream type is wrong — fix that instead.
 
 ### Always use `defineModel` for two-way binding
 

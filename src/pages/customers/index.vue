@@ -3,6 +3,7 @@ import type { Customer } from '@/types/database';
 import type { CustomerWithArea } from '@/services/customers';
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
+import { formatAddress } from '@/helpers/address';
 
 const auth = useAuthStore();
 const { confirm } = useConfirm();
@@ -36,7 +37,7 @@ const filtered = computed(() => {
       return true;
     }
 
-    return (c.addresses ?? []).some((a) => !a.deleted_at && a.address_line.toLowerCase().includes(q));
+    return (c.addresses ?? []).some((a) => !a.deleted_at && formatAddress(a).toLowerCase().includes(q));
   });
 });
 
@@ -56,7 +57,15 @@ const { loading: saving, run: save } = useAsync(
     phone: string | null;
     type: 'residential' | 'commercial';
     notes: string | null;
-    address: { label: string; address_line: string } | null;
+    address: {
+      label: string;
+      street: string;
+      barangay: string;
+      city: string;
+      landmark: string | null;
+      lat: number | null;
+      lng: number | null;
+    } | null;
   }) => {
     const { address, ...customerPayload } = payload;
 
@@ -71,7 +80,12 @@ const { loading: saving, run: save } = useAsync(
           branch_id: branchId.value,
           customer_id: created.id,
           label: address.label,
-          address_line: address.address_line,
+          street: address.street,
+          barangay: address.barangay,
+          city: address.city,
+          landmark: address.landmark,
+          lat: address.lat,
+          lng: address.lng,
           is_default: true,
         });
       }
@@ -148,7 +162,7 @@ function rowMenu(row: Customer) {
           <template #cell-area="{ row }">{{ row.area?.name ?? '—' }}</template>
 
           <template #cell-address="{ row }">
-            <span v-if="defaultAddress(row)" class="text-sm text-casual-navy">{{ defaultAddress(row)?.address_line }}</span>
+            <span v-if="defaultAddress(row)" class="text-sm text-casual-navy">{{ formatAddress(defaultAddress(row)!) }}</span>
             <span v-else class="text-sm text-oslo">—</span>
           </template>
 

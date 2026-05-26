@@ -7,11 +7,28 @@ import IconTrash from '@/components/Icon/IconTrash.vue';
 const route = useRoute();
 const auth = useAuthStore();
 const { confirm } = useConfirm();
+const toast = useToast();
 const { tenantId, branchId } = storeToRefs(auth);
 
 type PriceOverrideWithRels = CustomerPriceOverride & {
   product: { name: string } | null;
   container_type: { name: string } | null;
+};
+
+type AddrSubmitPayload = {
+  payload: {
+    label: string;
+    street: string;
+    barangay: string;
+    city: string;
+    landmark: string | null;
+    lat: number | null;
+    lng: number | null;
+    is_default: boolean;
+    needs_pin_review: boolean;
+  };
+  photoFile: File | undefined;
+  removePhoto: boolean;
 };
 
 const activeTab = ref('overview');
@@ -87,20 +104,43 @@ function openEditAddr(a: CustomerAddress) {
   addrModalOpen.value = true;
 }
 
-const { loading: addrSaving, run: saveAddr } = useAsync(async (payload: { label: string; address_line: string; is_default: boolean }) => {
+const { loading: addrSaving, run: saveAddress } = useAsync(async ({ payload, photoFile, removePhoto }: AddrSubmitPayload) => {
   if (!customer.value) {
     return;
   }
 
-  if (editingAddr.value) {
-    await updateAddress(editingAddr.value.id, payload);
-  } else {
-    await createAddress({
-      tenant_id: tenantId.value,
-      branch_id: branchId.value,
-      customer_id: customer.value.id,
-      ...payload,
-    });
+  const isNew = !editingAddr.value;
+  const savedRes = isNew
+    ? await createAddress({
+        tenant_id: tenantId.value,
+        branch_id: branchId.value,
+        customer_id: customer.value.id,
+        ...payload,
+      })
+    : await updateAddress(editingAddr.value.id, payload);
+
+  const row = savedRes.data!;
+  let nextPath: string | null = row.photo_path ?? null;
+
+  try {
+    if (removePhoto && nextPath) {
+      await deleteAddressPhoto(nextPath);
+      nextPath = null;
+    }
+
+    if (photoFile) {
+      if (row.photo_path) {
+        await deleteAddressPhoto(row.photo_path);
+      }
+
+      nextPath = await uploadAddressPhoto(photoFile, tenantId.value, branchId.value, row.id);
+    }
+
+    if (nextPath !== (row.photo_path ?? null)) {
+      await updateAddress(row.id, { photo_path: nextPath });
+    }
+  } catch (e) {
+    toast.error(getErrorMessage(e, 'Address saved, but photo update failed.'));
   }
 
   addrModalOpen.value = false;
@@ -219,7 +259,7 @@ function overrideMenu(override: PriceOverrideWithRels) {
               <dt class="text-independence">Default address</dt>
               <dd class="max-w-[60%] text-right text-casual-navy">
                 <template v-if="defaultAddress">
-                  <span class="block">{{ defaultAddress.address_line }}</span>
+                  <span class="block">{{ formatAddress(defaultAddress) }}</span>
                   <span class="block text-xs text-oslo">{{ defaultAddress.label }}</span>
                 </template>
                 <template v-else>—</template>
@@ -255,10 +295,11 @@ function overrideMenu(override: PriceOverrideWithRels) {
         </div>
         <BaseEmptyState v-if="addresses.length === 0" title="No addresses yet" />
         <BaseCard v-for="a in addresses" :key="a.id" padding="sm">
-          <div class="flex items-start justify-between">
-            <div>
+          <div class="flex items-start justify-between gap-3">
+            <CustomerAddressPhoto v-if="a.photo_path" :photo-path="a.photo_path" />
+            <div class="flex-1">
               <p class="font-medium text-casual-navy">{{ a.label }}</p>
-              <p class="text-sm text-independence">{{ a.address_line }}</p>
+              <p class="text-sm text-independence">{{ formatAddress(a) }}</p>
               <BaseBadge v-if="a.is_default" variant="info" class="mt-1">Default</BaseBadge>
             </div>
             <BaseTableActions :menu="addrMenu(a)" />
@@ -326,7 +367,7 @@ function overrideMenu(override: PriceOverrideWithRels) {
       :address="editingAddr"
       :is-first-address="addresses.length === 0"
       :saving="addrSaving"
-      @submit="saveAddr"
+      @submit="saveAddress"
     />
 
     <CustomerPriceOverrideFormModal v-model:open="overrideModalOpen" :saving="overrideSaving" @submit="saveOverride" />

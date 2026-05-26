@@ -22,13 +22,13 @@ export const useAuthStore = defineStore('auth', () => {
       profile.value = profileData;
     }
 
-    supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    supabase.auth.onAuthStateChange((event, newSession) => {
       session.value = newSession;
       authUser.value = newSession?.user ?? null;
       if (authUser.value) {
-        const { data: profileData } = await fetchProfile(authUser.value.id);
-
-        profile.value = profileData;
+        fetchProfile(authUser.value.id).then(({ data: profileData }) => {
+          profile.value = profileData;
+        });
       } else {
         profile.value = null;
       }

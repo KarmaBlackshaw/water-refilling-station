@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Customer, Product, ContainerType, User } from '@/types/database';
+import { formatAddress } from '@/helpers/address';
 
 interface ItemRow {
   product_id: string;
@@ -67,7 +68,7 @@ watch(
     const { data } = await listAddresses(customerId);
 
     addressOptions.value = (data ?? []).map((a) => ({
-      label: `${a.label} — ${a.address_line}`,
+      label: `${a.label} — ${formatAddress(a)}`,
       value: a.id,
     }));
   },

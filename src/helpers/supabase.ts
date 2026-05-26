@@ -8,7 +8,11 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseKey);
+export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
+  auth: {
+    lock: (_name, _acquireTimeout, fn) => fn(),
+  },
+});
 
 export async function getCurrentUserId(): Promise<string> {
   const { data } = await supabase.auth.getUser();

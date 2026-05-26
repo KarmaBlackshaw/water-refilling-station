@@ -13,7 +13,7 @@ export async function listDeliverySales(date?: string) {
       `
       *,
       customer:customers(name, phone),
-      address:customer_addresses(address_line, label),
+      address:customer_addresses(street, barangay, city, landmark, label),
       rider:users!rider_id(full_name),
       lines:sale_lines(*, product:products(name), container_type:container_types(name))
     `,

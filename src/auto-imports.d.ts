@@ -55,6 +55,7 @@ declare global {
   const createTemplate: typeof import('./services/bookings').createTemplate
   const createTemplatePromise: typeof import('@vueuse/core').createTemplatePromise
   const createUnrefFn: typeof import('@vueuse/core').createUnrefFn
+  const createUserAccount: typeof import('./services/users').createUserAccount
   const createVehicle: typeof import('./services/vehicles').createVehicle
   const createWalkInSale: typeof import('./services/sales').createWalkInSale
   const currentMonth: typeof import('./helpers/date').currentMonth
@@ -68,6 +69,7 @@ declare global {
   const defineAsyncComponent: typeof import('vue').defineAsyncComponent
   const defineComponent: typeof import('vue').defineComponent
   const defineStore: typeof import('pinia').defineStore
+  const deleteAddressPhoto: typeof import('./helpers/storage').deleteAddressPhoto
   const deleteExpense: typeof import('./services/expenses').deleteExpense
   const deleteTask: typeof import('./services/maintenance').deleteTask
   const deleteTemplate: typeof import('./services/bookings').deleteTemplate
@@ -80,6 +82,7 @@ declare global {
   const extendRef: typeof import('@vueuse/core').extendRef
   const fetchProfile: typeof import('./services/auth').fetchProfile
   const fetchSettings: typeof import('./services/settings').fetchSettings
+  const formatAddress: typeof import('./helpers/address').formatAddress
   const formatCurrency: typeof import('./helpers/date').formatCurrency
   const formatDate: typeof import('./helpers/date').formatDate
   const formatDateDisplay: typeof import('./helpers/date').formatDateDisplay
@@ -98,6 +101,7 @@ declare global {
   const getActiveCustomerCount: typeof import('./services/dashboard').getActiveCustomerCount
   const getActivePinia: typeof import('pinia').getActivePinia
   const getActiveRiderForArea: typeof import('./services/areas').getActiveRiderForArea
+  const getAddressPhotoUrl: typeof import('./helpers/storage').getAddressPhotoUrl
   const getAttendance: typeof import('./services/employees').getAttendance
   const getContainerBalance: typeof import('./services/customers').getContainerBalance
   const getCurrentInstance: typeof import('vue').getCurrentInstance
@@ -135,6 +139,7 @@ declare global {
   const isValidDate: typeof import('./helpers/date').isValidDate
   const isWorkdayDate: typeof import('./helpers/workday').isWorkdayDate
   const listAddresses: typeof import('./services/customers').listAddresses
+  const listAddressesForMap: typeof import('./services/customers').listAddressesForMap
   const listAreas: typeof import('./services/areas').listAreas
   const listAttendanceForMonth: typeof import('./services/employees').listAttendanceForMonth
   const listBookings: typeof import('./services/bookings').listBookings
@@ -213,6 +218,9 @@ declare global {
   const resolveComponent: typeof import('vue').resolveComponent
   const resolvePrice: typeof import('./services/pricing').resolvePrice
   const resolveRef: typeof import('@vueuse/core').resolveRef
+  const searchBarangays: typeof import('./helpers/geocode').searchBarangays
+  const searchCities: typeof import('./helpers/geocode').searchCities
+  const searchStreets: typeof import('./helpers/geocode').searchStreets
   const setActivePinia: typeof import('pinia').setActivePinia
   const setMapStoreSuffix: typeof import('pinia').setMapStoreSuffix
   const settingsService: typeof import('./services/settings').settingsService
@@ -234,6 +242,7 @@ declare global {
   const submitSalaryRecord: typeof import('./services/employees').submitSalaryRecord
   const subtractDays: typeof import('./helpers/date').subtractDays
   const supabase: typeof import('./helpers/supabase').supabase
+  const supabaseAdmin: typeof import('./helpers/supabaseAdmin').supabaseAdmin
   const supabaseKey: typeof import('./lib/supabase').supabaseKey
   const syncRef: typeof import('@vueuse/core').syncRef
   const syncRefs: typeof import('@vueuse/core').syncRefs
@@ -271,6 +280,7 @@ declare global {
   const updateTask: typeof import('./services/maintenance').updateTask
   const updateTemplate: typeof import('./services/bookings').updateTemplate
   const updateVehicle: typeof import('./services/vehicles').updateVehicle
+  const uploadAddressPhoto: typeof import('./helpers/storage').uploadAddressPhoto
   const upsertAttendance: typeof import('./services/employees').upsertAttendance
   const upsertPriceOverride: typeof import('./services/customers').upsertPriceOverride
   const upsertProductPricing: typeof import('./services/products').upsertProductPricing
@@ -496,10 +506,13 @@ declare global {
   export type { DateInput } from './helpers/date'
   import('./helpers/date')
   // @ts-ignore
+  export type { GeoFeature } from './helpers/geocode'
+  import('./helpers/geocode')
+  // @ts-ignore
   export type { BookingRow, TemplateRow } from './services/bookings'
   import('./services/bookings')
   // @ts-ignore
-  export type { CustomerWithArea, CustomerDetail, Customer, CustomerAddress, CustomerPriceOverride } from './services/customers'
+  export type { CustomerWithArea, MapAddrRow, CustomerDetail, Customer, CustomerAddress, CustomerPriceOverride } from './services/customers'
   import('./services/customers')
   // @ts-ignore
   export type { DeliverySaleRow, TopRiderRow } from './services/deliveries'
@@ -575,6 +588,7 @@ declare module 'vue' {
     readonly createTemplate: UnwrapRef<typeof import('./services/bookings')['createTemplate']>
     readonly createTemplatePromise: UnwrapRef<typeof import('@vueuse/core')['createTemplatePromise']>
     readonly createUnrefFn: UnwrapRef<typeof import('@vueuse/core')['createUnrefFn']>
+    readonly createUserAccount: UnwrapRef<typeof import('./services/users')['createUserAccount']>
     readonly createVehicle: UnwrapRef<typeof import('./services/vehicles')['createVehicle']>
     readonly createWalkInSale: UnwrapRef<typeof import('./services/sales')['createWalkInSale']>
     readonly currentMonth: UnwrapRef<typeof import('./helpers/date')['currentMonth']>
@@ -588,6 +602,7 @@ declare module 'vue' {
     readonly defineAsyncComponent: UnwrapRef<typeof import('vue')['defineAsyncComponent']>
     readonly defineComponent: UnwrapRef<typeof import('vue')['defineComponent']>
     readonly defineStore: UnwrapRef<typeof import('pinia')['defineStore']>
+    readonly deleteAddressPhoto: UnwrapRef<typeof import('./helpers/storage')['deleteAddressPhoto']>
     readonly deleteExpense: UnwrapRef<typeof import('./services/expenses')['deleteExpense']>
     readonly deleteTask: UnwrapRef<typeof import('./services/maintenance')['deleteTask']>
     readonly deleteTemplate: UnwrapRef<typeof import('./services/bookings')['deleteTemplate']>
@@ -600,6 +615,7 @@ declare module 'vue' {
     readonly extendRef: UnwrapRef<typeof import('@vueuse/core')['extendRef']>
     readonly fetchProfile: UnwrapRef<typeof import('./services/auth')['fetchProfile']>
     readonly fetchSettings: UnwrapRef<typeof import('./services/settings')['fetchSettings']>
+    readonly formatAddress: UnwrapRef<typeof import('./helpers/address')['formatAddress']>
     readonly formatCurrency: UnwrapRef<typeof import('./helpers/date')['formatCurrency']>
     readonly formatDate: UnwrapRef<typeof import('./helpers/date')['formatDate']>
     readonly formatDateDisplay: UnwrapRef<typeof import('./helpers/date')['formatDateDisplay']>
@@ -614,6 +630,7 @@ declare module 'vue' {
     readonly getActiveCustomerCount: UnwrapRef<typeof import('./services/dashboard')['getActiveCustomerCount']>
     readonly getActivePinia: UnwrapRef<typeof import('pinia')['getActivePinia']>
     readonly getActiveRiderForArea: UnwrapRef<typeof import('./services/areas')['getActiveRiderForArea']>
+    readonly getAddressPhotoUrl: UnwrapRef<typeof import('./helpers/storage')['getAddressPhotoUrl']>
     readonly getAttendance: UnwrapRef<typeof import('./services/employees')['getAttendance']>
     readonly getContainerBalance: UnwrapRef<typeof import('./services/customers')['getContainerBalance']>
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
@@ -651,6 +668,7 @@ declare module 'vue' {
     readonly isValidDate: UnwrapRef<typeof import('./helpers/date')['isValidDate']>
     readonly isWorkdayDate: UnwrapRef<typeof import('./helpers/workday')['isWorkdayDate']>
     readonly listAddresses: UnwrapRef<typeof import('./services/customers')['listAddresses']>
+    readonly listAddressesForMap: UnwrapRef<typeof import('./services/customers')['listAddressesForMap']>
     readonly listAreas: UnwrapRef<typeof import('./services/areas')['listAreas']>
     readonly listAttendanceForMonth: UnwrapRef<typeof import('./services/employees')['listAttendanceForMonth']>
     readonly listBookings: UnwrapRef<typeof import('./services/bookings')['listBookings']>
@@ -727,6 +745,9 @@ declare module 'vue' {
     readonly resolveComponent: UnwrapRef<typeof import('vue')['resolveComponent']>
     readonly resolvePrice: UnwrapRef<typeof import('./services/pricing')['resolvePrice']>
     readonly resolveRef: UnwrapRef<typeof import('@vueuse/core')['resolveRef']>
+    readonly searchBarangays: UnwrapRef<typeof import('./helpers/geocode')['searchBarangays']>
+    readonly searchCities: UnwrapRef<typeof import('./helpers/geocode')['searchCities']>
+    readonly searchStreets: UnwrapRef<typeof import('./helpers/geocode')['searchStreets']>
     readonly setActivePinia: UnwrapRef<typeof import('pinia')['setActivePinia']>
     readonly setMapStoreSuffix: UnwrapRef<typeof import('pinia')['setMapStoreSuffix']>
     readonly shallowReactive: UnwrapRef<typeof import('vue')['shallowReactive']>
@@ -747,6 +768,7 @@ declare module 'vue' {
     readonly submitSalaryRecord: UnwrapRef<typeof import('./services/employees')['submitSalaryRecord']>
     readonly subtractDays: UnwrapRef<typeof import('./helpers/date')['subtractDays']>
     readonly supabase: UnwrapRef<typeof import('./helpers/supabase')['supabase']>
+    readonly supabaseAdmin: UnwrapRef<typeof import('./helpers/supabaseAdmin')['supabaseAdmin']>
     readonly syncRef: UnwrapRef<typeof import('@vueuse/core')['syncRef']>
     readonly syncRefs: UnwrapRef<typeof import('@vueuse/core')['syncRefs']>
     readonly templateRef: UnwrapRef<typeof import('@vueuse/core')['templateRef']>
@@ -780,6 +802,7 @@ declare module 'vue' {
     readonly updateTask: UnwrapRef<typeof import('./services/maintenance')['updateTask']>
     readonly updateTemplate: UnwrapRef<typeof import('./services/bookings')['updateTemplate']>
     readonly updateVehicle: UnwrapRef<typeof import('./services/vehicles')['updateVehicle']>
+    readonly uploadAddressPhoto: UnwrapRef<typeof import('./helpers/storage')['uploadAddressPhoto']>
     readonly upsertAttendance: UnwrapRef<typeof import('./services/employees')['upsertAttendance']>
     readonly upsertPriceOverride: UnwrapRef<typeof import('./services/customers')['upsertPriceOverride']>
     readonly upsertProductPricing: UnwrapRef<typeof import('./services/products')['upsertProductPricing']>

@@ -11,5 +11,6 @@ export * from './database/expense';
 export * from './database/maintenance';
 export * from './database/product';
 export * from './database/sale';
+export * from './database/supabase';
 export * from './database/vehicle';
 export * from './size';

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DeliverySaleRow } from '@/services/deliveries';
+import { formatAddress } from '@/helpers/address';
 
 const route = useRoute();
 const selectedDate = ref(new Date().toISOString().slice(0, 10));
@@ -157,7 +158,7 @@ function statusVariant(status: string): 'warning' | 'success' | 'default' {
                 </div>
                 <BaseBadge :variant="statusVariant(sale.status)">{{ statusLabel(sale.status) }}</BaseBadge>
               </div>
-              <p v-if="sale.address" class="text-xs text-independence">{{ sale.address.label }} — {{ sale.address.address_line }}</p>
+              <p v-if="sale.address" class="text-xs text-independence">{{ sale.address.label }} — {{ formatAddress(sale.address) }}</p>
               <ul class="space-y-0.5">
                 <li v-for="line in sale.lines" :key="line.id" class="text-xs text-casual-navy">
                   {{ line.quantity }}× {{ line.container_type?.name ?? '?' }}

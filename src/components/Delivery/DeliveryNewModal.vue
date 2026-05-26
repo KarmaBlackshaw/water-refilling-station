@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PaymentMethod } from '@/types/database';
+import { formatAddress } from '@/helpers/address';
 
 const open = defineModel<boolean>({ required: true });
 
@@ -112,7 +113,7 @@ const customerOptions = computed(() => (customers.value ?? []).map((c) => ({ lab
 const riderOptions = computed(() => [{ label: '— No rider —', value: '' }, ...(riders.value ?? []).map((r) => ({ label: r.full_name, value: r.id }))]);
 const addressOptions = computed(() =>
   (customerAddresses.value ?? []).map((a) => ({
-    label: `${a.label} — ${a.address_line}`,
+    label: `${a.label} — ${formatAddress(a)}`,
     value: a.id,
   })),
 );

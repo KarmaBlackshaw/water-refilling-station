@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { supabase } from '@/helpers/supabase';
 
+const auth = useAuthStore();
+const { userRole } = storeToRefs(auth);
+
 const todayDate = today();
 const todayPlus3Date = addDays(todayDate, 3);
 
@@ -194,7 +197,10 @@ const alertTo = computed(() => (counters.maintenanceAlertCount.value > 0 ? '/mai
         </BaseKpiCard>
       </div>
 
-      <!-- 3. Two-column body -->
+      <!-- 3. Map widget (admin only) -->
+      <DashboardMap v-if="userRole === 'admin'" class="h-[400px]" />
+
+      <!-- 4. Two-column body -->
       <div class="grid grid-cols-2 gap-4">
         <DashboardTaskList :deliveries="deliveries" />
 

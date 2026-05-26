@@ -662,8 +662,9 @@ export type Database = {
       };
       customer_addresses: {
         Row: {
-          address_line: string;
+          barangay: string;
           branch_id: string;
+          city: string;
           created_at: string;
           customer_id: string;
           deleted_at: string | null;
@@ -671,13 +672,18 @@ export type Database = {
           id: string;
           is_default: boolean;
           label: string;
+          landmark: string | null;
           lat: number | null;
           lng: number | null;
+          needs_pin_review: boolean;
+          photo_path: string | null;
+          street: string;
           tenant_id: string;
         };
         Insert: {
-          address_line: string;
+          barangay?: string;
           branch_id: string;
+          city?: string;
           created_at?: string;
           customer_id: string;
           deleted_at?: string | null;
@@ -685,13 +691,18 @@ export type Database = {
           id?: string;
           is_default?: boolean;
           label?: string;
+          landmark?: string | null;
           lat?: number | null;
           lng?: number | null;
+          needs_pin_review?: boolean;
+          photo_path?: string | null;
+          street?: string;
           tenant_id: string;
         };
         Update: {
-          address_line?: string;
+          barangay?: string;
           branch_id?: string;
+          city?: string;
           created_at?: string;
           customer_id?: string;
           deleted_at?: string | null;
@@ -699,8 +710,12 @@ export type Database = {
           id?: string;
           is_default?: boolean;
           label?: string;
+          landmark?: string | null;
           lat?: number | null;
           lng?: number | null;
+          needs_pin_review?: boolean;
+          photo_path?: string | null;
+          street?: string;
           tenant_id?: string;
         };
         Relationships: [
