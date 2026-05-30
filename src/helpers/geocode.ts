@@ -77,3 +77,11 @@ export function searchStreets(q: string, brgyBbox?: GeoFeature['bbox']): Promise
 
   return baseSearch({ query: q, types: ['address'], bbox: brgyBbox });
 }
+
+export async function geocodeBarangay(barangay: string, city: string): Promise<{ lat: number; lng: number } | null> {
+  const query = `${barangay}, ${city}, Philippines`;
+  const results = await baseSearch({ query, types: ['neighborhood', 'locality', 'place'] });
+  const first = results[0];
+
+  return first ? { lat: first.lat, lng: first.lng } : null;
+}
