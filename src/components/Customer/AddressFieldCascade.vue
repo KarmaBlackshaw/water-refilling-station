@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Map as MapboxMap, Marker as MapboxMarker } from 'mapbox-gl';
-import { searchCities, searchBarangays, searchStreets, type GeoFeature } from '@/helpers/geocode';
+import { searchCities, searchStreets, geocodeBarangay, type GeoFeature } from '@/helpers/geocode';
 
 type AddressFields = {
   street: string;
@@ -12,12 +12,11 @@ type AddressFields = {
 
 const model = defineModel<AddressFields>({ required: true });
 
-const cityId = ref<string | null>(null);
-const brgyId = ref<string | null>(null);
-const streetId = ref<string | null>(null);
+const cityId = ref<string>();
+const brgyName = ref<string>();
+const streetId = ref<string>();
 
 const cityFeature = ref<GeoFeature>();
-const brgyFeature = ref<GeoFeature>();
 const streetFeature = ref<GeoFeature>();
 
 const manualStreet = ref(false);
@@ -28,7 +27,6 @@ const brgyOptions = ref<Array<{ label: string; value: string }>>([]);
 const streetOptions = ref<Array<{ label: string; value: string }>>([]);
 
 const cityById = new Map<string, GeoFeature>();
-const brgyById = new Map<string, GeoFeature>();
 const streetById = new Map<string, GeoFeature>();
 
 const cityLoading = ref(false);
@@ -36,6 +34,10 @@ const brgyLoading = ref(false);
 const streetLoading = ref(false);
 
 async function onCitySearch(q: string) {
+  if (!q.trim()) {
+    return;
+  }
+
   cityLoading.value = true;
   try {
     const features = await searchCities(q);
@@ -48,23 +50,37 @@ async function onCitySearch(q: string) {
   }
 }
 
-async function onBrgySearch(q: string) {
-  brgyLoading.value = true;
-  try {
-    const features = await searchBarangays(q, cityFeature.value?.bbox);
+let psgcData: Record<string, string[]> | null = null;
 
-    brgyById.clear();
-    features.forEach((f) => brgyById.set(f.id, f));
-    brgyOptions.value = features.map((f) => ({ label: f.place_name, value: f.id }));
-  } finally {
-    brgyLoading.value = false;
+async function loadPsgc(): Promise<Record<string, string[]>> {
+  if (!psgcData) {
+    const mod: { default: Record<string, string[]> } = await import('@/data/psgc-barangays.json');
+
+    psgcData = mod.default;
   }
+
+  return psgcData;
+}
+
+function toPsgcKey(cityName: string): string {
+  const lower = cityName.toLowerCase().trim();
+
+  // PSGC uses "city of X" format; Mapbox returns "X City"
+  if (lower.endsWith(' city')) {
+    return `city of ${lower.slice(0, -5).trim()}`;
+  }
+
+  return lower;
 }
 
 async function onStreetSearch(q: string) {
+  if (!q.trim()) {
+    return;
+  }
+
   streetLoading.value = true;
   try {
-    const features = await searchStreets(q, brgyFeature.value?.bbox);
+    const features = await searchStreets(q, cityFeature.value?.bbox);
 
     streetById.clear();
     features.forEach((f) => streetById.set(f.id, f));
@@ -74,11 +90,10 @@ async function onStreetSearch(q: string) {
   }
 }
 
-watch(cityId, (id) => {
+watch(cityId, async (id) => {
   cityFeature.value = id ? cityById.get(id) : undefined;
-  brgyId.value = null;
-  streetId.value = null;
-  brgyFeature.value = undefined;
+  brgyName.value = undefined;
+  streetId.value = undefined;
   streetFeature.value = undefined;
   brgyOptions.value = [];
   streetOptions.value = [];
@@ -90,20 +105,49 @@ watch(cityId, (id) => {
     lat: null,
     lng: null,
   };
+
+  if (!cityFeature.value) {
+    return;
+  }
+
+  brgyLoading.value = true;
+  try {
+    const psgc = await loadPsgc();
+    const key = toPsgcKey(cityFeature.value.name);
+    const barangays = psgc[key] ?? psgc[cityFeature.value.name.toLowerCase().trim()] ?? [];
+
+    brgyOptions.value = barangays.map((name) => ({ label: name, value: name }));
+  } finally {
+    brgyLoading.value = false;
+  }
 });
 
-watch(brgyId, (id) => {
-  brgyFeature.value = id ? brgyById.get(id) : undefined;
-  streetId.value = null;
+watch(brgyName, async (name) => {
+  streetId.value = undefined;
   streetFeature.value = undefined;
   streetOptions.value = [];
   model.value = {
     ...model.value,
-    barangay: brgyFeature.value?.name ?? '',
+    barangay: name ?? '',
     street: '',
     lat: null,
     lng: null,
   };
+
+  if (!name || !cityFeature.value) {
+    return;
+  }
+
+  brgyLoading.value = true;
+  try {
+    const coords = await geocodeBarangay(name, cityFeature.value.name);
+
+    if (coords) {
+      model.value = { ...model.value, lat: coords.lat, lng: coords.lng };
+    }
+  } finally {
+    brgyLoading.value = false;
+  }
 });
 
 watch(streetId, (id) => {
@@ -119,7 +163,7 @@ watch(streetId, (id) => {
 });
 
 watch(manualStreetText, (text) => {
-  model.value = { ...model.value, street: text, lat: null, lng: null };
+  model.value = { ...model.value, street: text };
 });
 
 const mapEl = ref<HTMLDivElement | null>(null);
@@ -145,7 +189,7 @@ watch(
         container: mapEl.value!,
         style: 'mapbox://styles/mapbox/streets-v12',
         center: [lng, lat],
-        zoom: 17,
+        zoom: 14,
       });
       marker = new mapbox.Marker({ draggable: true }).setLngLat([lng, lat]).addTo(map);
       marker.on('dragend', () => {
@@ -154,7 +198,7 @@ watch(
         model.value = { ...model.value, lat: nlat, lng: nlng };
       });
     } else {
-      map.flyTo({ center: [lng, lat], zoom: 17 });
+      map.flyTo({ center: [lng, lat], zoom: 14 });
       marker!.setLngLat([lng, lat]);
     }
   },
@@ -182,16 +226,14 @@ onBeforeUnmount(() => {
     />
 
     <BaseSelect
-      v-model="brgyId"
+      v-model="brgyName"
       label="Barangay"
       searchable
-      remote
       :loading="brgyLoading"
       :options="brgyOptions"
       :disabled="!cityFeature"
-      placeholder="Search barangay..."
+      placeholder="Select barangay..."
       required
-      @search="onBrgySearch"
     />
 
     <template v-if="!manualStreet">
@@ -202,7 +244,7 @@ onBeforeUnmount(() => {
         remote
         :loading="streetLoading"
         :options="streetOptions"
-        :disabled="!brgyFeature"
+        :disabled="!brgyName"
         placeholder="Search street..."
         @search="onStreetSearch"
       />
@@ -215,6 +257,6 @@ onBeforeUnmount(() => {
     </template>
 
     <div v-if="model.lat != null && model.lng != null" ref="mapEl" class="h-[220px] w-full rounded-lg border border-sparkling-silver" />
-    <p v-else class="text-xs text-oslo">Pick a street from the suggestions to refine the pin.</p>
+    <p v-else class="text-xs text-oslo">Select a barangay to place a pin. Drag to adjust the exact location.</p>
   </div>
 </template>
