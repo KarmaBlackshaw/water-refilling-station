@@ -37,6 +37,10 @@ const filterValues = ref<FilterValues>({
 
 const categoryOptions = computed(() => CATEGORIES.map((c) => ({ label: CATEGORY_LABEL[c], value: c })));
 
+function toCategory(value: string | undefined): ExpenseCategory | undefined {
+  return CATEGORIES.find((c) => c === value);
+}
+
 const filterDefinitions = computed<FilterDefinition[]>(() => [
   { label: 'Date', field: 'date-range', keyFrom: 'from', keyTo: 'to' },
   { key: 'category', label: 'Category', field: 'select', options: categoryOptions.value },
@@ -57,9 +61,9 @@ const {
     return listExpenses({
       tenantId: tenantId.value,
       branchId: branchId.value,
-      from: filterValues.value.from,
-      to: filterValues.value.to,
-      category: filterValues.value.category || undefined,
+      from: filterValues.value.from ?? '',
+      to: filterValues.value.to ?? '',
+      category: toCategory(filterValues.value.category),
     });
   },
   {
@@ -131,6 +135,10 @@ const { loading: saving, run: saveExpense } = useAsync(
     if (editingExpense.value) {
       await updateExpense(editingExpense.value.id, payload);
     } else {
+      if (!tenantId.value || !branchId.value) {
+        return;
+      }
+
       await createExpense(tenantId.value, branchId.value, payload);
     }
 
