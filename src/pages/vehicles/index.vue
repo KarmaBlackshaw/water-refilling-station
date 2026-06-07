@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { TableColumn } from '@/components/Base/BaseTable.vue';
 import type { Vehicle } from '@/types/database';
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
@@ -108,6 +109,15 @@ function rowMenu(row: Vehicle) {
     },
   ];
 }
+
+const columns: TableColumn<Vehicle>[] = [
+  { key: 'brand_model', label: 'Brand / Model', class: 'font-medium text-casual-navy' },
+  { key: 'type', label: 'Type', class: 'text-independence' },
+  { key: 'plate_number', label: 'Plate Number', class: 'num text-casual-navy' },
+  { key: 'year', label: 'Year', class: 'num text-independence' },
+  { key: 'pm_status', label: 'PM Status' },
+  { key: 'actions', label: 'Actions', align: 'right' },
+];
 </script>
 
 <template>
@@ -119,18 +129,7 @@ function rowMenu(row: Vehicle) {
         </template>
       </BaseTableHeader>
 
-      <BaseTable
-        :columns="[
-          { key: 'brand_model', label: 'Brand / Model', class: 'font-medium text-casual-navy' },
-          { key: 'type', label: 'Type', class: 'text-independence' },
-          { key: 'plate_number', label: 'Plate Number', class: 'num text-casual-navy' },
-          { key: 'year', label: 'Year', class: 'num text-independence' },
-          { key: 'pm_status', label: 'PM Status' },
-          { key: 'actions', label: 'Actions', align: 'right' },
-        ]"
-        :data="filteredVehicles"
-        :loading="loading"
-      >
+      <BaseTable :columns="columns" :data="filteredVehicles" :loading="loading">
         <template #cell-type="{ row }">{{ labelForType(row.type) }}</template>
         <template #cell-year="{ row }">{{ row.year ?? '—' }}</template>
         <template #cell-pm_status="{ row }">

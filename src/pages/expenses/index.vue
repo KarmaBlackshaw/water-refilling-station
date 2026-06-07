@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { TableColumn } from '@/components/Base/BaseTable.vue';
 import type { ExpenseCategory, FilterDefinition, FilterValues } from '@/types';
 import { formatMoney } from '@/helpers/money';
 import IconEdit from '@/components/Icon/IconEdit.vue';
@@ -185,6 +186,16 @@ function rowMenu(row: ExpenseRow) {
     },
   ];
 }
+
+const columns: TableColumn<ExpenseRow>[] = [
+  { key: 'expense_date', label: 'Date' },
+  { key: 'category', label: 'Category' },
+  { key: 'description', label: 'Description' },
+  { key: 'payee', label: 'Payee' },
+  { key: 'reference_number', label: 'Ref #' },
+  { key: 'amount', label: 'Amount', align: 'right', class: 'num' },
+  { key: 'actions', label: '' },
+];
 </script>
 
 <template>
@@ -216,19 +227,7 @@ function rowMenu(row: ExpenseRow) {
         </div>
       </div>
 
-      <BaseTable
-        :columns="[
-          { key: 'expense_date', label: 'Date' },
-          { key: 'category', label: 'Category' },
-          { key: 'description', label: 'Description' },
-          { key: 'payee', label: 'Payee' },
-          { key: 'reference_number', label: 'Ref #' },
-          { key: 'amount', label: 'Amount', align: 'right', class: 'num' },
-          { key: 'actions', label: '' },
-        ]"
-        :data="filteredExpenses"
-        :loading="loading"
-      >
+      <BaseTable :columns="columns" :data="filteredExpenses" :loading="loading">
         <template #cell-category="{ row }">
           <BaseBadge :variant="CATEGORY_VARIANT[row.category]">
             {{ CATEGORY_LABEL[row.category] }}

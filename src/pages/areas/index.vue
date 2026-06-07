@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Area } from '@/types/database';
+import type { TableColumn } from '@/components/Base/BaseTable.vue';
 import IconPlus from '@/components/Icon/IconPlus.vue';
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
@@ -29,6 +30,13 @@ const {
 
 const areas = computed(() => pageData.value?.areas ?? []);
 const riderOptions = computed(() => (pageData.value?.riders ?? []).map((r) => ({ label: r.full_name, value: r.id })));
+
+const columns: TableColumn<AreaRow>[] = [
+  { key: 'name', label: 'Area', class: 'font-medium text-casual-navy' },
+  { key: 'primary_rider', label: 'Primary Rider', class: 'text-independence' },
+  { key: 'notes', label: 'Notes', class: 'text-independence' },
+  { key: 'actions', label: 'Actions', align: 'right' },
+];
 
 const search = ref('');
 
@@ -126,17 +134,7 @@ function rowMenu(row: AreaRow) {
         </template>
       </BaseTableHeader>
 
-      <BaseTable
-        :columns="[
-          { key: 'name', label: 'Area', class: 'font-medium text-casual-navy' },
-          { key: 'primary_rider', label: 'Primary Rider', class: 'text-independence' },
-          { key: 'notes', label: 'Notes', class: 'text-independence' },
-          { key: 'actions', label: 'Actions', align: 'right' },
-        ]"
-        :data="filteredAreas"
-        :loading="loading"
-        row-key="id"
-      >
+      <BaseTable :columns="columns" :data="filteredAreas" :loading="loading" row-key="id">
         <template #cell-primary_rider="{ row }">{{ row.primary_rider?.full_name ?? '—' }}</template>
         <template #cell-notes="{ row }">{{ row.notes || '—' }}</template>
         <template #cell-actions="{ row }">

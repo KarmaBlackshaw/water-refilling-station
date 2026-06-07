@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { CustomerAddress, CustomerPriceOverride } from '@/types/database';
+import type { CustomerAddress, CustomerPriceOverride, Sale, SaleLine, SalePayment } from '@/types/database';
+import type { TableColumn } from '@/components/Base/BaseTable.vue';
 import { formatMoney } from '@/helpers/money';
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
@@ -30,6 +31,23 @@ type AddrSubmitPayload = {
   photoFile: File | undefined;
   removePhoto: boolean;
 };
+
+type SaleWithRels = Sale & { sale_lines: SaleLine[]; sale_payments: SalePayment[] };
+
+const priceOverrideColumns: TableColumn<PriceOverrideWithRels>[] = [
+  { key: 'product', label: 'Product' },
+  { key: 'container', label: 'Container' },
+  { key: 'refill_price', label: 'Refill price' },
+  { key: 'new_container_price', label: 'New container' },
+  { key: 'actions', label: '', align: 'right' },
+];
+
+const saleColumns: TableColumn<SaleWithRels>[] = [
+  { key: 'sale_date', label: 'Date' },
+  { key: 'source', label: 'Source' },
+  { key: 'status', label: 'Status' },
+  { key: 'lines', label: 'Lines' },
+];
 
 const activeTab = ref('overview');
 
@@ -312,17 +330,7 @@ function overrideMenu(override: PriceOverrideWithRels) {
           <BaseButton @click="openAddOverride">Add override</BaseButton>
         </div>
         <BaseCard padding="none">
-          <BaseTable
-            :columns="[
-              { key: 'product', label: 'Product' },
-              { key: 'container', label: 'Container' },
-              { key: 'refill_price', label: 'Refill price' },
-              { key: 'new_container_price', label: 'New container' },
-              { key: 'actions', label: '', align: 'right' },
-            ]"
-            :data="priceOverrides"
-            empty-title="No price overrides"
-          >
+          <BaseTable :columns="priceOverrideColumns" :data="priceOverrides" empty-title="No price overrides">
             <template #cell-product="{ row }">{{ row.product?.name ?? '—' }}</template>
             <template #cell-container="{ row }">{{ row.container_type?.name ?? '—' }}</template>
             <template #cell-refill_price="{ row }">{{ formatMoney(row.refill_price_centavos) }}</template>
@@ -336,16 +344,7 @@ function overrideMenu(override: PriceOverrideWithRels) {
 
       <div v-else-if="activeTab === 'sales'" class="space-y-3">
         <BaseCard padding="none">
-          <BaseTable
-            :columns="[
-              { key: 'sale_date', label: 'Date' },
-              { key: 'source', label: 'Source' },
-              { key: 'status', label: 'Status' },
-              { key: 'lines', label: 'Lines' },
-            ]"
-            :data="sales"
-            empty-title="No sales yet"
-          >
+          <BaseTable :columns="saleColumns" :data="sales" empty-title="No sales yet">
             <template #cell-source="{ row }">
               <BaseBadge variant="default">{{ row.source }}</BaseBadge>
             </template>

@@ -1,6 +1,13 @@
 <script setup lang="ts">
+import type { Option } from '@/types';
 import type { PaymentMethod } from '@/types/database';
 import { formatAddress } from '@/helpers/address';
+
+const paymentMethodOptions: Option<PaymentMethod>[] = [
+  { label: 'Cash', value: 'cash' },
+  { label: 'GCash', value: 'gcash' },
+  { label: 'On Account', value: 'on_account' },
+];
 
 const open = defineModel<boolean>({ required: true });
 
@@ -200,15 +207,7 @@ const { loading: saving, run: submit } = useAsync(async () => {
       <div class="space-y-3">
         <p class="text-sm font-medium text-casual-navy">Payment</p>
         <div class="grid gap-3 grid-cols-2">
-          <BaseSelect
-            v-model="form.payment_method"
-            label="Method"
-            :options="[
-              { label: 'Cash', value: 'cash' },
-              { label: 'GCash', value: 'gcash' },
-              { label: 'On Account', value: 'on_account' },
-            ]"
-          />
+          <BaseSelect v-model="form.payment_method" label="Method" :options="paymentMethodOptions" />
           <BaseInput v-model="form.payment_amount" label="Amount (₱)" type="number" placeholder="0.00" />
         </div>
         <BaseInput v-if="form.payment_method === 'gcash'" v-model="form.payment_gcash_ref" label="GCash Reference #" placeholder="e.g. 1234567890" />

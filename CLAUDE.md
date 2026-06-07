@@ -131,6 +131,18 @@ Never write `<BaseModal>` markup (with its own form state and save logic) direct
 - The page just renders `<XxxModal v-model:open="modalOpen" :target="editingX" :saving="saving" @submit="save" />` and holds `modalOpen` + the editing-target ref.
 - Existing inline modals (e.g. the two `<BaseModal>` blocks in [areas/index.vue](src/pages/areas/index.vue)) are tech debt — extract them when next touched.
 
+### No inline column definitions — declare `columns` in script
+
+Never write a `BaseTable` `:columns="[...]"` array literal inline in the template. Declare it as a typed `const` in `<script setup>` and bind `:columns="columns"`.
+
+**Why:** Inline arrays re-allocate on every render, can't be typed against the row, and bury config in markup. A typed `const columns: TableColumn<Row>[]` gives column-key autocompletion, type-checks `align`/`class`, and keeps the template to layout only.
+
+**How to apply:**
+- Import the type: `import type { TableColumn } from '@/components/Base/BaseTable.vue';`
+- Declare once in script: `const columns: TableColumn<AreaRow>[] = [ { key: 'name', label: 'Area', ... }, ... ];` — type it with the row type, not left untyped.
+- Bind plainly: `<BaseTable :columns="columns" ... />`.
+- This rule generalizes: no inline literal arrays/objects for any prop config (`columns`, menus, tabs, options) in the template — hoist to a script `const` or `computed`. Inline closures for `@event` handlers are still fine.
+
 ### Prefer `ref<T>()` over `ref<T | null>(null)` for local UI sentinels
 
 When a ref represents "no current selection" (modal editing target, delete-confirm target, transient form row), use `ref<T>()` — the initial value is `undefined`, which already means absence.

@@ -2,6 +2,7 @@
 import type { Customer, Product, ContainerType, User, BookingCadence, FilterDefinition } from '@/types';
 import type { BookingStatus } from '@/types/database';
 import type { BookingRow, TemplateRow } from '@/services/bookings';
+import type { TableColumn } from '@/components/Base/BaseTable.vue';
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
 
@@ -326,6 +327,25 @@ const filteredTemplates = computed(() => {
   return (templates.value ?? []).filter((t) => t.customer?.name?.toLowerCase().includes(q));
 });
 
+const bookingColumns: TableColumn<BookingRow>[] = [
+  { key: 'scheduled_date', label: 'Date', class: 'num whitespace-nowrap' },
+  { key: 'customer', label: 'Customer' },
+  { key: 'rider', label: 'Rider' },
+  { key: 'items', label: 'Items', class: 'max-w-xs truncate text-sm text-independence' },
+  { key: 'status', label: 'Status' },
+  { key: 'actions', label: 'Actions' },
+];
+
+const templateColumns: TableColumn<TemplateRow>[] = [
+  { key: 'customer', label: 'Customer' },
+  { key: 'rider', label: 'Rider' },
+  { key: 'cadence', label: 'Cadence' },
+  { key: 'day', label: 'Day' },
+  { key: 'items', label: 'Items', class: 'max-w-xs truncate text-sm text-independence' },
+  { key: 'active', label: 'Active' },
+  { key: 'actions', label: 'Actions' },
+];
+
 onMounted(loadShared);
 </script>
 
@@ -351,14 +371,7 @@ onMounted(loadShared);
         <BaseTableFilterBar v-model="filterValues" :definitions="filterDefinitions" />
 
         <BaseTable
-          :columns="[
-            { key: 'scheduled_date', label: 'Date', class: 'num whitespace-nowrap' },
-            { key: 'customer', label: 'Customer' },
-            { key: 'rider', label: 'Rider' },
-            { key: 'items', label: 'Items', class: 'max-w-xs truncate text-sm text-independence' },
-            { key: 'status', label: 'Status' },
-            { key: 'actions', label: 'Actions' },
-          ]"
+          :columns="bookingColumns"
           :data="filteredBookings"
           :loading="bookingsLoading"
           empty-title="No bookings found"
@@ -379,19 +392,7 @@ onMounted(loadShared);
       </template>
 
       <template v-if="activeTab === 'templates'">
-        <BaseTable
-          :columns="[
-            { key: 'customer', label: 'Customer' },
-            { key: 'rider', label: 'Rider' },
-            { key: 'cadence', label: 'Cadence' },
-            { key: 'day', label: 'Day' },
-            { key: 'items', label: 'Items', class: 'max-w-xs truncate text-sm text-independence' },
-            { key: 'active', label: 'Active' },
-            { key: 'actions', label: 'Actions' },
-          ]"
-          :data="filteredTemplates"
-          :loading="templatesLoading"
-        >
+        <BaseTable :columns="templateColumns" :data="filteredTemplates" :loading="templatesLoading">
           <template #cell-customer="{ row }">
             <span class="font-medium text-casual-navy">{{ row.customer?.name ?? '—' }}</span>
             <span v-if="row.customer?.phone" class="ml-1.5 text-xs text-independence">

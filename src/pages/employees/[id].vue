@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { formatMoney } from '@/helpers/money';
 import { computeIncome, getPeriodDates } from '@/services/payroll';
+import type { TableColumn } from '@/components/Base/BaseTable.vue';
 import type { SalaryRecord } from '@/types/database';
 
 const route = useRoute();
@@ -139,6 +140,15 @@ async function submitRecord(record: SalaryRecord) {
 function salaryRowMenu(row: SalaryRecord) {
   return [{ label: 'Mark paid', hidden: !!row.paid_at, onClick: () => submitRecord(row) }];
 }
+
+const salaryColumns: TableColumn<SalaryRecord>[] = [
+  { key: 'period', label: 'Period' },
+  { key: 'base_pay', label: 'Base pay', class: 'num' },
+  { key: 'commission', label: 'Commission', class: 'num' },
+  { key: 'gross', label: 'Gross', class: 'num' },
+  { key: 'status', label: 'Status' },
+  { key: 'actions', label: '', align: 'right' },
+];
 </script>
 
 <template>
@@ -193,18 +203,7 @@ function salaryRowMenu(row: SalaryRecord) {
       <div>
         <h2 class="mb-3 text-sm font-medium text-independence uppercase tracking-wide">Salary records</h2>
         <BaseCard padding="none">
-          <BaseTable
-            :columns="[
-              { key: 'period', label: 'Period' },
-              { key: 'base_pay', label: 'Base pay', class: 'num' },
-              { key: 'commission', label: 'Commission', class: 'num' },
-              { key: 'gross', label: 'Gross', class: 'num' },
-              { key: 'status', label: 'Status' },
-              { key: 'actions', label: '', align: 'right' },
-            ]"
-            :data="salaryRecords"
-            empty-title="No salary records yet"
-          >
+          <BaseTable :columns="salaryColumns" :data="salaryRecords" empty-title="No salary records yet">
             <template #cell-period="{ row }">{{ row.period_start }} – {{ row.period_end }}</template>
             <template #cell-base_pay="{ row }">{{ formatMoney(row.base_pay_centavos) }}</template>
             <template #cell-commission="{ row }">{{ formatMoney(row.commission_centavos) }}</template>

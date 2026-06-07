@@ -2,6 +2,7 @@
 import type { FilterDefinition, FilterValues } from '@/types';
 import type { SaleDetail, SaleWithCustomer } from '@/services/sales';
 import type { WalkInSubmitPayload } from '@/components/Sale/SaleWalkInModal.vue';
+import type { TableColumn } from '@/components/Base/BaseTable.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
 
 const auth = useAuthStore();
@@ -185,6 +186,16 @@ const filteredSales = computed(() => {
   return (sales.value ?? []).filter((s) => s.customer?.name?.toLowerCase().includes(q));
 });
 
+const salesColumns: TableColumn<SaleRow>[] = [
+  { key: 'sale_date', label: 'Date' },
+  { key: 'customer', label: 'Customer' },
+  { key: 'source', label: 'Source' },
+  { key: 'items', label: 'Items' },
+  { key: 'total', label: 'Total', align: 'right', class: 'num' },
+  { key: 'status', label: 'Status' },
+  { key: 'actions', label: '', align: 'right' },
+];
+
 function rowMenu(row: SaleRow) {
   return [
     { label: 'View', onClick: () => openDetail(row) },
@@ -223,20 +234,7 @@ function rowMenu(row: SaleRow) {
 
       <BaseTableFilterBar v-model="filterValues" :definitions="filterDefinitions" />
 
-      <BaseTable
-        :columns="[
-          { key: 'sale_date', label: 'Date' },
-          { key: 'customer', label: 'Customer' },
-          { key: 'source', label: 'Source' },
-          { key: 'items', label: 'Items' },
-          { key: 'total', label: 'Total', align: 'right', class: 'num' },
-          { key: 'status', label: 'Status' },
-          { key: 'actions', label: '', align: 'right' },
-        ]"
-        :data="filteredSales"
-        :loading="loadingSales"
-        empty-title="No sales found"
-      >
+      <BaseTable :columns="salesColumns" :data="filteredSales" :loading="loadingSales" empty-title="No sales found">
         <template #cell-customer="{ row }">{{ row.customer?.name ?? '—' }}</template>
         <template #cell-source="{ row }">
           <BaseBadge :variant="sourceBadgeVariant(row.source)">{{ sourceLabel(row.source) }}</BaseBadge>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { TableColumn } from '@/components/Base/BaseTable.vue';
 import type { SaleDetail } from '@/services/sales';
 import { formatMoney } from '@/helpers/money';
 
@@ -16,6 +17,21 @@ const { sale, lines, payments, loading, sourceBadgeVariant, sourceLabel, statusB
 }>();
 
 const total = computed(() => payments.reduce((s, p) => s + p.amount_centavos, 0));
+
+const lineColumns: TableColumn<SaleDetail['lines'][number]>[] = [
+  { key: 'product', label: 'Product' },
+  { key: 'container', label: 'Container' },
+  { key: 'is_new_container', label: 'New?' },
+  { key: 'quantity', label: 'Qty', align: 'right', class: 'num' },
+  { key: 'unit_price', label: 'Unit Price', align: 'right', class: 'num' },
+  { key: 'subtotal', label: 'Subtotal', align: 'right', class: 'num' },
+];
+
+const paymentColumns: TableColumn<SaleDetail['payments'][number]>[] = [
+  { key: 'method', label: 'Method', class: 'capitalize' },
+  { key: 'gcash_ref', label: 'GCash Ref' },
+  { key: 'amount', label: 'Amount', align: 'right', class: 'num' },
+];
 </script>
 
 <template>
@@ -47,17 +63,7 @@ const total = computed(() => payments.reduce((s, p) => s + p.amount_centavos, 0)
 
       <div>
         <h3 class="text-sm font-semibold text-casual-navy mb-2">Line Items</h3>
-        <BaseTable
-          :columns="[
-            { key: 'product', label: 'Product' },
-            { key: 'container', label: 'Container' },
-            { key: 'is_new_container', label: 'New?' },
-            { key: 'quantity', label: 'Qty', align: 'right', class: 'num' },
-            { key: 'unit_price', label: 'Unit Price', align: 'right', class: 'num' },
-            { key: 'subtotal', label: 'Subtotal', align: 'right', class: 'num' },
-          ]"
-          :data="lines"
-        >
+        <BaseTable :columns="lineColumns" :data="lines">
           <template #cell-product="{ row }">{{ row.product?.name ?? '—' }}</template>
           <template #cell-container="{ row }">{{ row.container_type?.name ?? '—' }}</template>
           <template #cell-is_new_container="{ row }">{{ row.is_new_container ? 'Yes' : 'No' }}</template>
@@ -68,14 +74,7 @@ const total = computed(() => payments.reduce((s, p) => s + p.amount_centavos, 0)
 
       <div>
         <h3 class="text-sm font-semibold text-casual-navy mb-2">Payments</h3>
-        <BaseTable
-          :columns="[
-            { key: 'method', label: 'Method', class: 'capitalize' },
-            { key: 'gcash_ref', label: 'GCash Ref' },
-            { key: 'amount', label: 'Amount', align: 'right', class: 'num' },
-          ]"
-          :data="payments"
-        >
+        <BaseTable :columns="paymentColumns" :data="payments">
           <template #cell-gcash_ref="{ row }">{{ row.gcash_ref ?? '—' }}</template>
           <template #cell-amount="{ row }">{{ formatMoney(row.amount_centavos) }}</template>
         </BaseTable>

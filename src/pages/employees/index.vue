@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Employee, UserRole } from '@/types/database';
+import type { TableColumn } from '@/components/Base/BaseTable.vue';
 import { formatMoney } from '@/helpers/money';
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
@@ -112,6 +113,14 @@ const { loading: saving, run: save } = useAsync(
   },
 );
 
+const employeeColumns: TableColumn<Employee>[] = [
+  { key: 'full_name', label: 'Name' },
+  { key: 'role', label: 'Role' },
+  { key: 'monthly_salary', label: 'Monthly salary', class: 'num' },
+  { key: 'status', label: 'Status' },
+  { key: 'actions', label: '', align: 'right' },
+];
+
 function rowMenu(row: Employee) {
   return [
     { label: 'Edit', icon: IconEdit, onClick: () => openEdit(row) },
@@ -146,17 +155,7 @@ function rowMenu(row: Employee) {
         </template>
       </BaseTableHeader>
 
-      <BaseTable
-        :columns="[
-          { key: 'full_name', label: 'Name' },
-          { key: 'role', label: 'Role' },
-          { key: 'monthly_salary', label: 'Monthly salary', class: 'num' },
-          { key: 'status', label: 'Status' },
-          { key: 'actions', label: '', align: 'right' },
-        ]"
-        :data="filteredEmployees"
-        :loading="loading"
-      >
+      <BaseTable :columns="employeeColumns" :data="filteredEmployees" :loading="loading">
         <template #cell-full_name="{ row }">
           <RouterLink :to="`/employees/${row.id}`" class="font-medium text-tampa hover:underline">
             {{ row.full_name }}

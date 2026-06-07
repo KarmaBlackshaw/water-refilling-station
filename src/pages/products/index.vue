@@ -12,7 +12,26 @@ import {
   updateContainerType,
   softDeleteContainerType,
 } from '@/services/products';
+import type { TableColumn } from '@/components/Base/BaseTable.vue';
 import type { Product, ContainerType } from '@/types/database';
+
+const tabs = [
+  { key: 'products', label: 'Products' },
+  { key: 'containers', label: 'Container Types' },
+];
+
+const productColumns: TableColumn<Product>[] = [
+  { key: 'name', label: 'Name' },
+  { key: 'status', label: 'Status' },
+  { key: 'actions', label: '', align: 'right' },
+];
+
+const containerColumns: TableColumn<ContainerType>[] = [
+  { key: 'name', label: 'Name' },
+  { key: 'deposit', label: 'Deposit', class: 'num' },
+  { key: 'status', label: 'Status' },
+  { key: 'actions', label: '', align: 'right' },
+];
 
 const auth = useAuthStore();
 const { confirm } = useConfirm();
@@ -180,25 +199,9 @@ function containerMenu(row: ContainerType) {
         </template>
       </BaseTableHeader>
 
-      <BaseTableTabs
-        v-model="activeTab"
-        :tabs="[
-          { key: 'products', label: 'Products' },
-          { key: 'containers', label: 'Container Types' },
-        ]"
-      />
+      <BaseTableTabs v-model="activeTab" :tabs="tabs" />
 
-      <BaseTable
-        v-if="activeTab === 'products'"
-        :columns="[
-          { key: 'name', label: 'Name' },
-          { key: 'status', label: 'Status' },
-          { key: 'actions', label: '', align: 'right' },
-        ]"
-        :data="filteredProducts"
-        :loading="productsLoading"
-        empty-title="No products yet"
-      >
+      <BaseTable v-if="activeTab === 'products'" :columns="productColumns" :data="filteredProducts" :loading="productsLoading" empty-title="No products yet">
         <template #cell-status="{ row }">
           <BaseBadge :variant="row.active ? 'success' : 'default'">
             {{ row.active ? 'Active' : 'Inactive' }}
@@ -216,18 +219,7 @@ function containerMenu(row: ContainerType) {
         </template>
       </BaseTable>
 
-      <BaseTable
-        v-else
-        :columns="[
-          { key: 'name', label: 'Name' },
-          { key: 'deposit', label: 'Deposit', class: 'num' },
-          { key: 'status', label: 'Status' },
-          { key: 'actions', label: '', align: 'right' },
-        ]"
-        :data="filteredContainers"
-        :loading="containerTypesLoading"
-        empty-title="No container types yet"
-      >
+      <BaseTable v-else :columns="containerColumns" :data="filteredContainers" :loading="containerTypesLoading" empty-title="No container types yet">
         <template #cell-deposit="{ row }">{{ formatMoney(row.deposit_centavos) }}</template>
         <template #cell-status="{ row }">
           <BaseBadge :variant="row.active ? 'success' : 'default'">

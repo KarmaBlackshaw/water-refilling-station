@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { TableColumn } from '@/components/Base/BaseTable.vue';
 import type { Customer } from '@/types/database';
 import type { CustomerWithArea } from '@/services/customers';
 import IconEdit from '@/components/Icon/IconEdit.vue';
@@ -96,6 +97,15 @@ const { loading: saving, run: save } = useAsync(
   },
 );
 
+const columns: TableColumn<CustomerWithArea>[] = [
+  { key: 'name', label: 'Name' },
+  { key: 'phone', label: 'Phone' },
+  { key: 'type', label: 'Type' },
+  { key: 'area', label: 'Area' },
+  { key: 'address', label: 'Default address' },
+  { key: 'actions', label: '', align: 'right' },
+];
+
 function rowMenu(row: Customer) {
   return [
     { label: 'Edit', icon: IconEdit, onClick: () => openEdit(row) },
@@ -130,18 +140,7 @@ function rowMenu(row: Customer) {
         </template>
       </BaseTableHeader>
 
-      <BaseTable
-        :columns="[
-          { key: 'name', label: 'Name' },
-          { key: 'phone', label: 'Phone' },
-          { key: 'type', label: 'Type' },
-          { key: 'area', label: 'Area' },
-          { key: 'address', label: 'Default address' },
-          { key: 'actions', label: '', align: 'right' },
-        ]"
-        :data="filtered"
-        :loading="loading"
-      >
+      <BaseTable :columns="columns" :data="filtered" :loading="loading">
         <template #cell-name="{ row }">
           <RouterLink :to="`/customers/${row.id}`" class="font-medium text-tampa hover:underline">
             {{ row.name }}
