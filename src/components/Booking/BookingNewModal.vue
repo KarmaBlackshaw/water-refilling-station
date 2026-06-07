@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Customer, Product, ContainerType, User } from '@/types/database';
+import type { Option } from '@/types';
 import { formatAddress } from '@/helpers/address';
 
 interface ItemRow {
@@ -54,7 +55,7 @@ const form = reactive<FormState>({
   items: [],
 });
 
-const addressOptions = ref<{ label: string; value: string }[]>([]);
+const addressOptions = ref<Option<string>[]>([]);
 
 watch(
   () => form.customer_id,

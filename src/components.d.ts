@@ -11,6 +11,8 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AreaCoverageModal: typeof import('./components/Area/AreaCoverageModal.vue')['default']
+    AreaFormModal: typeof import('./components/Area/AreaFormModal.vue')['default']
     BaseBadge: typeof import('./components/Base/BaseBadge.vue')['default']
     BaseBarChart: typeof import('./components/Base/BaseBarChart.vue')['default']
     BaseButton: typeof import('./components/Base/BaseButton.vue')['default']

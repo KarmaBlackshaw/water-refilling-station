@@ -1,4 +1,6 @@
-export type FilterSelectOption = { label: string; value: string };
+import type { Option } from './option';
+
+export type FilterSelectOption = Option<string>;
 
 type FilterFieldBase = {
   label: string;

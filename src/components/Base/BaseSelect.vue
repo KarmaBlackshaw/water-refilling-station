@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import debounce from 'lodash/debounce';
+import type { Option } from '@/types';
 
 const model = defineModel<string | number | null>({ required: true });
 
@@ -18,7 +19,7 @@ const {
   searchDebounce = 300,
   id,
 } = defineProps<{
-  options: Array<{ label: string; value: string | number }>;
+  options: Option[];
   label?: string;
   placeholder?: string;
   searchPlaceholder?: string;

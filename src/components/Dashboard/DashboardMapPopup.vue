@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { getAddressPhotoUrl } from '@/helpers/storage';
 import { formatAddress } from '@/helpers/address';
+import type { Option } from '@/types';
 
 type AddressRow = {
   id: string;
@@ -37,7 +38,7 @@ const props = defineProps<{
   customer: CustomerRow;
   area: AreaRow | null;
   activeRider: RiderRow | null;
-  areaOptions: Array<{ label: string; value: string }>;
+  areaOptions: Option<string>[];
 }>();
 
 const emit = defineEmits<{

@@ -118,6 +118,19 @@ Never write raw `<svg>` markup in `.vue` files outside `src/components/Icon/`. A
 - Use the icon as `<IconWhatever class="size-4 text-oslo" />` — no import needed (auto-import).
 - Loading spinners → `<IconSpinner class="animate-spin" />`, never re-roll the markup.
 
+### No inline modals in page templates — extract to a `XxxModal.vue` component
+
+Never write `<BaseModal>` markup (with its own form state and save logic) directly inside a page/view template. Extract it to a dedicated `XxxModal.vue` component under `src/components/<Domain>/` and render that component from the page.
+
+**Why:** Inline modals bloat the page with form refs, reset logic, and submit handlers that have nothing to do with the page's main concern (the list/table). They can't be reused, can't be tested in isolation, and the page's `<script setup>` becomes a dumping ground. Every other modal in the codebase (`ExpenseFormModal`, `SaleWalkInModal`, `BookingNewModal`, …) is already a standalone component — inline ones drift from that pattern.
+
+**How to apply:**
+- Create `src/components/<Domain>/<Name>Modal.vue`. Visibility is a `defineModel<boolean>('open', { required: true })`; the editing target and option lists come in as props (`expense?: ExpenseLike`, `employeeOptions`, …).
+- The modal owns its own `form` `reactive(...)` and a `watch(() => open.value, ...)` that (re)seeds the form when it opens — not the page.
+- The modal does NOT fetch or persist. It `emit('submit', payload)`; the page runs the `useAsync` save and reload, and passes `:saving` back down for the button `:loading`.
+- The page just renders `<XxxModal v-model:open="modalOpen" :target="editingX" :saving="saving" @submit="save" />` and holds `modalOpen` + the editing-target ref.
+- Existing inline modals (e.g. the two `<BaseModal>` blocks in [areas/index.vue](src/pages/areas/index.vue)) are tech debt — extract them when next touched.
+
 ### Prefer `ref<T>()` over `ref<T | null>(null)` for local UI sentinels
 
 When a ref represents "no current selection" (modal editing target, delete-confirm target, transient form row), use `ref<T>()` — the initial value is `undefined`, which already means absence.

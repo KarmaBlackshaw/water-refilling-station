@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import type { MaintenanceTask, MaintenanceScope, ScheduleKind } from '@/types/database';
+import type { Option } from '@/types';
 
 const open = defineModel<boolean>('open', { required: true });
 
 const { task, scope, vehicleOptions, saving } = defineProps<{
   task?: MaintenanceTask;
   scope: MaintenanceScope;
-  vehicleOptions: { label: string; value: string }[];
+  vehicleOptions: Option<string>[];
   saving?: boolean;
 }>();
 

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ExpenseCategory } from '@/types/database';
+import type { Option } from '@/types';
 
 type ExpenseLike = {
   id: string;
@@ -15,7 +16,7 @@ const open = defineModel<boolean>('open', { required: true });
 
 const { expense, employeeOptions, categories, categoryLabel, saving } = defineProps<{
   expense?: ExpenseLike;
-  employeeOptions: { label: string; value: string }[];
+  employeeOptions: Option<string>[];
   categories: ExpenseCategory[];
   categoryLabel: Record<ExpenseCategory, string>;
   saving?: boolean;

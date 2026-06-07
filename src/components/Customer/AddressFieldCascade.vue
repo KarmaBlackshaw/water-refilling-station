@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Map as MapboxMap, Marker as MapboxMarker } from 'mapbox-gl';
+import type { Option } from '@/types';
 import { searchCities, searchStreets, geocodeBarangay, type GeoFeature } from '@/helpers/geocode';
 
 type AddressFields = {
@@ -22,9 +23,9 @@ const streetFeature = ref<GeoFeature>();
 const manualStreet = ref(false);
 const manualStreetText = ref('');
 
-const cityOptions = ref<Array<{ label: string; value: string }>>([]);
-const brgyOptions = ref<Array<{ label: string; value: string }>>([]);
-const streetOptions = ref<Array<{ label: string; value: string }>>([]);
+const cityOptions = ref<Option<string>[]>([]);
+const brgyOptions = ref<Option<string>[]>([]);
+const streetOptions = ref<Option<string>[]>([]);
 
 const cityById = new Map<string, GeoFeature>();
 const streetById = new Map<string, GeoFeature>();
