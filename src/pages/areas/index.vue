@@ -1,39 +1,51 @@
 <script setup lang="ts">
-import type { Area, User } from '@/types/database';
+import type { Area } from '@/types/database';
+import IconPlus from '@/components/Icon/IconPlus.vue';
+import IconEdit from '@/components/Icon/IconEdit.vue';
+import IconTrash from '@/components/Icon/IconTrash.vue';
+
+type AreaRow = Area & { primary_rider: { id: string; full_name: string } | null };
 
 const auth = useAuthStore();
 const { confirm } = useConfirm();
 const { tenantId, branchId } = storeToRefs(auth);
 
-// Areas list
-const areas = ref<Array<Area & { primary_rider: { id: string; full_name: string } | null }>>([]);
-const areasLoading = ref(false);
+const {
+  data: pageData,
+  loading,
+  run: load,
+} = useAsync(
+  async () => {
+    const [areasRes, ridersRes] = await Promise.all([listAreas(tenantId.value, branchId.value), listRiders(tenantId.value, branchId.value)]);
 
-// Riders list for select options
-const riders = ref<Array<Pick<User, 'id' | 'full_name'>>>([]);
+    return { areas: areasRes.data ?? [], riders: ridersRes.data ?? [] };
+  },
+  {
+    immediate: true,
+    defaultValue: { areas: [], riders: [] },
+    disableResetValue: true,
+  },
+);
+
+const areas = computed(() => pageData.value?.areas ?? []);
+const riderOptions = computed(() => (pageData.value?.riders ?? []).map((r) => ({ label: r.full_name, value: r.id })));
+
+const search = ref('');
+
+const filteredAreas = computed(() => {
+  const q = search.value.trim().toLowerCase();
+
+  if (!q) {
+    return areas.value;
+  }
+
+  return areas.value.filter((a) => a.name.toLowerCase().includes(q) || a.primary_rider?.full_name.toLowerCase().includes(q));
+});
 
 // Area modal
 const areaModalOpen = ref(false);
 const editingArea = ref<Area>();
 const areaForm = reactive({ name: '', notes: '', primary_rider_id: '' });
-
-// Coverage modal
-const coverageModalOpen = ref(false);
-const coverageArea = ref<Area>();
-const coverageForm = reactive({ covering_rider_id: '', starts_on: '', ends_on: '' });
-
-async function load() {
-  areasLoading.value = true;
-  const [areasRes, ridersRes] = await Promise.all([listAreas(tenantId.value, branchId.value), listRiders(tenantId.value, branchId.value)]);
-
-  areas.value = areasRes.data ?? [];
-  riders.value = ridersRes.data ?? [];
-  areasLoading.value = false;
-}
-
-onMounted(load);
-
-const riderOptions = computed(() => riders.value.map((r) => ({ label: r.full_name, value: r.id })));
 
 function openAddArea() {
   editingArea.value = undefined;
@@ -68,6 +80,11 @@ const { loading: areaSaving, run: saveArea } = useAsync(async () => {
   await load();
 });
 
+// Coverage modal
+const coverageModalOpen = ref(false);
+const coverageArea = ref<Area>();
+const coverageForm = reactive({ covering_rider_id: '', starts_on: '', ends_on: '' });
+
 function openCoverage(a: Area) {
   coverageArea.value = a;
   coverageForm.covering_rider_id = '';
@@ -92,63 +109,67 @@ const { loading: coverageSaving, run: saveCoverage } = useAsync(async () => {
   coverageModalOpen.value = false;
   await load();
 });
+
+function rowMenu(row: AreaRow) {
+  return [
+    { label: 'Add coverage', icon: IconPlus, onClick: () => openCoverage(row) },
+    { label: 'Edit', icon: IconEdit, onClick: () => openEditArea(row) },
+    {
+      label: 'Delete',
+      icon: IconTrash,
+      danger: true,
+      onClick: () =>
+        confirm({
+          title: 'Delete area?',
+          message: `Delete '${row.name}'? Coverage records will also be removed.`,
+          onConfirm: async () => {
+            if (!auth.authUser) {
+              return;
+            }
+
+            await softDeleteArea(row.id, auth.authUser.id);
+            await load();
+          },
+        }),
+    },
+  ];
+}
 </script>
 
 <template>
   <div class="h-full overflow-y-auto p-6">
-    <div class="space-y-4">
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-2xl font-bold text-casual-navy">Areas</h1>
-          <p class="text-sm text-oslo">Manage delivery areas and coverage zones</p>
-        </div>
-        <BaseButton @click="openAddArea">Add area</BaseButton>
-      </div>
-
-      <BaseSpinner v-if="areasLoading" class="mx-auto mt-8" />
-      <BaseEmptyState v-else-if="areas.length === 0" title="No areas yet">
+    <BaseCard padding="none" class="flex flex-col gap-5">
+      <BaseTableHeader v-model:search="search" title="Areas" subtitle="Manage delivery areas and coverage zones" :count="filteredAreas.length">
         <template #actions>
-          <BaseButton @click="openAddArea">Add first area</BaseButton>
+          <BaseButton @click="openAddArea">Add area</BaseButton>
         </template>
-      </BaseEmptyState>
+      </BaseTableHeader>
 
-      <div v-else class="space-y-3">
-        <BaseCard v-for="a in areas" :key="a.id" padding="sm">
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <p class="font-medium text-casual-navy">{{ a.name }}</p>
-              <p v-if="a.primary_rider" class="mt-0.5 text-sm text-independence">Primary rider: {{ a.primary_rider.full_name }}</p>
-              <p v-else class="mt-0.5 text-sm text-independence">No primary rider assigned</p>
-              <p v-if="a.notes" class="mt-1 text-xs text-independence">{{ a.notes }}</p>
-            </div>
-            <div class="flex shrink-0 gap-2">
-              <BaseButton variant="independence" @click="openCoverage(a)">Add coverage</BaseButton>
-              <BaseButton variant="independence" @click="openEditArea(a)">Edit</BaseButton>
-              <BaseButton
-                variant="independence"
-                class="text-blaze-red"
-                @click="
-                  confirm({
-                    title: 'Delete area?',
-                    message: `Delete '${a.name}'? Coverage records will also be removed.`,
-                    onConfirm: async () => {
-                      if (!auth.authUser) {
-                        return;
-                      }
-
-                      await softDeleteArea(a.id, auth.authUser.id);
-                      await load();
-                    },
-                  })
-                "
-              >
-                Delete
-              </BaseButton>
-            </div>
-          </div>
-        </BaseCard>
-      </div>
-    </div>
+      <BaseTable
+        :columns="[
+          { key: 'name', label: 'Area', class: 'font-medium text-casual-navy' },
+          { key: 'primary_rider', label: 'Primary Rider', class: 'text-independence' },
+          { key: 'notes', label: 'Notes', class: 'text-independence' },
+          { key: 'actions', label: 'Actions', align: 'right' },
+        ]"
+        :data="filteredAreas"
+        :loading="loading"
+        row-key="id"
+      >
+        <template #cell-primary_rider="{ row }">{{ row.primary_rider?.full_name ?? '—' }}</template>
+        <template #cell-notes="{ row }">{{ row.notes || '—' }}</template>
+        <template #cell-actions="{ row }">
+          <BaseTableActions :menu="rowMenu(row)" />
+        </template>
+        <template #empty>
+          <BaseEmptyState title="No areas yet">
+            <template #actions>
+              <BaseButton @click="openAddArea">Add first area</BaseButton>
+            </template>
+          </BaseEmptyState>
+        </template>
+      </BaseTable>
+    </BaseCard>
 
     <!-- Area modal -->
     <BaseModal v-model:open="areaModalOpen" :title="editingArea ? 'Edit area' : 'Add area'">
