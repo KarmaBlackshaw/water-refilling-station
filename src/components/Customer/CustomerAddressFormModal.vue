@@ -115,7 +115,7 @@ function submit() {
     <form id="addr-form" class="space-y-4" @submit.prevent="submit">
       <BaseInput v-model="form.label" label="Label (e.g. Home, Office)" required />
 
-      <AddressFieldCascade v-model="form.fields" />
+      <CustomerAddressFieldCascade v-model="form.fields" />
 
       <BaseInput v-model="form.landmark" label="Landmark (optional)" />
 

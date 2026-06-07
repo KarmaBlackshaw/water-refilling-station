@@ -6,23 +6,23 @@ type FilterFieldBase = {
 };
 
 export type FilterFieldSelect = FilterFieldBase & {
-  key: string;
   field: 'select';
+  key: string;
   options: FilterSelectOption[];
   placeholder?: string;
 };
 
 export type FilterFieldDate = FilterFieldBase & {
-  key: string;
   field: 'date';
+  key: string;
   placeholder?: string;
   minDate?: string;
   maxDate?: string;
 };
 
 export type FilterFieldInput = FilterFieldBase & {
-  key: string;
   field: 'input';
+  key: string;
   placeholder?: string;
 };
 

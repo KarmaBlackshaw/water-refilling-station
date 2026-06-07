@@ -121,7 +121,7 @@ function submit() {
         <p class="text-sm font-medium text-casual-navy">Default address (optional)</p>
         <p class="text-xs text-independence">Add more addresses later from the customer profile.</p>
         <BaseInput v-model="addressLabel" label="Address label (e.g. Home)" placeholder="Home" />
-        <AddressFieldCascade v-model="addressFields" />
+        <CustomerAddressFieldCascade v-model="addressFields" />
         <BaseInput v-model="addressLandmark" label="Landmark (optional)" />
       </div>
     </form>

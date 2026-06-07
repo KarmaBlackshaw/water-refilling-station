@@ -122,6 +122,7 @@
     "formatMonthShortDay": true,
     "formatWeekdayShort": true,
     "fulfillBooking": true,
+    "geocodeBarangay": true,
     "getARBalance": true,
     "getActiveCustomerCount": true,
     "getActivePinia": true,

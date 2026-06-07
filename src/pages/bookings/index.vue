@@ -28,12 +28,12 @@ async function loadShared() {
   products.value = prodRes.data ?? [];
   containerTypes.value = ctRes.data ?? [];
 }
-
-const activeTab = ref('bookings');
-const tabs = [
+const TABS = [
   { key: 'bookings', label: 'Upcoming Bookings' },
   { key: 'templates', label: 'Templates' },
-];
+] as const;
+
+const activeTab = ref<(typeof TABS)[number]['key']>(TABS[0].key);
 
 const statusOptions = [
   { label: 'Pending', value: 'pending' },
@@ -50,8 +50,18 @@ const filterValues = ref<BookingFilterValues>({
 });
 
 const filterDefinitions = computed<FilterDefinition[]>(() => [
-  { label: 'Date', field: 'date-range', keyFrom: 'from', keyTo: 'to' },
-  { key: 'status', label: 'Status', field: 'select', options: statusOptions },
+  {
+    label: 'Date',
+    field: 'date-range',
+    keyFrom: 'from',
+    keyTo: 'to',
+  },
+  {
+    key: 'status',
+    label: 'Status',
+    field: 'select',
+    options: statusOptions,
+  },
 ]);
 
 const {
@@ -237,7 +247,11 @@ function bookingRowMenu(row: BookingRow) {
   const isPending = row.status === 'pending';
 
   return [
-    { label: 'Fulfill', onClick: () => openFulfill(row), hidden: !isPending },
+    {
+      label: 'Fulfill',
+      onClick: () => openFulfill(row),
+      hidden: !isPending,
+    },
     {
       label: 'Cancel',
       icon: IconTrash,
@@ -318,26 +332,21 @@ onMounted(loadShared);
 <template>
   <div class="h-full overflow-y-auto p-6">
     <BaseCard padding="none" class="flex flex-col gap-5">
-      <div class="flex items-center justify-between gap-4 px-5 py-4">
-        <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-lg font-bold text-casual-navy">Bookings</h1>
-            <span class="rounded-full border border-sparkling-silver bg-bright-chrome px-2 py-0.5 text-xs font-medium text-independence">
-              {{ activeTab === 'bookings' ? filteredBookings.length : filteredTemplates.length }}
-            </span>
-          </div>
-          <p class="text-xs text-oslo">Schedule and manage customer bookings</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <BaseSearch v-model="search" />
+      <BaseTableHeader
+        v-model:search="search"
+        title="Bookings"
+        subtitle="Schedule and manage customer bookings"
+        :count="activeTab === 'bookings' ? filteredBookings.length : filteredTemplates.length"
+      >
+        <template #actions>
           <BaseButton v-if="activeTab === 'bookings'" variant="full-white" @click="openGenerateConfirm">Generate</BaseButton>
           <BaseButton v-if="activeTab === 'bookings'" @click="newBookingOpen = true">New Booking</BaseButton>
           <BaseButton v-if="activeTab === 'templates'" @click="openAddTemplate">New Template</BaseButton>
-        </div>
-      </div>
+        </template>
+      </BaseTableHeader>
 
       <div class="px-5">
-        <BaseTabs v-model="activeTab" :tabs="tabs" />
+        <BaseTabs v-model="activeTab" :tabs="TABS" />
       </div>
 
       <template v-if="activeTab === 'bookings'">
@@ -426,14 +435,7 @@ onMounted(loadShared);
       @submit="saveNewBooking"
     />
 
-    <BookingFulfillModal
-      v-model:open="fulfillOpen"
-      :booking="fulfillTarget"
-      :tenant-id="tenantId"
-      :branch-id="branchId"
-      :saving="fulfillLoading"
-      @submit="handleFulfill"
-    />
+    <BookingFulfillModal v-model:open="fulfillOpen" :booking="fulfillTarget" :saving="fulfillLoading" @submit="handleFulfill" />
 
     <BookingTemplateFormModal
       v-model:open="templateModalOpen"

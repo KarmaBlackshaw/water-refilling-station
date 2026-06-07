@@ -1,8 +1,13 @@
 <script setup lang="ts">
 const model = defineModel<string>({ required: true });
 
+type Tab = {
+  key: string;
+  label: string;
+};
+
 defineProps<{
-  tabs: Array<{ key: string; label: string }>;
+  tabs: ReadonlyArray<Tab>;
 }>();
 </script>
 
@@ -13,8 +18,8 @@ defineProps<{
       :key="tab.key"
       role="tab"
       :aria-selected="model === tab.key"
-      class="flex-1 px-4 py-3 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 border rounded focus-visible:ring-tampa -mb-px text-start cursor-pointer"
-      :class="[model === tab.key ? 'text-tampa border-tampa' : 'text-gray-400 border-gray-200 hover:text-casual-navy']"
+      class="flex-1 px-4 py-3 text-sm transition-colors focus:outline-none focus-visible:ring-2 border rounded focus-visible:ring-tampa -mb-px text-start cursor-pointer"
+      :class="[model === tab.key ? 'text-tampa border-tampa font-bold' : 'text-gray-400 border-gray-200 hover:text-casual-navy font-normal']"
       @click="model = tab.key"
     >
       {{ tab.label }}

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { BookingRow } from '@/services/bookings';
+import { useAuthStore } from '@/stores/auth';
 
 interface FulfillPrice {
   product_id: string;
@@ -12,12 +13,12 @@ interface FulfillPrice {
 
 const open = defineModel<boolean>('open', { required: true });
 
-const { booking, tenantId, branchId, saving } = defineProps<{
+const { booking, saving } = defineProps<{
   booking?: BookingRow;
-  tenantId: string;
-  branchId: string;
   saving?: boolean;
 }>();
+
+const { tenantId, branchId } = storeToRefs(useAuthStore());
 
 const emit = defineEmits<{
   submit: [payload: Array<{ product_id: string; container_type_id: string; unit_price_centavos: number }>];
@@ -43,7 +44,7 @@ watch(
     }));
 
     try {
-      const { data: pricing } = await listProductPricing(tenantId, branchId);
+      const { data: pricing } = await listProductPricing(tenantId.value, branchId.value);
 
       if (pricing) {
         for (const fp of fulfillPrices.value) {

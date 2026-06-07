@@ -97,6 +97,7 @@ declare global {
   const generateBillPdfById: typeof import('./lib/pdf').generateBillPdfById
   const generateContractPdf: typeof import('./lib/pdf').generateContractPdf
   const generateContractPdfAndUpload: typeof import('./lib/pdf').generateContractPdfAndUpload
+  const geocodeBarangay: typeof import('./helpers/geocode').geocodeBarangay
   const getARBalance: typeof import('./services/customers').getARBalance
   const getActiveCustomerCount: typeof import('./services/dashboard').getActiveCustomerCount
   const getActivePinia: typeof import('pinia').getActivePinia
@@ -626,6 +627,7 @@ declare module 'vue' {
     readonly formatMonthShortDay: UnwrapRef<typeof import('./helpers/date')['formatMonthShortDay']>
     readonly formatWeekdayShort: UnwrapRef<typeof import('./helpers/date')['formatWeekdayShort']>
     readonly fulfillBooking: UnwrapRef<typeof import('./services/bookings')['fulfillBooking']>
+    readonly geocodeBarangay: UnwrapRef<typeof import('./helpers/geocode')['geocodeBarangay']>
     readonly getARBalance: UnwrapRef<typeof import('./services/customers')['getARBalance']>
     readonly getActiveCustomerCount: UnwrapRef<typeof import('./services/dashboard')['getActiveCustomerCount']>
     readonly getActivePinia: UnwrapRef<typeof import('pinia')['getActivePinia']>
