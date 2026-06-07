@@ -28,6 +28,18 @@ const {
 const vehicles = computed(() => vehicleData.value?.vehicles ?? []);
 const allTasks = computed(() => vehicleData.value?.allTasks ?? []);
 
+const search = ref('');
+
+const filteredVehicles = computed(() => {
+  const q = search.value.trim().toLowerCase();
+
+  if (!q) {
+    return vehicles.value;
+  }
+
+  return vehicles.value.filter((v) => v.brand_model?.toLowerCase().includes(q) || v.plate_number?.toLowerCase().includes(q));
+});
+
 const modalOpen = ref(false);
 const editingVehicle = ref<Vehicle>();
 
@@ -100,54 +112,50 @@ function rowMenu(row: Vehicle) {
 
 <template>
   <div class="h-full overflow-y-auto p-6">
-    <div class="space-y-4">
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-2xl font-bold text-casual-navy">Vehicles</h1>
-          <p class="text-sm text-oslo">Manage fleet vehicles and assignments</p>
-        </div>
-        <BaseButton @click="openAdd">Add Vehicle</BaseButton>
-      </div>
+    <BaseCard padding="none" class="flex flex-col gap-5">
+      <BaseTableHeader v-model:search="search" title="Vehicles" subtitle="Manage fleet vehicles and assignments" :count="filteredVehicles.length">
+        <template #actions>
+          <BaseButton @click="openAdd">Add Vehicle</BaseButton>
+        </template>
+      </BaseTableHeader>
 
-      <BaseCard padding="none">
-        <BaseTable
-          :columns="[
-            { key: 'brand_model', label: 'Brand / Model', class: 'font-medium text-casual-navy' },
-            { key: 'type', label: 'Type', class: 'text-independence' },
-            { key: 'plate_number', label: 'Plate Number', class: 'num text-casual-navy' },
-            { key: 'year', label: 'Year', class: 'num text-independence' },
-            { key: 'pm_status', label: 'PM Status' },
-            { key: 'actions', label: 'Actions', align: 'right' },
-          ]"
-          :data="vehicles"
-          :loading="loading"
-        >
-          <template #cell-type="{ row }">{{ labelForType(row.type) }}</template>
-          <template #cell-year="{ row }">{{ row.year ?? '—' }}</template>
-          <template #cell-pm_status="{ row }">
-            <div class="flex flex-wrap gap-1">
-              <template v-if="getVehiclePMBadges(row).overdueCount > 0 || getVehiclePMBadges(row).dueSoonCount > 0">
-                <BaseBadge v-if="getVehiclePMBadges(row).overdueCount > 0" variant="danger"> {{ getVehiclePMBadges(row).overdueCount }} overdue </BaseBadge>
-                <BaseBadge v-if="getVehiclePMBadges(row).dueSoonCount > 0" variant="warning">
-                  {{ getVehiclePMBadges(row).dueSoonCount }} due this week
-                </BaseBadge>
-              </template>
-              <BaseBadge v-else variant="success">OK</BaseBadge>
-            </div>
-          </template>
-          <template #cell-actions="{ row }">
-            <BaseTableActions :menu="rowMenu(row)" />
-          </template>
-          <template #empty>
-            <BaseEmptyState title="No vehicles registered">
-              <template #actions>
-                <BaseButton @click="openAdd">Add first vehicle</BaseButton>
-              </template>
-            </BaseEmptyState>
-          </template>
-        </BaseTable>
-      </BaseCard>
-    </div>
+      <BaseTable
+        :columns="[
+          { key: 'brand_model', label: 'Brand / Model', class: 'font-medium text-casual-navy' },
+          { key: 'type', label: 'Type', class: 'text-independence' },
+          { key: 'plate_number', label: 'Plate Number', class: 'num text-casual-navy' },
+          { key: 'year', label: 'Year', class: 'num text-independence' },
+          { key: 'pm_status', label: 'PM Status' },
+          { key: 'actions', label: 'Actions', align: 'right' },
+        ]"
+        :data="filteredVehicles"
+        :loading="loading"
+      >
+        <template #cell-type="{ row }">{{ labelForType(row.type) }}</template>
+        <template #cell-year="{ row }">{{ row.year ?? '—' }}</template>
+        <template #cell-pm_status="{ row }">
+          <div class="flex flex-wrap gap-1">
+            <template v-if="getVehiclePMBadges(row).overdueCount > 0 || getVehiclePMBadges(row).dueSoonCount > 0">
+              <BaseBadge v-if="getVehiclePMBadges(row).overdueCount > 0" variant="danger"> {{ getVehiclePMBadges(row).overdueCount }} overdue </BaseBadge>
+              <BaseBadge v-if="getVehiclePMBadges(row).dueSoonCount > 0" variant="warning">
+                {{ getVehiclePMBadges(row).dueSoonCount }} due this week
+              </BaseBadge>
+            </template>
+            <BaseBadge v-else variant="success">OK</BaseBadge>
+          </div>
+        </template>
+        <template #cell-actions="{ row }">
+          <BaseTableActions :menu="rowMenu(row)" />
+        </template>
+        <template #empty>
+          <BaseEmptyState title="No vehicles registered">
+            <template #actions>
+              <BaseButton @click="openAdd">Add first vehicle</BaseButton>
+            </template>
+          </BaseEmptyState>
+        </template>
+      </BaseTable>
+    </BaseCard>
 
     <VehicleFormModal v-model:open="modalOpen" :vehicle="editingVehicle" :saving="saving" @submit="save" />
   </div>

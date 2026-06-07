@@ -189,28 +189,16 @@ function rowMenu(row: ExpenseRow) {
 
 <template>
   <div class="h-full overflow-y-auto p-6">
-    <BaseCard padding="none">
-      <div class="flex items-center justify-between gap-4 px-5 py-4 border-b border-sparkling-silver">
-        <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-lg font-bold text-casual-navy">Expenses</h1>
-            <span class="rounded-full border border-sparkling-silver bg-bright-chrome px-2 py-0.5 text-xs font-medium text-independence">
-              {{ filteredExpenses.length }}
-            </span>
-          </div>
-          <p class="text-xs text-oslo">Track and categorize operational expenses</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <BaseSearch v-model="search" />
+    <BaseCard padding="none" class="flex flex-col gap-5">
+      <BaseTableHeader v-model:search="search" title="Expenses" subtitle="Track and categorize operational expenses" :count="filteredExpenses.length">
+        <template #actions>
           <BaseButton @click="openAdd">Add Expense</BaseButton>
-        </div>
-      </div>
+        </template>
+      </BaseTableHeader>
 
-      <div class="px-5 py-4 border-b border-sparkling-silver">
-        <FilterBar v-model="filterValues" :definitions="filterDefinitions" />
-      </div>
+      <BaseTableFilterBar v-model="filterValues" :definitions="filterDefinitions" />
 
-      <div class="px-4 py-3 border-b border-sparkling-silver">
+      <div class="px-5">
         <div class="flex items-baseline gap-2">
           <span class="text-xs text-independence">Total in range:</span>
           <span class="num text-2xl font-semibold text-casual-navy">{{ formatMoney(totalCentavos) }}</span>

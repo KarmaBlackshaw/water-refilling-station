@@ -20,6 +20,18 @@ const {
 
 const employees = computed(() => data.value ?? []);
 
+const search = ref('');
+
+const filteredEmployees = computed(() => {
+  const q = search.value.trim().toLowerCase();
+
+  if (!q) {
+    return employees.value;
+  }
+
+  return employees.value.filter((e) => e.full_name?.toLowerCase().includes(q) || e.phone?.toLowerCase().includes(q));
+});
+
 const modalOpen = ref(false);
 const editingEmployee = ref<Employee>();
 const saveError = ref<string>();
@@ -81,6 +93,7 @@ const { loading: saving, run: save } = useAsync(
         saveError.value = 'Account creation is required for new employees.';
         return;
       }
+
       await createEmployee({
         tenant_id: tenantId.value,
         branch_id: branchId.value,
@@ -111,7 +124,10 @@ function rowMenu(row: Employee) {
           title: 'Delete employee?',
           message: `Delete '${row.full_name}'?`,
           onConfirm: async () => {
-            if (!auth.authUser) return;
+            if (!auth.authUser) {
+              return;
+            }
+
             await softDeleteEmployee(row.id, auth.authUser.id);
             await load();
           },
@@ -123,60 +139,50 @@ function rowMenu(row: Employee) {
 
 <template>
   <div class="h-full overflow-y-auto p-6">
-    <div class="space-y-4">
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-2xl font-bold text-casual-navy">Employees</h1>
-          <p class="text-sm text-oslo">Manage staff accounts and roles</p>
-        </div>
-        <BaseButton @click="openAdd">Add employee</BaseButton>
-      </div>
+    <BaseCard padding="none" class="flex flex-col gap-5">
+      <BaseTableHeader v-model:search="search" title="Employees" subtitle="Manage staff accounts and roles" :count="filteredEmployees.length">
+        <template #actions>
+          <BaseButton @click="openAdd">Add employee</BaseButton>
+        </template>
+      </BaseTableHeader>
 
-      <BaseCard padding="none">
-        <BaseTable
-          :columns="[
-            { key: 'full_name', label: 'Name' },
-            { key: 'role', label: 'Role' },
-            { key: 'monthly_salary', label: 'Monthly salary', class: 'num' },
-            { key: 'status', label: 'Status' },
-            { key: 'actions', label: '', align: 'right' },
-          ]"
-          :data="employees"
-          :loading="loading"
-        >
-          <template #cell-full_name="{ row }">
-            <RouterLink :to="`/employees/${row.id}`" class="font-medium text-tampa hover:underline">
-              {{ row.full_name }}
-            </RouterLink>
-          </template>
-          <template #cell-role="{ row }">
-            <BaseBadge :variant="row.role === 'admin' ? 'info' : 'default'">{{ row.role }}</BaseBadge>
-          </template>
-          <template #cell-monthly_salary="{ row }">{{ formatMoney(row.monthly_salary_centavos) }}</template>
-          <template #cell-status="{ row }">
-            <BaseBadge :variant="row.active ? 'success' : 'default'">{{ row.active ? 'Active' : 'Inactive' }}</BaseBadge>
-          </template>
-          <template #cell-actions="{ row }">
-            <BaseTableActions :menu="rowMenu(row)" />
-          </template>
-          <template #empty>
-            <BaseEmptyState title="No employees yet">
-              <template #actions>
-                <BaseButton @click="openAdd">Add first employee</BaseButton>
-              </template>
-            </BaseEmptyState>
-          </template>
-        </BaseTable>
-      </BaseCard>
-    </div>
+      <BaseTable
+        :columns="[
+          { key: 'full_name', label: 'Name' },
+          { key: 'role', label: 'Role' },
+          { key: 'monthly_salary', label: 'Monthly salary', class: 'num' },
+          { key: 'status', label: 'Status' },
+          { key: 'actions', label: '', align: 'right' },
+        ]"
+        :data="filteredEmployees"
+        :loading="loading"
+      >
+        <template #cell-full_name="{ row }">
+          <RouterLink :to="`/employees/${row.id}`" class="font-medium text-tampa hover:underline">
+            {{ row.full_name }}
+          </RouterLink>
+        </template>
+        <template #cell-role="{ row }">
+          <BaseBadge :variant="row.role === 'admin' ? 'info' : 'default'">{{ row.role }}</BaseBadge>
+        </template>
+        <template #cell-monthly_salary="{ row }">{{ formatMoney(row.monthly_salary_centavos) }}</template>
+        <template #cell-status="{ row }">
+          <BaseBadge :variant="row.active ? 'success' : 'default'">{{ row.active ? 'Active' : 'Inactive' }}</BaseBadge>
+        </template>
+        <template #cell-actions="{ row }">
+          <BaseTableActions :menu="rowMenu(row)" />
+        </template>
+        <template #empty>
+          <BaseEmptyState title="No employees yet">
+            <template #actions>
+              <BaseButton @click="openAdd">Add first employee</BaseButton>
+            </template>
+          </BaseEmptyState>
+        </template>
+      </BaseTable>
+    </BaseCard>
 
-    <EmployeeFormModal
-      v-model:open="modalOpen"
-      :employee="editingEmployee"
-      :saving="saving"
-      :has-account="hasAccount"
-      @submit="save"
-    />
+    <EmployeeFormModal v-model:open="modalOpen" :employee="editingEmployee" :saving="saving" :has-account="hasAccount" @submit="save" />
     <p v-if="saveError" class="mt-2 text-sm text-blaze-red">{{ saveError }}</p>
   </div>
 </template>

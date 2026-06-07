@@ -214,26 +214,14 @@ function rowMenu(row: SaleRow) {
 
 <template>
   <div class="h-full overflow-y-auto p-6">
-    <BaseCard padding="none">
-      <div class="flex items-center justify-between gap-4 px-5 py-4 border-b border-sparkling-silver">
-        <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-lg font-bold text-casual-navy">Sales</h1>
-            <span class="rounded-full border border-sparkling-silver bg-bright-chrome px-2 py-0.5 text-xs font-medium text-independence">
-              {{ filteredSales.length }}
-            </span>
-          </div>
-          <p class="text-xs text-oslo">Record and manage walk-in and delivery sales</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <BaseSearch v-model="search" />
+    <BaseCard padding="none" class="flex flex-col gap-5">
+      <BaseTableHeader v-model:search="search" title="Sales" subtitle="Record and manage walk-in and delivery sales" :count="filteredSales.length">
+        <template #actions>
           <BaseButton @click="posOpen = true">New Walk-in Sale</BaseButton>
-        </div>
-      </div>
+        </template>
+      </BaseTableHeader>
 
-      <div class="px-5 py-4 border-b border-sparkling-silver">
-        <FilterBar v-model="filterValues" :definitions="filterDefinitions" />
-      </div>
+      <BaseTableFilterBar v-model="filterValues" :definitions="filterDefinitions" />
 
       <BaseTable
         :columns="[

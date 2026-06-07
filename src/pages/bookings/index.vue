@@ -345,14 +345,10 @@ onMounted(loadShared);
         </template>
       </BaseTableHeader>
 
-      <div class="px-5">
-        <BaseTabs v-model="activeTab" :tabs="TABS" />
-      </div>
+      <BaseTableTabs v-model="activeTab" :tabs="TABS" />
 
       <template v-if="activeTab === 'bookings'">
-        <div class="px-5">
-          <FilterBar v-model="filterValues" :definitions="filterDefinitions" />
-        </div>
+        <BaseTableFilterBar v-model="filterValues" :definitions="filterDefinitions" />
 
         <BaseTable
           :columns="[

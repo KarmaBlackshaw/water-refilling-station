@@ -58,6 +58,28 @@ const containerTypes = computed(() => containerTypesRes.value?.data ?? []);
 const containerModalOpen = ref(false);
 const editingContainer = ref<ContainerType>();
 
+const search = ref('');
+
+const filteredProducts = computed(() => {
+  const q = search.value.trim().toLowerCase();
+
+  if (!q) {
+    return products.value;
+  }
+
+  return products.value.filter((p) => p.name.toLowerCase().includes(q));
+});
+
+const filteredContainers = computed(() => {
+  const q = search.value.trim().toLowerCase();
+
+  if (!q) {
+    return containerTypes.value;
+  }
+
+  return containerTypes.value.filter((c) => c.name.toLowerCase().includes(q));
+});
+
 const { loading: containerSaving, run: saveContainer } = useAsync(async (payload: { name: string; deposit_centavos: number; active: boolean }) => {
   if (editingContainer.value) {
     await updateContainerType(editingContainer.value.id, payload);
@@ -145,17 +167,20 @@ function containerMenu(row: ContainerType) {
 
 <template>
   <div class="h-full overflow-y-auto p-6">
-    <div class="space-y-4">
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-2xl font-bold text-casual-navy">Products</h1>
-          <p class="text-sm text-oslo">Manage products and pricing</p>
-        </div>
-        <BaseButton v-if="activeTab === 'products'" @click="openAddProduct">Add product</BaseButton>
-        <BaseButton v-else @click="openAddContainer">Add container type</BaseButton>
-      </div>
+    <BaseCard padding="none" class="flex flex-col gap-5">
+      <BaseTableHeader
+        v-model:search="search"
+        title="Products"
+        subtitle="Manage products and pricing"
+        :count="activeTab === 'products' ? filteredProducts.length : filteredContainers.length"
+      >
+        <template #actions>
+          <BaseButton v-if="activeTab === 'products'" @click="openAddProduct">Add product</BaseButton>
+          <BaseButton v-else @click="openAddContainer">Add container type</BaseButton>
+        </template>
+      </BaseTableHeader>
 
-      <BaseTabs
+      <BaseTableTabs
         v-model="activeTab"
         :tabs="[
           { key: 'products', label: 'Products' },
@@ -163,70 +188,64 @@ function containerMenu(row: ContainerType) {
         ]"
       />
 
-      <div v-if="activeTab === 'products'">
-        <BaseCard padding="none">
-          <BaseTable
-            :columns="[
-              { key: 'name', label: 'Name' },
-              { key: 'status', label: 'Status' },
-              { key: 'actions', label: '', align: 'right' },
-            ]"
-            :data="products"
-            :loading="productsLoading"
-            empty-title="No products yet"
-          >
-            <template #cell-status="{ row }">
-              <BaseBadge :variant="row.active ? 'success' : 'default'">
-                {{ row.active ? 'Active' : 'Inactive' }}
-              </BaseBadge>
+      <BaseTable
+        v-if="activeTab === 'products'"
+        :columns="[
+          { key: 'name', label: 'Name' },
+          { key: 'status', label: 'Status' },
+          { key: 'actions', label: '', align: 'right' },
+        ]"
+        :data="filteredProducts"
+        :loading="productsLoading"
+        empty-title="No products yet"
+      >
+        <template #cell-status="{ row }">
+          <BaseBadge :variant="row.active ? 'success' : 'default'">
+            {{ row.active ? 'Active' : 'Inactive' }}
+          </BaseBadge>
+        </template>
+        <template #cell-actions="{ row }">
+          <BaseTableActions :menu="productMenu(row)" />
+        </template>
+        <template #empty>
+          <BaseEmptyState title="No products yet">
+            <template #actions>
+              <BaseButton @click="openAddProduct">Add first product</BaseButton>
             </template>
-            <template #cell-actions="{ row }">
-              <BaseTableActions :menu="productMenu(row)" />
-            </template>
-            <template #empty>
-              <BaseEmptyState title="No products yet">
-                <template #actions>
-                  <BaseButton @click="openAddProduct">Add first product</BaseButton>
-                </template>
-              </BaseEmptyState>
-            </template>
-          </BaseTable>
-        </BaseCard>
-      </div>
+          </BaseEmptyState>
+        </template>
+      </BaseTable>
 
-      <div v-else>
-        <BaseCard padding="none">
-          <BaseTable
-            :columns="[
-              { key: 'name', label: 'Name' },
-              { key: 'deposit', label: 'Deposit', class: 'num' },
-              { key: 'status', label: 'Status' },
-              { key: 'actions', label: '', align: 'right' },
-            ]"
-            :data="containerTypes"
-            :loading="containerTypesLoading"
-            empty-title="No container types yet"
-          >
-            <template #cell-deposit="{ row }">{{ formatMoney(row.deposit_centavos) }}</template>
-            <template #cell-status="{ row }">
-              <BaseBadge :variant="row.active ? 'success' : 'default'">
-                {{ row.active ? 'Active' : 'Inactive' }}
-              </BaseBadge>
+      <BaseTable
+        v-else
+        :columns="[
+          { key: 'name', label: 'Name' },
+          { key: 'deposit', label: 'Deposit', class: 'num' },
+          { key: 'status', label: 'Status' },
+          { key: 'actions', label: '', align: 'right' },
+        ]"
+        :data="filteredContainers"
+        :loading="containerTypesLoading"
+        empty-title="No container types yet"
+      >
+        <template #cell-deposit="{ row }">{{ formatMoney(row.deposit_centavos) }}</template>
+        <template #cell-status="{ row }">
+          <BaseBadge :variant="row.active ? 'success' : 'default'">
+            {{ row.active ? 'Active' : 'Inactive' }}
+          </BaseBadge>
+        </template>
+        <template #cell-actions="{ row }">
+          <BaseTableActions :menu="containerMenu(row)" />
+        </template>
+        <template #empty>
+          <BaseEmptyState title="No container types yet">
+            <template #actions>
+              <BaseButton @click="openAddContainer">Add first container type</BaseButton>
             </template>
-            <template #cell-actions="{ row }">
-              <BaseTableActions :menu="containerMenu(row)" />
-            </template>
-            <template #empty>
-              <BaseEmptyState title="No container types yet">
-                <template #actions>
-                  <BaseButton @click="openAddContainer">Add first container type</BaseButton>
-                </template>
-              </BaseEmptyState>
-            </template>
-          </BaseTable>
-        </BaseCard>
-      </div>
-    </div>
+          </BaseEmptyState>
+        </template>
+      </BaseTable>
+    </BaseCard>
 
     <ProductFormModal v-model:open="productModalOpen" :product="editingProduct" :saving="productSaving" @submit="saveProduct" />
 

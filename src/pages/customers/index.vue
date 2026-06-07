@@ -123,63 +123,57 @@ function rowMenu(row: Customer) {
 
 <template>
   <div class="h-full overflow-y-auto p-6">
-    <div class="space-y-4">
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-2xl font-bold text-casual-navy">Customers</h1>
-          <p class="text-sm text-oslo">Manage customer accounts and delivery addresses</p>
-        </div>
-        <BaseButton @click="openAdd">Add customer</BaseButton>
-      </div>
+    <BaseCard padding="none" class="flex flex-col gap-5">
+      <BaseTableHeader v-model:search="search" title="Customers" subtitle="Manage customer accounts and delivery addresses" :count="filtered.length">
+        <template #actions>
+          <BaseButton @click="openAdd">Add customer</BaseButton>
+        </template>
+      </BaseTableHeader>
 
-      <BaseInput v-model="search" placeholder="Search by name or phone..." />
+      <BaseTable
+        :columns="[
+          { key: 'name', label: 'Name' },
+          { key: 'phone', label: 'Phone' },
+          { key: 'type', label: 'Type' },
+          { key: 'area', label: 'Area' },
+          { key: 'address', label: 'Default address' },
+          { key: 'actions', label: '', align: 'right' },
+        ]"
+        :data="filtered"
+        :loading="loading"
+      >
+        <template #cell-name="{ row }">
+          <RouterLink :to="`/customers/${row.id}`" class="font-medium text-tampa hover:underline">
+            {{ row.name }}
+          </RouterLink>
+        </template>
 
-      <BaseCard padding="none">
-        <BaseTable
-          :columns="[
-            { key: 'name', label: 'Name' },
-            { key: 'phone', label: 'Phone' },
-            { key: 'type', label: 'Type' },
-            { key: 'area', label: 'Area' },
-            { key: 'address', label: 'Default address' },
-            { key: 'actions', label: '', align: 'right' },
-          ]"
-          :data="filtered"
-          :loading="loading"
-        >
-          <template #cell-name="{ row }">
-            <RouterLink :to="`/customers/${row.id}`" class="font-medium text-tampa hover:underline">
-              {{ row.name }}
-            </RouterLink>
-          </template>
+        <template #cell-phone="{ row }">{{ row.phone ?? '—' }}</template>
 
-          <template #cell-phone="{ row }">{{ row.phone ?? '—' }}</template>
+        <template #cell-type="{ row }">
+          <BaseBadge variant="default">{{ row.type }}</BaseBadge>
+        </template>
 
-          <template #cell-type="{ row }">
-            <BaseBadge variant="default">{{ row.type }}</BaseBadge>
-          </template>
+        <template #cell-area="{ row }">{{ row.area?.name ?? '—' }}</template>
 
-          <template #cell-area="{ row }">{{ row.area?.name ?? '—' }}</template>
+        <template #cell-address="{ row }">
+          <span v-if="defaultAddress(row)" class="text-sm text-casual-navy">{{ formatAddress(defaultAddress(row)!) }}</span>
+          <span v-else class="text-sm text-oslo">—</span>
+        </template>
 
-          <template #cell-address="{ row }">
-            <span v-if="defaultAddress(row)" class="text-sm text-casual-navy">{{ formatAddress(defaultAddress(row)!) }}</span>
-            <span v-else class="text-sm text-oslo">—</span>
-          </template>
+        <template #cell-actions="{ row }">
+          <BaseTableActions :menu="rowMenu(row)" />
+        </template>
 
-          <template #cell-actions="{ row }">
-            <BaseTableActions :menu="rowMenu(row)" />
-          </template>
-
-          <template #empty>
-            <BaseEmptyState :title="search ? 'No customers found' : 'No customers yet'">
-              <template #actions>
-                <BaseButton v-if="!search" @click="openAdd">Add first customer</BaseButton>
-              </template>
-            </BaseEmptyState>
-          </template>
-        </BaseTable>
-      </BaseCard>
-    </div>
+        <template #empty>
+          <BaseEmptyState :title="search ? 'No customers found' : 'No customers yet'">
+            <template #actions>
+              <BaseButton v-if="!search" @click="openAdd">Add first customer</BaseButton>
+            </template>
+          </BaseEmptyState>
+        </template>
+      </BaseTable>
+    </BaseCard>
 
     <CustomerFormModal v-model:open="modalOpen" :customer="editingCustomer" :saving="saving" @submit="save" />
   </div>
