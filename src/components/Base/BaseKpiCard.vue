@@ -6,6 +6,7 @@ const props = defineProps<{
   sub?: string;
   to?: string;
   expandable?: boolean;
+  loading?: boolean;
 }>();
 
 const router = useRouter();
@@ -33,7 +34,8 @@ function handleClick() {
       <IconArrowUpRight v-else-if="props.to" :size="14" class="opacity-40" />
     </div>
     <p class="text-xs font-medium text-oslo">{{ label }}</p>
-    <p class="num mt-1 text-3xl font-bold text-casual-navy">{{ value }}</p>
+    <BaseSkeleton v-if="loading" class="mt-1 h-9 w-20" />
+    <p v-else class="num mt-1 text-3xl font-bold text-casual-navy">{{ value }}</p>
     <p v-if="sub" class="mt-1 text-xs text-oslo">{{ sub }}</p>
   </BaseCard>
 </template>

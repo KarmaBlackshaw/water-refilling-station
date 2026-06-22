@@ -6,7 +6,7 @@ import { formatAddress } from '@/helpers/address';
 
 defineOptions({ name: 'DashboardTaskList' });
 
-const props = defineProps<{ deliveries: DeliverySaleRow[] }>();
+const props = defineProps<{ deliveries: DeliverySaleRow[]; loading?: boolean }>();
 
 type BadgeVariant = 'default' | 'success' | 'warning' | 'danger' | 'info';
 
@@ -83,7 +83,18 @@ const visible = computed(() => props.deliveries.slice(0, 6));
       </div>
     </div>
 
-    <p v-if="deliveries.length === 0" class="py-6 text-center text-sm text-oslo">No deliveries today</p>
+    <div v-if="loading" class="space-y-3">
+      <div v-for="n in 4" :key="n" class="flex items-start gap-3 rounded-xl border border-sparkling-silver p-3">
+        <BaseSkeleton rounded="full" class="h-10 w-10 shrink-0" />
+        <div class="min-w-0 flex-1 space-y-2">
+          <BaseSkeleton class="h-4 w-32" />
+          <BaseSkeleton class="h-3 w-44" />
+          <BaseSkeleton class="h-3 w-24" />
+        </div>
+      </div>
+    </div>
+
+    <p v-else-if="deliveries.length === 0" class="py-6 text-center text-sm text-oslo">No deliveries today</p>
 
     <ul v-else class="space-y-3">
       <li v-for="d in visible" :key="d.id" class="flex items-start gap-3 rounded-xl border border-sparkling-silver p-3">

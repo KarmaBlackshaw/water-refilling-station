@@ -12,6 +12,7 @@ const props = defineProps<{
   height?: number;
   highlightIndex?: number;
   tooltip?: { label: string; value: number | string; color: string }[];
+  loading?: boolean;
 }>();
 
 interface BarChartRef {
@@ -127,7 +128,8 @@ watch(
 
     <div ref="wrapperRef" class="relative">
       <div :style="{ height: `${height ?? 200}px` }">
-        <Bar ref="chartRef" :data="chartData" :options="chartOptions" />
+        <BaseSkeleton v-if="loading" rounded="lg" class="h-full w-full" />
+        <Bar v-else ref="chartRef" :data="chartData" :options="chartOptions" />
       </div>
 
       <div

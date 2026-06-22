@@ -32,6 +32,7 @@ declare module 'vue' {
     BasePagination: typeof import('./components/Base/BasePagination.vue')['default']
     BaseSearch: typeof import('./components/Base/BaseSearch.vue')['default']
     BaseSelect: typeof import('./components/Base/BaseSelect.vue')['default']
+    BaseSkeleton: typeof import('./components/Base/BaseSkeleton.vue')['default']
     BaseSpinner: typeof import('./components/Base/BaseSpinner.vue')['default']
     BaseTable: typeof import('./components/Base/BaseTable.vue')['default']
     BaseTableActions: typeof import('./components/Base/BaseTableActions.vue')['default']

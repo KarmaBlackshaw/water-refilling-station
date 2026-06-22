@@ -4,7 +4,7 @@ import { initials } from '@/helpers/avatar';
 
 defineOptions({ name: 'DashboardTopPerformance' });
 
-defineProps<{ performers: TopRiderRow[] }>();
+defineProps<{ performers: TopRiderRow[]; loading?: boolean }>();
 
 const RANK_LABELS = ['1st', '2nd', '3rd', '4th', '5th'];
 
@@ -26,7 +26,15 @@ const monthName = dayjs().tz(MANILA_TZ).format('MMMM');
       </div>
     </div>
 
-    <p v-if="performers.length === 0" class="py-6 text-center text-sm text-oslo">No delivery data yet</p>
+    <div v-if="loading" class="grid grid-cols-4 gap-3">
+      <div v-for="n in 4" :key="n" class="flex flex-col items-center">
+        <BaseSkeleton rounded="2xl" class="aspect-4/5 w-full" />
+        <BaseSkeleton class="mt-2 h-3 w-16" />
+        <BaseSkeleton class="mt-1 h-2.5 w-12" />
+      </div>
+    </div>
+
+    <p v-else-if="performers.length === 0" class="py-6 text-center text-sm text-oslo">No delivery data yet</p>
 
     <div v-else class="grid grid-cols-4 gap-3">
       <div v-for="(p, idx) in performers" :key="p.rider_id" class="flex flex-col items-center">

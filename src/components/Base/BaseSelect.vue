@@ -43,6 +43,7 @@ const emit = defineEmits<{
 
 const { BUTTON_REF, POPPER_REF, show, hide, toggle, isVisible } = useFloat({
   placement: 'bottom-start',
+  matchReferenceWidth: true,
 });
 
 const selectedLabel = computed(() => {

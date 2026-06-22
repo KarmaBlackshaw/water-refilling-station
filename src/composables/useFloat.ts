@@ -1,5 +1,5 @@
 // libs
-import { computePosition, flip, shift, offset, autoUpdate } from '@floating-ui/dom';
+import { computePosition, flip, shift, offset, size, autoUpdate } from '@floating-ui/dom';
 import type { ReferenceElement, Placement } from '@floating-ui/dom';
 import type { ComponentPublicInstance, Ref } from 'vue';
 type TOptions = {
@@ -7,6 +7,7 @@ type TOptions = {
   hideTimeout?: number;
   zIndex?: number;
   ignoreRefs?: Ref<HTMLElement | undefined>[];
+  matchReferenceWidth?: boolean;
 };
 
 type TCleanUp = () => void;
@@ -22,6 +23,7 @@ export default function useFloat(_options?: TOptions) {
       hideTimeout: 0,
       zIndex: 2147483006,
       ignoreRefs: [],
+      matchReferenceWidth: false,
     },
     _options,
   );
@@ -52,11 +54,22 @@ export default function useFloat(_options?: TOptions) {
       placement: options.placement,
       strategy: 'fixed',
       middleware: [
+        offset(5),
         flip(),
         shift({
           padding: 5,
         }),
-        offset(5),
+        ...(options.matchReferenceWidth
+          ? [
+              size({
+                apply({ rects, elements }) {
+                  Object.assign(elements.floating.style, {
+                    width: `${rects.reference.width}px`,
+                  });
+                },
+              }),
+            ]
+          : []),
       ],
     });
 

@@ -5,7 +5,6 @@ const auth = useAuthStore();
 const { userRole } = storeToRefs(auth);
 
 const todayDate = today();
-const todayPlus3Date = addDays(todayDate, 3);
 
 function getPast7Days(): string[] {
   return Array.from({ length: 7 }, (_, i) => subtractDays(todayDate, 6 - i));
@@ -96,12 +95,6 @@ const { data: deliveriesData, loading: loadingDeliveries } = useAsync(() => list
 
 const deliveries = computed(() => deliveriesData.value ?? []);
 
-const { loading: loadingBookings } = useAsync(() => listBookings({ from: todayDate, to: todayPlus3Date, status: 'pending' }), {
-  immediate: true,
-  defaultValue: [],
-  disableResetValue: true,
-});
-
 const { data: topPerformersData, loading: loadingTopPerformers } = useAsync(
   () => {
     const { from, to } = monthRange();
@@ -116,10 +109,6 @@ const { data: topPerformersData, loading: loadingTopPerformers } = useAsync(
 );
 
 const topPerformers = computed(() => topPerformersData.value ?? []);
-
-const loading = computed(
-  () => loadingWeeklyRevenue.value || loadingWeeklyDeliveries.value || loadingDeliveries.value || loadingBookings.value || loadingTopPerformers.value,
-);
 
 const pendingDeliveries = computed(() => deliveries.value.filter((d) => d.status === 'pending_delivery'));
 
@@ -172,27 +161,23 @@ const alertTo = computed(() => (counters.maintenanceAlertCount.value > 0 ? '/mai
 </script>
 
 <template>
-  <div v-if="loading" class="flex h-full items-center justify-center">
-    <BaseSpinner size="lg" />
-  </div>
-
-  <div v-else class="h-full overflow-y-auto p-4">
+  <div class="h-full overflow-y-auto p-4">
     <div class="space-y-4">
       <!-- 1. Greeting / alert banner -->
       <DashboardGreetingBanner title="Dear Manager" :body="alertBody" :highlight="alertHighlight" :to="alertTo" />
 
       <!-- 2. KPI row -->
       <div class="grid grid-cols-4 gap-4">
-        <BaseKpiCard expandable icon-tone="gray" label="Active Customers" :value="counters.activeCustomerCount.value">
+        <BaseKpiCard expandable icon-tone="gray" label="Active Customers" :value="counters.activeCustomerCount.value" :loading="counters.loading.value">
           <template #icon><IconCustomers :size="18" /></template>
         </BaseKpiCard>
-        <BaseKpiCard expandable icon-tone="gray" label="Pending Deliveries" :value="counters.pendingDeliveryCount.value">
+        <BaseKpiCard expandable icon-tone="gray" label="Pending Deliveries" :value="counters.pendingDeliveryCount.value" :loading="counters.loading.value">
           <template #icon><IconDeliveries :size="18" /></template>
         </BaseKpiCard>
-        <BaseKpiCard expandable icon-tone="gray" label="Upcoming Bookings" :value="counters.upcomingBookingCount.value">
+        <BaseKpiCard expandable icon-tone="gray" label="Upcoming Bookings" :value="counters.upcomingBookingCount.value" :loading="counters.loading.value">
           <template #icon><IconBookings :size="18" /></template>
         </BaseKpiCard>
-        <BaseKpiCard expandable icon-tone="gray" label="Weekly Completion" :value="deliveryCompletionPct">
+        <BaseKpiCard expandable icon-tone="gray" label="Weekly Completion" :value="deliveryCompletionPct" :loading="loadingWeeklyDeliveries">
           <template #icon><IconCheck :size="18" /></template>
         </BaseKpiCard>
       </div>
@@ -202,7 +187,7 @@ const alertTo = computed(() => (counters.maintenanceAlertCount.value > 0 ? '/mai
 
       <!-- 4. Two-column body -->
       <div class="grid grid-cols-2 gap-4">
-        <DashboardTaskList :deliveries="deliveries" />
+        <DashboardTaskList :deliveries="deliveries" :loading="loadingDeliveries" />
 
         <div class="space-y-4">
           <BaseCard padding="md">
@@ -213,6 +198,7 @@ const alertTo = computed(() => (counters.maintenanceAlertCount.value > 0 ? '/mai
               :data="weeklyRevenueData"
               :highlight-index="todayIdx"
               :tooltip="todayBreakdown"
+              :loading="loadingWeeklyRevenue"
             >
               <template #action>
                 <div class="flex items-center gap-1">
@@ -225,7 +211,7 @@ const alertTo = computed(() => (counters.maintenanceAlertCount.value > 0 ? '/mai
             </BaseBarChart>
           </BaseCard>
 
-          <DashboardTopPerformance :performers="topPerformers" />
+          <DashboardTopPerformance :performers="topPerformers" :loading="loadingTopPerformers" />
         </div>
       </div>
     </div>
