@@ -5,8 +5,10 @@ import type { CustomerWithArea } from '@/services/customers';
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
 import { formatAddress } from '@/helpers/address';
+import { ROUTES } from '@/constants/routes';
 
 const auth = useAuthStore();
+const router = useRouter();
 const { confirm } = useConfirm();
 const { tenantId, branchId } = storeToRefs(auth);
 
@@ -17,8 +19,6 @@ const { data: customersRes, loading, run: load } = useAsync(() => listCustomers(
 const customers = computed(() => customersRes.value?.data ?? []);
 
 const search = ref('');
-const modalOpen = ref(false);
-const editingCustomer = ref<Customer>();
 
 function defaultAddress(row: CustomerWithArea): AddressLite | null {
   const live = (row.addresses ?? []).filter((a) => !a.deleted_at);
@@ -43,59 +43,16 @@ const filtered = computed(() => {
 });
 
 function openAdd() {
-  editingCustomer.value = undefined;
-  modalOpen.value = true;
+  router.push(ROUTES.CUSTOMER_NEW);
 }
 
 function openEdit(c: Customer) {
-  editingCustomer.value = c;
-  modalOpen.value = true;
+  router.push(ROUTES.CUSTOMER_EDIT(c.id));
 }
 
-const { loading: saving, run: save } = useAsync(
-  async (payload: {
-    name: string;
-    phone: string | null;
-    type: 'residential' | 'commercial';
-    notes: string | null;
-    address: {
-      label: string;
-      street: string;
-      barangay: string;
-      city: string;
-      landmark: string | null;
-      lat: number | null;
-      lng: number | null;
-    } | null;
-  }) => {
-    const { address, ...customerPayload } = payload;
-
-    if (editingCustomer.value) {
-      await updateCustomer(editingCustomer.value.id, customerPayload);
-    } else {
-      const { data: created } = await createCustomer({ tenant_id: tenantId.value, branch_id: branchId.value, ...customerPayload });
-
-      if (created && address) {
-        await createAddress({
-          tenant_id: tenantId.value,
-          branch_id: branchId.value,
-          customer_id: created.id,
-          label: address.label,
-          street: address.street,
-          barangay: address.barangay,
-          city: address.city,
-          landmark: address.landmark,
-          lat: address.lat,
-          lng: address.lng,
-          is_default: true,
-        });
-      }
-    }
-
-    modalOpen.value = false;
-    await load();
-  },
-);
+function openDetail(c: CustomerWithArea) {
+  router.push(ROUTES.CUSTOMER_DETAIL(c.id));
+}
 
 const columns: TableColumn<CustomerWithArea>[] = [
   { key: 'name', label: 'Name' },
@@ -140,9 +97,9 @@ function rowMenu(row: Customer) {
         </template>
       </BaseTableHeader>
 
-      <BaseTable :columns="columns" :data="filtered" :loading="loading">
+      <BaseTable :columns="columns" :data="filtered" :loading="loading" @row-click="openDetail">
         <template #cell-name="{ row }">
-          <RouterLink :to="`/customers/${row.id}`" class="font-medium text-tampa hover:underline">
+          <RouterLink :to="ROUTES.CUSTOMER_DETAIL(row.id)" class="font-medium text-tampa hover:underline">
             {{ row.name }}
           </RouterLink>
         </template>
@@ -150,7 +107,7 @@ function rowMenu(row: Customer) {
         <template #cell-phone="{ row }">{{ row.phone ?? '—' }}</template>
 
         <template #cell-type="{ row }">
-          <BaseBadge variant="default">{{ row.type }}</BaseBadge>
+          <BaseBadge variant="default" class="capitalize">{{ row.type }}</BaseBadge>
         </template>
 
         <template #cell-area="{ row }">{{ row.area?.name ?? '—' }}</template>
@@ -173,7 +130,5 @@ function rowMenu(row: Customer) {
         </template>
       </BaseTable>
     </BaseCard>
-
-    <CustomerFormModal v-model:open="modalOpen" :customer="editingCustomer" :saving="saving" @submit="save" />
   </div>
 </template>

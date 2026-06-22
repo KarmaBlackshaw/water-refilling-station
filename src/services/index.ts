@@ -14,5 +14,6 @@ export * from './pricing';
 export * from './products';
 export * from './sales';
 export * from './settings';
+export * from './streets';
 export * from './users';
 export * from './vehicles';

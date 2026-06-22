@@ -1,20 +1,13 @@
 <script setup lang="ts">
-import type { CustomerAddress, CustomerPriceOverride, Sale, SaleLine, SalePayment } from '@/types/database';
-import type { TableColumn } from '@/components/Base/BaseTable.vue';
-import { formatMoney } from '@/helpers/money';
-import IconEdit from '@/components/Icon/IconEdit.vue';
-import IconTrash from '@/components/Icon/IconTrash.vue';
+import type { CustomerAddressRow, CustomerPriceOverrideWithRels } from '@/services/customers';
+import { ROUTES } from '@/constants/routes';
 
 const route = useRoute();
+const router = useRouter();
 const auth = useAuthStore();
 const { confirm } = useConfirm();
 const toast = useToast();
 const { tenantId, branchId } = storeToRefs(auth);
-
-type PriceOverrideWithRels = CustomerPriceOverride & {
-  product: { name: string } | null;
-  container_type: { name: string } | null;
-};
 
 type AddrSubmitPayload = {
   payload: {
@@ -32,22 +25,12 @@ type AddrSubmitPayload = {
   removePhoto: boolean;
 };
 
-type SaleWithRels = Sale & { sale_lines: SaleLine[]; sale_payments: SalePayment[] };
-
-const priceOverrideColumns: TableColumn<PriceOverrideWithRels>[] = [
-  { key: 'product', label: 'Product' },
-  { key: 'container', label: 'Container' },
-  { key: 'refill_price', label: 'Refill price' },
-  { key: 'new_container_price', label: 'New container' },
-  { key: 'actions', label: '', align: 'right' },
-];
-
-const saleColumns: TableColumn<SaleWithRels>[] = [
-  { key: 'sale_date', label: 'Date' },
-  { key: 'source', label: 'Source' },
-  { key: 'status', label: 'Status' },
-  { key: 'lines', label: 'Lines' },
-];
+type OverridePayload = {
+  product_id: string;
+  container_type_id: string;
+  refill_price_centavos: number;
+  new_container_price_centavos: number;
+};
 
 const activeTab = ref('overview');
 
@@ -109,16 +92,28 @@ const sales = computed(() => pageData.value?.sales ?? []);
 const containerBalance = computed(() => pageData.value?.containerBalance ?? {});
 const arBalance = computed(() => pageData.value?.arBalance ?? 0);
 
+const hasContainerBalance = computed(() => Object.keys(containerBalance.value).length > 0);
+
+const defaultAddress = computed(() => {
+  const live = addresses.value.filter((a) => !a.deleted_at);
+
+  return live.find((a) => a.is_default) ?? live[0] ?? null;
+});
+
+const liveAddressCount = computed(() => addresses.value.filter((a) => !a.deleted_at).length);
+
+const containersOut = computed(() => Object.values(containerBalance.value).reduce((sum, qty) => sum + (qty > 0 ? qty : 0), 0));
+
 const addrModalOpen = ref(false);
-const editingAddr = ref<CustomerAddress>();
+const editingAddr = ref<CustomerAddressRow>();
 
 function openAddAddr() {
   editingAddr.value = undefined;
   addrModalOpen.value = true;
 }
 
-function openEditAddr(a: CustomerAddress) {
-  editingAddr.value = a;
+function openEditAddr(addr: CustomerAddressRow) {
+  editingAddr.value = addr;
   addrModalOpen.value = true;
 }
 
@@ -127,17 +122,22 @@ const { loading: addrSaving, run: saveAddress } = useAsync(async ({ payload, pho
     return;
   }
 
-  const isNew = !editingAddr.value;
-  const savedRes = isNew
-    ? await createAddress({
+  const target = editingAddr.value;
+  const savedRes = target
+    ? await updateAddress(target.id, payload)
+    : await createAddress({
         tenant_id: tenantId.value,
         branch_id: branchId.value,
         customer_id: customer.value.id,
         ...payload,
-      })
-    : await updateAddress(editingAddr.value.id, payload);
+      });
 
-  const row = savedRes.data!;
+  const row = savedRes.data;
+
+  if (!row) {
+    return;
+  }
+
   let nextPath: string | null = row.photo_path ?? null;
 
   try {
@@ -165,18 +165,26 @@ const { loading: addrSaving, run: saveAddress } = useAsync(async ({ payload, pho
   await load();
 });
 
+function removeAddress(addr: CustomerAddressRow) {
+  confirm({
+    title: 'Delete address?',
+    message: `Delete '${addr.label}'?`,
+    onConfirm: async () => {
+      if (!auth.authUser) {
+        return;
+      }
+
+      await softDeleteAddress(addr.id, auth.authUser.id);
+      await load();
+    },
+  });
+}
+
 const overrideModalOpen = ref(false);
 
 function openAddOverride() {
   overrideModalOpen.value = true;
 }
-
-type OverridePayload = {
-  product_id: string;
-  container_type_id: string;
-  refill_price_centavos: number;
-  new_container_price_centavos: number;
-};
 
 const { loading: overrideSaving, run: saveOverride } = useAsync(async (payload: OverridePayload) => {
   if (!customer.value) {
@@ -193,59 +201,37 @@ const { loading: overrideSaving, run: saveOverride } = useAsync(async (payload: 
   await load();
 });
 
-const hasContainerBalance = computed(() => Object.keys(containerBalance.value).length > 0);
+function removeOverride(override: CustomerPriceOverrideWithRels) {
+  confirm({
+    title: 'Remove price override?',
+    message: `Remove override for ${override.product?.name ?? 'this product'}?`,
+    onConfirm: async () => {
+      if (!auth.authUser) {
+        return;
+      }
 
-const defaultAddress = computed(() => {
-  const live = addresses.value.filter((a) => !a.deleted_at);
-
-  return live.find((a) => a.is_default) ?? live[0] ?? null;
-});
-
-function addrMenu(addr: CustomerAddress) {
-  return [
-    { label: 'Edit', icon: IconEdit, onClick: () => openEditAddr(addr) },
-    {
-      label: 'Delete',
-      icon: IconTrash,
-      danger: true,
-      onClick: () =>
-        confirm({
-          title: 'Delete address?',
-          message: `Delete '${addr.label}'?`,
-          onConfirm: async () => {
-            if (!auth.authUser) {
-              return;
-            }
-
-            await softDeleteAddress(addr.id, auth.authUser.id);
-            await load();
-          },
-        }),
+      await softDeletePriceOverride(override.id, auth.authUser.id);
+      await load();
     },
-  ];
+  });
 }
 
-function overrideMenu(override: PriceOverrideWithRels) {
-  return [
-    {
-      label: 'Remove',
-      icon: IconTrash,
-      danger: true,
-      onClick: () =>
-        confirm({
-          title: 'Remove price override?',
-          message: `Remove override for ${override.product?.name ?? 'this product'}?`,
-          onConfirm: async () => {
-            if (!auth.authUser) {
-              return;
-            }
+const tabAction = computed(() => {
+  if (activeTab.value === 'addresses') {
+    return { label: 'Add address', onClick: openAddAddr };
+  }
 
-            await softDeletePriceOverride(override.id, auth.authUser.id);
-            await load();
-          },
-        }),
-    },
-  ];
+  if (activeTab.value === 'price-overrides') {
+    return { label: 'Add override', onClick: openAddOverride };
+  }
+
+  return null;
+});
+
+function editCustomer() {
+  if (customer.value) {
+    router.push(ROUTES.CUSTOMER_EDIT(customer.value.id));
+  }
 }
 </script>
 
@@ -255,111 +241,38 @@ function overrideMenu(override: PriceOverrideWithRels) {
       <BaseSpinner size="lg" />
     </div>
 
-    <div v-else-if="customer" class="space-y-4">
-      <div class="flex items-start justify-between">
-        <div>
-          <h1 class="text-2xl font-bold text-casual-navy">{{ customer.name }}</h1>
-          <p class="text-sm text-oslo">Customer profile and order history</p>
-          <p class="mt-0.5 text-sm text-independence">{{ customer.phone ?? 'No phone' }} · {{ customer.type }}</p>
+    <BaseEmptyState v-else-if="!customer" title="Customer not found" />
+
+    <div v-else class="space-y-4">
+      <CustomerDetailHeader
+        :customer="customer"
+        :ar-balance="arBalance"
+        :address-count="liveAddressCount"
+        :containers-out="containersOut"
+        @edit="editCustomer"
+      />
+
+      <BaseCard padding="none">
+        <div class="flex items-center justify-between gap-3 border-b border-sparkling-silver px-3">
+          <BaseTabs v-model="activeTab" :tabs="tabs" variant="underline" class="flex-1" />
+          <BaseButton v-if="tabAction" size="sm" @click="tabAction?.onClick()">
+            <IconPlus class="size-4" />
+            {{ tabAction?.label }}
+          </BaseButton>
         </div>
-      </div>
 
-      <BaseTabs v-model="activeTab" :tabs="tabs" />
-
-      <div v-if="activeTab === 'overview'" class="space-y-4">
-        <BaseCard padding="sm">
-          <dl class="space-y-2 text-sm">
-            <div class="flex justify-between">
-              <dt class="text-independence">Area</dt>
-              <dd class="text-casual-navy">{{ customer.area?.name ?? '—' }}</dd>
-            </div>
-            <div class="flex justify-between gap-4">
-              <dt class="text-independence">Default address</dt>
-              <dd class="max-w-[60%] text-right text-casual-navy">
-                <template v-if="defaultAddress">
-                  <span class="block">{{ formatAddress(defaultAddress) }}</span>
-                  <span class="block text-xs text-oslo">{{ defaultAddress.label }}</span>
-                </template>
-                <template v-else>—</template>
-              </dd>
-            </div>
-            <div class="flex justify-between">
-              <dt class="text-independence">AR Balance</dt>
-              <dd class="font-medium text-casual-navy">{{ formatMoney(arBalance) }}</dd>
-            </div>
-            <div v-if="customer.notes" class="flex justify-between">
-              <dt class="text-independence">Notes</dt>
-              <dd class="text-casual-navy">{{ customer.notes }}</dd>
-            </div>
-          </dl>
-        </BaseCard>
-
-        <BaseCard v-if="hasContainerBalance" padding="sm">
-          <p class="mb-2 text-sm font-medium text-casual-navy">Container Balance</p>
-          <dl class="space-y-1 text-sm">
-            <div v-for="(qty, typeId) in containerBalance" :key="typeId" class="flex justify-between">
-              <dt class="text-independence">{{ typeId }}</dt>
-              <dd :class="qty > 0 ? 'text-strong-amber' : 'text-dark-green-turquoise'">
-                {{ qty }}
-              </dd>
-            </div>
-          </dl>
-        </BaseCard>
-      </div>
-
-      <div v-else-if="activeTab === 'addresses'" class="space-y-3">
-        <div class="flex justify-end">
-          <BaseButton @click="openAddAddr">Add address</BaseButton>
-        </div>
-        <BaseEmptyState v-if="addresses.length === 0" title="No addresses yet" />
-        <BaseCard v-for="a in addresses" :key="a.id" padding="sm">
-          <div class="flex items-start justify-between gap-3">
-            <CustomerAddressPhoto v-if="a.photo_path" :photo-path="a.photo_path" />
-            <div class="flex-1">
-              <p class="font-medium text-casual-navy">{{ a.label }}</p>
-              <p class="text-sm text-independence">{{ formatAddress(a) }}</p>
-              <BaseBadge v-if="a.is_default" variant="info" class="mt-1">Default</BaseBadge>
-            </div>
-            <BaseTableActions :menu="addrMenu(a)" />
-          </div>
-        </BaseCard>
-      </div>
-
-      <div v-else-if="activeTab === 'price-overrides'" class="space-y-3">
-        <div class="flex justify-end">
-          <BaseButton @click="openAddOverride">Add override</BaseButton>
-        </div>
-        <BaseCard padding="none">
-          <BaseTable :columns="priceOverrideColumns" :data="priceOverrides" empty-title="No price overrides">
-            <template #cell-product="{ row }">{{ row.product?.name ?? '—' }}</template>
-            <template #cell-container="{ row }">{{ row.container_type?.name ?? '—' }}</template>
-            <template #cell-refill_price="{ row }">{{ formatMoney(row.refill_price_centavos) }}</template>
-            <template #cell-new_container_price="{ row }">{{ formatMoney(row.new_container_price_centavos) }}</template>
-            <template #cell-actions="{ row }">
-              <BaseTableActions :menu="overrideMenu(row)" />
-            </template>
-          </BaseTable>
-        </BaseCard>
-      </div>
-
-      <div v-else-if="activeTab === 'sales'" class="space-y-3">
-        <BaseCard padding="none">
-          <BaseTable :columns="saleColumns" :data="sales" empty-title="No sales yet">
-            <template #cell-source="{ row }">
-              <BaseBadge variant="default">{{ row.source }}</BaseBadge>
-            </template>
-            <template #cell-status="{ row }">
-              <BaseBadge :variant="row.status === 'completed' ? 'success' : row.status === 'void' ? 'danger' : 'warning'">
-                {{ row.status }}
-              </BaseBadge>
-            </template>
-            <template #cell-lines="{ row }">{{ row.sale_lines.length }}</template>
-          </BaseTable>
-        </BaseCard>
-      </div>
+        <CustomerDetailOverview
+          v-if="activeTab === 'overview'"
+          :customer="customer"
+          :default-address="defaultAddress"
+          :container-balance="containerBalance"
+          :has-container-balance="hasContainerBalance"
+        />
+        <CustomerDetailAddresses v-else-if="activeTab === 'addresses'" :addresses="addresses" @edit="openEditAddr" @delete="removeAddress" />
+        <CustomerDetailPriceOverrides v-else-if="activeTab === 'price-overrides'" :price-overrides="priceOverrides" @remove="removeOverride" />
+        <CustomerDetailSales v-else-if="activeTab === 'sales'" :sales="sales" />
+      </BaseCard>
     </div>
-
-    <BaseEmptyState v-else title="Customer not found" />
 
     <CustomerAddressFormModal
       v-model:open="addrModalOpen"

@@ -3,7 +3,7 @@ import { VueDatePicker } from '@vuepic/vue-datepicker';
 
 type DateValue = Date | string | null;
 
-const model = defineModel<DateValue>({ required: true });
+const model = defineModel<DateValue | string[]>({ required: true });
 
 defineProps<{
   label?: string;
@@ -55,12 +55,12 @@ defineProps<{
   --dp-font-size: 0.875rem;
   --dp-input-padding: 0 0.75rem;
   --dp-border-color: var(--color-sparkling-silver, #d1d5db);
-  --dp-border-color-hover: var(--color-tampa, #1A73E8);
-  --dp-border-color-focus: var(--color-tampa, #1A73E8);
+  --dp-border-color-hover: var(--color-tampa, #1a73e8);
+  --dp-border-color-focus: var(--color-tampa, #1a73e8);
   --dp-text-color: var(--color-casual-navy, #1f2937);
   --dp-icon-color: var(--color-oslo, #6b7280);
   --dp-background-color: var(--color-full-white, #ffffff);
-  --dp-primary-color: var(--color-tampa, #1A73E8);
+  --dp-primary-color: var(--color-tampa, #1a73e8);
 }
 .base-datepicker .dp__input {
   height: 2.5rem;

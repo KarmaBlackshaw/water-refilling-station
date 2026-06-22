@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import SidebarBrand from '@/components/Sidebar/SidebarBrand.vue';
-import SidebarFooter from '@/components/Sidebar/SidebarFooter.vue';
-import SidebarNavItem from '@/components/Sidebar/SidebarNavItem.vue';
-import SidebarSection from '@/components/Sidebar/SidebarSection.vue';
+import SidebarBrand from '@/components/Sidebar/Brand.vue';
+import SidebarFooter from '@/components/Sidebar/Footer.vue';
+import SidebarNavItem from '@/components/Sidebar/NavItem.vue';
+import SidebarSection from '@/components/Sidebar/Section.vue';
 import { SIDEBAR_GENERAL_NAV, SIDEBAR_MAIN_NAV } from '@/constants/sidebarNav';
 import { useNavActive } from '@/composables/useNavActive';
 

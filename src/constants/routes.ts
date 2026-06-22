@@ -8,6 +8,8 @@ export const ROUTES = {
   BOOKINGS: '/bookings',
   CUSTOMERS: '/customers',
   CUSTOMER_DETAIL: (id: string) => `/customers/${id}`,
+  CUSTOMER_NEW: '/customers/new',
+  CUSTOMER_EDIT: (id: string) => `/customers/new?id=${id}`,
   DELIVERIES: '/deliveries',
   EMPLOYEES: '/employees',
   EMPLOYEE_DETAIL: (id: string) => `/employees/${id}`,

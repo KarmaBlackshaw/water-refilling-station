@@ -28,7 +28,10 @@ function loadEnv() {
       const [key, ...rest] = line.split('=');
 
       if (key && !key.startsWith('#') && rest.length) {
-        process.env[key.trim()] ??= rest.join('=').trim();
+        // strip surrounding single/double quotes (Vite-style .env values are often quoted)
+        const value = rest.join('=').trim().replace(/^(['"])(.*)\1$/, '$2');
+
+        process.env[key.trim()] ??= value;
       }
     }
   } catch {

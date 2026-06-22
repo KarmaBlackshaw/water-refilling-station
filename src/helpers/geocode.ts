@@ -4,19 +4,21 @@ import mbxGeocoding from '@mapbox/mapbox-sdk/services/geocoding';
 
 type GeocodeQueryType = 'country' | 'region' | 'postcode' | 'district' | 'place' | 'locality' | 'neighborhood' | 'address' | 'poi' | 'poi.landmark';
 
+export type Bbox = [number, number, number, number];
+
 export type GeoFeature = {
   id: string;
   name: string;
   place_name: string;
   lat: number;
   lng: number;
-  bbox?: [number, number, number, number];
+  bbox?: Bbox;
 };
 
 type SearchArgs = {
   query: string;
   types: GeocodeQueryType[];
-  bbox?: [number, number, number, number];
+  bbox?: Bbox;
 };
 
 const baseClient = mbxClient({ accessToken: import.meta.env.VITE_MAPBOX_TOKEN });
@@ -62,20 +64,12 @@ export function searchCities(q: string): Promise<GeoFeature[]> {
   return baseSearch({ query: q, types: ['place', 'locality'] });
 }
 
-export function searchBarangays(q: string, cityBbox?: GeoFeature['bbox']): Promise<GeoFeature[]> {
+export function searchBarangays(q: string, cityBbox?: Bbox): Promise<GeoFeature[]> {
   if (!q.trim()) {
     return Promise.resolve([]);
   }
 
   return baseSearch({ query: q, types: ['neighborhood', 'locality'], bbox: cityBbox });
-}
-
-export function searchStreets(q: string, brgyBbox?: GeoFeature['bbox']): Promise<GeoFeature[]> {
-  if (!q.trim()) {
-    return Promise.resolve([]);
-  }
-
-  return baseSearch({ query: q, types: ['address'], bbox: brgyBbox });
 }
 
 export async function geocodeBarangay(barangay: string, city: string): Promise<{ lat: number; lng: number } | null> {

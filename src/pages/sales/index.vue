@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FilterDefinition, FilterValues } from '@/types';
 import type { SaleDetail, SaleWithCustomer } from '@/services/sales';
-import type { WalkInSubmitPayload } from '@/components/Sale/SaleWalkInModal.vue';
+import type { WalkInSubmitPayload } from '@/components/Sale/WalkInModal.vue';
 import type { TableColumn } from '@/components/Base/BaseTable.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
 

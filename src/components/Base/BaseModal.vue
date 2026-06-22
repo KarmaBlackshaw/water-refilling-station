@@ -50,7 +50,7 @@ onUnmounted(() => {
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
-      <div v-if="open" class="fixed inset-0 z-40 bg-black/50" aria-hidden="true" @click="handleClose" />
+      <div v-if="open" class="fixed inset-0 z-40 bg-black/50" aria-hidden="true" />
     </Transition>
 
     <Transition
@@ -67,8 +67,9 @@ onUnmounted(() => {
         role="dialog"
         aria-modal="true"
         :aria-labelledby="title ? 'modal-title' : undefined"
+        @click.self="handleClose"
       >
-        <div :class="['relative w-full bg-full-white rounded-xl border border-sparkling-silver shadow-lg overflow-hidden', sizeClass]" @click.stop>
+        <div :class="['relative w-full bg-full-white rounded-xl border border-sparkling-silver shadow-lg overflow-hidden', sizeClass]">
           <!-- Header -->
           <div v-if="title || closable" class="flex items-center justify-between px-5 py-4 border-b border-sparkling-silver">
             <h2 v-if="title" id="modal-title" class="text-base font-semibold text-casual-navy">{{ title }}</h2>

@@ -10,4 +10,5 @@ export * from './expense';
 export * from './maintenance';
 export * from './product';
 export * from './sale';
+export * from './street';
 export * from './vehicle';

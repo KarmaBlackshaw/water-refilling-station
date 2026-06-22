@@ -143,6 +143,20 @@ Never write a `BaseTable` `:columns="[...]"` array literal inline in the templat
 - Bind plainly: `<BaseTable :columns="columns" ... />`.
 - This rule generalizes: no inline literal arrays/objects for any prop config (`columns`, menus, tabs, options) in the template — hoist to a script `const` or `computed`. Inline closures for `@event` handlers are still fine.
 
+### Page design — component-first, logic stays in the page
+
+When designing or refactoring a page/route view, split the UI into focused presentational components and keep the page's own data-load / mutation / modal-state logic inline in the page's `<script setup>`. Do NOT extract page-specific logic into bespoke composables.
+
+**Why:** A route view's job is composition. Splitting the template into components (each with one responsibility) is the real maintainability win; it makes sections reusable, testable, and keeps the page readable. But page-specific glue (the `useAsync` load, save/delete handlers, which modal is open) is not reused anywhere — wrapping it in a `useXxx` composable is premature abstraction (YAGNI) and just adds indirection. Composables are reserved for logic that is **generic, genuinely shared across features, or very long-form**. This was an explicit user preference (see the `customers/[id].vue` refactor).
+
+**How to apply:**
+- Draw a quick component map first: one sentence of responsibility per child. The page is the composition surface; feature UI lives in children.
+- Extract each distinct UI section (header, each tab, list, footer) into its own `XxxDetail*` / `XxxSection*` component under `src/components/<Domain>/`. Name children to avoid clashes with sibling features.
+- Data flow is **props down, events up**: children are presentational and `emit('edit' | 'delete' | 'submit', …)`; the page owns the confirm dialog, persistence, and reload. Children never fetch or persist.
+- Keep `useAsync`, derived `computed`s, mutation handlers, and modal `ref`s in the page `<script setup>`.
+- Reach for a NEW composable only when the logic is reusable/shared/very-long-form — not just to slim the page. Already-shared composables (`useAsync`, `useConfirm`, `useToast`, `storeToRefs`) are always fine.
+- Derive view-row types on the service (`NonNullable<Awaited<ReturnType<typeof fn>>['data']>[number]`) and import them in components — fix types at the source, never `as`/`any`.
+
 ### Prefer `ref<T>()` over `ref<T | null>(null)` for local UI sentinels
 
 When a ref represents "no current selection" (modal editing target, delete-confirm target, transient form row), use `ref<T>()` — the initial value is `undefined`, which already means absence.

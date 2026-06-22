@@ -2,6 +2,8 @@
 import type { ContainerType } from '@/types/database';
 import { formatMoney, parseMoney } from '@/helpers/money';
 
+defineOptions({ name: 'ProductContainerTypeFormModal' });
+
 const open = defineModel<boolean>('open', { required: true });
 
 const { containerType, saving } = defineProps<{

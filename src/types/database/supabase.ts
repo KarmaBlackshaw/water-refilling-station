@@ -1761,6 +1761,60 @@ export type Database = {
           },
         ];
       };
+      streets: {
+        Row: {
+          barangay: string;
+          city: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          deleted_by: string | null;
+          id: string;
+          lat: number | null;
+          lng: number | null;
+          name: string;
+        };
+        Insert: {
+          barangay: string;
+          city: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          id?: string;
+          lat?: number | null;
+          lng?: number | null;
+          name: string;
+        };
+        Update: {
+          barangay?: string;
+          city?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          id?: string;
+          lat?: number | null;
+          lng?: number | null;
+          name?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'streets_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'streets_deleted_by_fkey';
+            columns: ['deleted_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       tenants: {
         Row: {
           created_at: string;

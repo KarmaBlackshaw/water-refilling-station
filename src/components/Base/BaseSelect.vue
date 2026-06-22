@@ -2,7 +2,7 @@
 import debounce from 'lodash/debounce';
 import type { Option } from '@/types';
 
-const model = defineModel<string | number | null>({ required: true });
+const model = defineModel<string | number | null | undefined>({ required: true });
 
 const {
   options,
@@ -15,6 +15,7 @@ const {
   required = false,
   searchable = false,
   remote = false,
+  creatable = false,
   loading = false,
   searchDebounce = 300,
   id,
@@ -29,6 +30,7 @@ const {
   required?: boolean;
   searchable?: boolean;
   remote?: boolean;
+  creatable?: boolean;
   loading?: boolean;
   searchDebounce?: number;
   id?: string;
@@ -36,6 +38,7 @@ const {
 
 const emit = defineEmits<{
   search: [query: string];
+  create: [name: string];
 }>();
 
 const { BUTTON_REF, POPPER_REF, show, hide, toggle, isVisible } = useFloat({
@@ -64,6 +67,21 @@ const filteredOptions = computed(() => {
 
   return options.filter((o) => o.label.toLowerCase().includes(q));
 });
+
+const normalizedQuery = computed(() => searchQuery.value.trim());
+
+const canCreate = computed(
+  () => creatable && normalizedQuery.value.length > 0 && !options.some((o) => o.label.toLowerCase() === normalizedQuery.value.toLowerCase()),
+);
+
+function emitCreate() {
+  if (!canCreate.value) {
+    return;
+  }
+
+  emit('create', normalizedQuery.value);
+  hide();
+}
 
 const activeIndex = ref(-1);
 
@@ -168,6 +186,8 @@ function onKeydown(event: KeyboardEvent) {
         show();
       } else if (activeIndex.value >= 0) {
         selectAt(activeIndex.value);
+      } else if (canCreate.value) {
+        emitCreate();
       }
 
       break;
@@ -274,8 +294,18 @@ function onTriggerClick() {
             >
               {{ option.label }}
             </li>
-            <li v-if="filteredOptions.length === 0" class="px-3 py-2 text-oslo">
+            <li v-if="filteredOptions.length === 0 && !canCreate" class="px-3 py-2 text-oslo">
               {{ searchable && searchQuery ? 'No matches' : 'No options' }}
+            </li>
+            <li
+              v-if="canCreate"
+              role="option"
+              :aria-selected="false"
+              class="flex cursor-pointer items-center gap-1 rounded px-3 py-2 font-medium text-tampa hover:bg-tampa/10"
+              @click="emitCreate"
+            >
+              <IconPlus class="size-4 shrink-0" />
+              Add &ldquo;{{ normalizedQuery }}&rdquo;
             </li>
           </template>
         </ul>

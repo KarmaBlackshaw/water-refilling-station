@@ -52,6 +52,7 @@ declare global {
   const createReusableTemplate: typeof import('@vueuse/core').createReusableTemplate
   const createSalaryRecord: typeof import('./services/employees').createSalaryRecord
   const createSharedComposable: typeof import('@vueuse/core').createSharedComposable
+  const createStreet: typeof import('./services/streets').createStreet
   const createTask: typeof import('./services/maintenance').createTask
   const createTemplate: typeof import('./services/bookings').createTemplate
   const createTemplatePromise: typeof import('@vueuse/core').createTemplatePromise
@@ -131,6 +132,7 @@ declare global {
   const getRiderJugsDelivered: typeof import('./services/employees').getRiderJugsDelivered
   const getSale: typeof import('./services/sales').getSale
   const getSales: typeof import('./services/sales').getSales
+  const getStreets: typeof import('./services/streets').getStreets
   const getUpcomingBookingCount: typeof import('./services/dashboard').getUpcomingBookingCount
   const getVehicles: typeof import('./services/vehicles').getVehicles
   const getWorkdays: typeof import('./helpers/workday').getWorkdays
@@ -168,6 +170,7 @@ declare global {
   const listRiders: typeof import('./services/areas').listRiders
   const listSalaryRecords: typeof import('./services/employees').listSalaryRecords
   const listSales: typeof import('./services/sales').listSales
+  const listStreetsInBbox: typeof import('./helpers/geocode').listStreetsInBbox
   const listTasks: typeof import('./services/maintenance').listTasks
   const listTemplates: typeof import('./services/bookings').listTemplates
   const listTopRiders: typeof import('./services/deliveries').listTopRiders
@@ -338,6 +341,9 @@ declare global {
   const useCssVar: typeof import('@vueuse/core').useCssVar
   const useCssVars: typeof import('vue').useCssVars
   const useCurrentElement: typeof import('@vueuse/core').useCurrentElement
+  const useCustomerAddressMutations: typeof import('./composables/useCustomerAddressMutations').useCustomerAddressMutations
+  const useCustomerDetail: typeof import('./composables/useCustomerDetail').useCustomerDetail
+  const useCustomerPriceOverrideMutations: typeof import('./composables/useCustomerPriceOverrideMutations').useCustomerPriceOverrideMutations
   const useCustomerStaleness: typeof import('./composables/useCustomerStaleness').useCustomerStaleness
   const useCycleList: typeof import('@vueuse/core').useCycleList
   const useDark: typeof import('@vueuse/core').useDark
@@ -518,13 +524,13 @@ declare global {
   export type { DateInput } from './helpers/date'
   import('./helpers/date')
   // @ts-ignore
-  export type { GeoFeature } from './helpers/geocode'
+  export type { Bbox, GeoFeature } from './helpers/geocode'
   import('./helpers/geocode')
   // @ts-ignore
   export type { BookingRow, TemplateRow } from './services/bookings'
   import('./services/bookings')
   // @ts-ignore
-  export type { CustomerWithArea, MapAddrRow, CustomerDetail, Customer, CustomerAddress, CustomerPriceOverride } from './services/customers'
+  export type { CustomerWithArea, MapAddrRow, CustomerDetail, CustomerAddressRow, CustomerPriceOverrideWithRels, CustomerSaleWithRels, Customer, CustomerAddress, CustomerPriceOverride } from './services/customers'
   import('./services/customers')
   // @ts-ignore
   export type { DeliverySaleRow, TopRiderRow } from './services/deliveries'
@@ -545,7 +551,7 @@ declare global {
   export type { SaleWithCustomer, SaleDetail } from './services/sales'
   import('./services/sales')
   // @ts-ignore
-  export type { CustomerForm } from './constants/customer'
+  export type { CustomerForm, AddressFields } from './constants/customer'
   import('./constants/customer')
   // @ts-ignore
   export type { SidebarBadgeKey, SidebarNavItem } from './constants/sidebarNav'
@@ -600,6 +606,7 @@ declare module 'vue' {
     readonly createReusableTemplate: UnwrapRef<typeof import('@vueuse/core')['createReusableTemplate']>
     readonly createSalaryRecord: UnwrapRef<typeof import('./services/employees')['createSalaryRecord']>
     readonly createSharedComposable: UnwrapRef<typeof import('@vueuse/core')['createSharedComposable']>
+    readonly createStreet: UnwrapRef<typeof import('./services/streets')['createStreet']>
     readonly createTask: UnwrapRef<typeof import('./services/maintenance')['createTask']>
     readonly createTemplate: UnwrapRef<typeof import('./services/bookings')['createTemplate']>
     readonly createTemplatePromise: UnwrapRef<typeof import('@vueuse/core')['createTemplatePromise']>
@@ -669,6 +676,7 @@ declare module 'vue' {
     readonly getPeriodDates: UnwrapRef<typeof import('./services/payroll')['getPeriodDates']>
     readonly getRiderJugsDelivered: UnwrapRef<typeof import('./services/employees')['getRiderJugsDelivered']>
     readonly getSale: UnwrapRef<typeof import('./services/sales')['getSale']>
+    readonly getStreets: UnwrapRef<typeof import('./services/streets')['getStreets']>
     readonly getUpcomingBookingCount: UnwrapRef<typeof import('./services/dashboard')['getUpcomingBookingCount']>
     readonly getWorkdays: UnwrapRef<typeof import('./helpers/workday')['getWorkdays']>
     readonly h: UnwrapRef<typeof import('vue')['h']>
@@ -765,7 +773,6 @@ declare module 'vue' {
     readonly resolveRef: UnwrapRef<typeof import('@vueuse/core')['resolveRef']>
     readonly searchBarangays: UnwrapRef<typeof import('./helpers/geocode')['searchBarangays']>
     readonly searchCities: UnwrapRef<typeof import('./helpers/geocode')['searchCities']>
-    readonly searchStreets: UnwrapRef<typeof import('./helpers/geocode')['searchStreets']>
     readonly setActivePinia: UnwrapRef<typeof import('pinia')['setActivePinia']>
     readonly setMapStoreSuffix: UnwrapRef<typeof import('pinia')['setMapStoreSuffix']>
     readonly shallowReactive: UnwrapRef<typeof import('vue')['shallowReactive']>

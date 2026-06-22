@@ -5,6 +5,9 @@ import type { Customer, CustomerAddress, CustomerPriceOverride, CustomerType } f
 export type CustomerWithArea = NonNullable<Awaited<ReturnType<typeof listCustomers>>['data']>[number];
 export type MapAddrRow = NonNullable<Awaited<ReturnType<typeof listAddressesForMap>>['data']>[number];
 export type CustomerDetail = NonNullable<Awaited<ReturnType<typeof getCustomer>>['data']>;
+export type CustomerAddressRow = NonNullable<Awaited<ReturnType<typeof listAddresses>>['data']>[number];
+export type CustomerPriceOverrideWithRels = NonNullable<Awaited<ReturnType<typeof listPriceOverrides>>['data']>[number];
+export type CustomerSaleWithRels = NonNullable<Awaited<ReturnType<typeof listCustomerSales>>['data']>[number];
 
 export function listCustomers(tenantId: string, branchId: string) {
   return supabase

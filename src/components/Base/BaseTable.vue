@@ -32,12 +32,19 @@ const props = withDefaults(
 
 const rows = computed<TRow[]>(() => (props.data ?? []).filter((r): r is TRow => r != null));
 
+const emit = defineEmits<{
+  'row-click': [row: TRow, index: number];
+}>();
+
 defineSlots<{
   empty(): unknown;
   loading(): unknown;
   [key: `cell-${string}`]: (props: { row: TRow; value: unknown; index: number }) => unknown;
   [key: `header-${string}`]: (props: { column: TableColumn<TRow> }) => unknown;
 }>();
+
+const instance = getCurrentInstance();
+const clickable = computed(() => Boolean(instance?.vnode.props?.onRowClick));
 
 function resolveKey(row: TRow, index: number): string | number {
   const rk = props.rowKey;
@@ -116,7 +123,13 @@ function alignClass(a?: TableColumn<TRow>['align']): string {
             </slot>
           </td>
         </tr>
-        <tr v-for="(row, index) in rows" v-else :key="resolveKey(row, index)" class="hover:bg-bright-chrome transition-colors">
+        <tr
+          v-for="(row, index) in rows"
+          v-else
+          :key="resolveKey(row, index)"
+          :class="['hover:bg-bright-chrome transition-colors', clickable && 'cursor-pointer']"
+          @click="clickable && emit('row-click', row, index)"
+        >
           <td
             v-for="col in columns"
             :key="col.key"

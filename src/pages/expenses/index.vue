@@ -46,7 +46,7 @@ const filterDefinitions = computed<FilterDefinition[]>(() => [
   { key: 'category', label: 'Category', field: 'select', options: categoryOptions.value },
 ]);
 
-type ExpenseRow = Awaited<ReturnType<typeof listExpenses>>[number];
+type ExpenseRow = Awaited<ReturnType<typeof listExpenses>>['rows'][number];
 
 const {
   data: expenses,
@@ -55,7 +55,7 @@ const {
 } = useAsync(
   () => {
     if (!tenantId.value || !branchId.value) {
-      return Promise.resolve([]);
+      return Promise.resolve({ rows: [], count: 0 });
     }
 
     return listExpenses({
@@ -69,17 +69,17 @@ const {
   {
     immediate: true,
     watch: filterValues,
-    defaultValue: [],
+    defaultValue: { rows: [], count: 0 },
     disableResetValue: true,
   },
 );
 
-const totalCentavos = computed(() => expenses.value?.reduce((s, e) => s + e.amount_centavos, 0) ?? 0);
+const totalCentavos = computed(() => expenses.value?.rows.reduce((s, e) => s + e.amount_centavos, 0) ?? 0);
 
 const byCategory = computed(() => {
   const map: Partial<Record<ExpenseCategory, number>> = {};
 
-  for (const e of expenses.value ?? []) {
+  for (const e of expenses.value?.rows ?? []) {
     map[e.category] = (map[e.category] ?? 0) + e.amount_centavos;
   }
   return map;
@@ -153,10 +153,10 @@ const filteredExpenses = computed(() => {
   const q = search.value.trim().toLowerCase();
 
   if (!q) {
-    return expenses.value ?? [];
+    return expenses.value?.rows ?? [];
   }
 
-  return (expenses.value ?? []).filter((e) => {
+  return (expenses.value?.rows ?? []).filter((e) => {
     if (e.description?.toLowerCase().includes(q)) {
       return true;
     }

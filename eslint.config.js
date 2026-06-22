@@ -102,13 +102,13 @@ export default defineConfigWithVueTs(
         'vue/component-name-in-template-casing': ['error', 'PascalCase', { registeredComponentsOnly: false }],
         'vue/custom-event-name-casing': ['error', 'kebab-case', { ignores: ['/^[a-z]+(?:-[a-z]+)*:[a-z]+(?:-[a-z]+)*$/u'] }],
         'vue/html-end-tags': 'error',
-        'vue/match-component-file-name': [
-          'error',
-          {
-            extensions: ['vue'],
-            shouldMatchCase: false,
-          },
-        ],
+        /**
+         * Disabled: with unplugin-vue-components directoryAsNamespace, a component's
+         * canonical identity is the path-derived tag (e.g. CustomerDetailOverview),
+         * intentionally distinct from its short filename (Overview.vue). The
+         * defineOptions name mirrors that tag, so filename-match is no longer correct.
+         */
+        'vue/match-component-file-name': 'off',
         'vue/no-v-html': 'off',
         'vue/require-default-prop': 'off',
         'vue/this-in-template': ['error', 'never'],
