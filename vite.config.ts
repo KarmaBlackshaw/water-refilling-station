@@ -18,7 +18,7 @@ export default defineConfig({
       /* options */
     }),
     vue(),
-    vueDevTools({ launchEditor: 'windsurf' }),
+    vueDevTools({ launchEditor: 'code' }),
     AutoImport({
       imports: ['vue', 'vue-router', 'pinia', '@vueuse/core'],
       dts: 'src/auto-imports.d.ts',

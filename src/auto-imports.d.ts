@@ -6,6 +6,7 @@
 // biome-ignore lint: disable
 export {}
 declare global {
+  const CUSTOMER_TYPE_OPTIONS: typeof import('./constants/customer').CUSTOMER_TYPE_OPTIONS
   const EffectScope: typeof import('vue').EffectScope
   const MANILA_TZ: typeof import('./helpers/date').MANILA_TZ
   const ROUTES: typeof import('./constants/routes').ROUTES
@@ -103,27 +104,35 @@ declare global {
   const getActivePinia: typeof import('pinia').getActivePinia
   const getActiveRiderForArea: typeof import('./services/areas').getActiveRiderForArea
   const getAddressPhotoUrl: typeof import('./helpers/storage').getAddressPhotoUrl
+  const getAreas: typeof import('./services/areas').getAreas
   const getAttendance: typeof import('./services/employees').getAttendance
+  const getBookings: typeof import('./services/bookings').getBookings
   const getContainerBalance: typeof import('./services/customers').getContainerBalance
+  const getContainerTypes: typeof import('./services/products').getContainerTypes
   const getCurrentInstance: typeof import('vue').getCurrentInstance
   const getCurrentScope: typeof import('vue').getCurrentScope
   const getCurrentUserId: typeof import('./helpers/supabase').getCurrentUserId
   const getCurrentWatcher: typeof import('vue').getCurrentWatcher
   const getCustomer: typeof import('./services/customers').getCustomer
+  const getCustomers: typeof import('./services/customers').getCustomers
   const getDaysSinceOrder: typeof import('./services/customers').getDaysSinceOrder
   const getDaysUntilBilling: typeof import('./helpers/date').getDaysUntilBilling
   const getEmployee: typeof import('./services/employees').getEmployee
   const getEmployees: typeof import('./services/employees').getEmployees
   const getErrorMessage: typeof import('./helpers/errors').getErrorMessage
   const getExpenseSummary: typeof import('./services/expenses').getExpenseSummary
+  const getExpenses: typeof import('./services/expenses').getExpenses
   const getLastOrderDate: typeof import('./services/customers').getLastOrderDate
   const getMaintenanceAlertCount: typeof import('./services/dashboard').getMaintenanceAlertCount
   const getNextBillingDate: typeof import('./helpers/date').getNextBillingDate
   const getPendingDeliveryCount: typeof import('./services/dashboard').getPendingDeliveryCount
   const getPeriodDates: typeof import('./services/payroll').getPeriodDates
+  const getProducts: typeof import('./services/products').getProducts
   const getRiderJugsDelivered: typeof import('./services/employees').getRiderJugsDelivered
   const getSale: typeof import('./services/sales').getSale
+  const getSales: typeof import('./services/sales').getSales
   const getUpcomingBookingCount: typeof import('./services/dashboard').getUpcomingBookingCount
+  const getVehicles: typeof import('./services/vehicles').getVehicles
   const getWorkdays: typeof import('./helpers/workday').getWorkdays
   const h: typeof import('vue').h
   const ignorableWatch: typeof import('@vueuse/core').ignorableWatch
@@ -148,7 +157,9 @@ declare global {
   const listCoverageRecords: typeof import('./services/areas').listCoverageRecords
   const listCustomerSales: typeof import('./services/customers').listCustomerSales
   const listCustomers: typeof import('./services/customers').listCustomers
+  const listDeliveries: typeof import('./services/deliveries').listDeliveries
   const listDeliverySales: typeof import('./services/deliveries').listDeliverySales
+  const listEmployees: typeof import('./services/employees').listEmployees
   const listExpenses: typeof import('./services/expenses').listExpenses
   const listLogs: typeof import('./services/maintenance').listLogs
   const listPriceOverrides: typeof import('./services/customers').listPriceOverrides
@@ -519,7 +530,7 @@ declare global {
   export type { DeliverySaleRow, TopRiderRow } from './services/deliveries'
   import('./services/deliveries')
   // @ts-ignore
-  export type { ExpenseWithPayee } from './services/expenses'
+  export type { ExpenseWithPayee, ExpenseSearchRow } from './services/expenses'
   import('./services/expenses')
   // @ts-ignore
   export type { MaintenanceTaskRow } from './services/maintenance'
@@ -534,6 +545,9 @@ declare global {
   export type { SaleWithCustomer, SaleDetail } from './services/sales'
   import('./services/sales')
   // @ts-ignore
+  export type { CustomerForm } from './constants/customer'
+  import('./constants/customer')
+  // @ts-ignore
   export type { SidebarBadgeKey, SidebarNavItem } from './constants/sidebarNav'
   import('./constants/sidebarNav')
 }
@@ -543,6 +557,7 @@ import { UnwrapRef } from 'vue'
 declare module 'vue' {
   interface GlobalComponents {}
   interface ComponentCustomProperties {
+    readonly CUSTOMER_TYPE_OPTIONS: UnwrapRef<typeof import('./constants/customer')['CUSTOMER_TYPE_OPTIONS']>
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
     readonly MANILA_TZ: UnwrapRef<typeof import('./helpers/date')['MANILA_TZ']>
     readonly ROUTES: UnwrapRef<typeof import('./constants/routes')['ROUTES']>
@@ -646,6 +661,7 @@ declare module 'vue' {
     readonly getEmployees: UnwrapRef<typeof import('./services/employees')['getEmployees']>
     readonly getErrorMessage: UnwrapRef<typeof import('./helpers/errors')['getErrorMessage']>
     readonly getExpenseSummary: UnwrapRef<typeof import('./services/expenses')['getExpenseSummary']>
+    readonly getExpenses: UnwrapRef<typeof import('./services/expenses')['getExpenses']>
     readonly getLastOrderDate: UnwrapRef<typeof import('./services/customers')['getLastOrderDate']>
     readonly getMaintenanceAlertCount: UnwrapRef<typeof import('./services/dashboard')['getMaintenanceAlertCount']>
     readonly getNextBillingDate: UnwrapRef<typeof import('./helpers/date')['getNextBillingDate']>
