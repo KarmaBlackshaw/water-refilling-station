@@ -12,13 +12,11 @@ declare global {
   const ROUTES: typeof import('./constants/routes').ROUTES
   const SIDEBAR_GENERAL_NAV: typeof import('./constants/sidebarNav').SIDEBAR_GENERAL_NAV
   const SIDEBAR_MAIN_NAV: typeof import('./constants/sidebarNav').SIDEBAR_MAIN_NAV
-  const T: typeof import('./composables/useAsync').T
   const acceptHMRUpdate: typeof import('pinia').acceptHMRUpdate
   const addDays: typeof import('./helpers/date').addDays
   const asyncComputed: typeof import('@vueuse/core').asyncComputed
   const autoResetRef: typeof import('@vueuse/core').autoResetRef
   const avatarColor: typeof import('./helpers/avatar').avatarColor
-  const billingService: typeof import('./services/billing').billingService
   const cancelBooking: typeof import('./services/bookings').cancelBooking
   const computeIncome: typeof import('./services/payroll').computeIncome
   const computeNextDue: typeof import('./services/maintenance').computeNextDue
@@ -27,7 +25,6 @@ declare global {
   const computedEager: typeof import('@vueuse/core').computedEager
   const computedInject: typeof import('@vueuse/core').computedInject
   const computedWithControl: typeof import('@vueuse/core').computedWithControl
-  const contractsService: typeof import('./services/contracts').contractsService
   const controlledComputed: typeof import('@vueuse/core').controlledComputed
   const controlledRef: typeof import('@vueuse/core').controlledRef
   const countWorkdays: typeof import('./helpers/workday').countWorkdays
@@ -95,27 +92,19 @@ declare global {
   const formatMonthShortDay: typeof import('./helpers/date').formatMonthShortDay
   const formatWeekdayShort: typeof import('./helpers/date').formatWeekdayShort
   const fulfillBooking: typeof import('./services/bookings').fulfillBooking
-  const generateBillPdf: typeof import('./lib/pdf').generateBillPdf
-  const generateBillPdfById: typeof import('./lib/pdf').generateBillPdfById
-  const generateContractPdf: typeof import('./lib/pdf').generateContractPdf
-  const generateContractPdfAndUpload: typeof import('./lib/pdf').generateContractPdfAndUpload
   const geocodeBarangay: typeof import('./helpers/geocode').geocodeBarangay
   const getARBalance: typeof import('./services/customers').getARBalance
   const getActiveCustomerCount: typeof import('./services/dashboard').getActiveCustomerCount
   const getActivePinia: typeof import('pinia').getActivePinia
   const getActiveRiderForArea: typeof import('./services/areas').getActiveRiderForArea
   const getAddressPhotoUrl: typeof import('./helpers/storage').getAddressPhotoUrl
-  const getAreas: typeof import('./services/areas').getAreas
   const getAttendance: typeof import('./services/employees').getAttendance
-  const getBookings: typeof import('./services/bookings').getBookings
   const getContainerBalance: typeof import('./services/customers').getContainerBalance
-  const getContainerTypes: typeof import('./services/products').getContainerTypes
   const getCurrentInstance: typeof import('vue').getCurrentInstance
   const getCurrentScope: typeof import('vue').getCurrentScope
   const getCurrentUserId: typeof import('./helpers/supabase').getCurrentUserId
   const getCurrentWatcher: typeof import('vue').getCurrentWatcher
   const getCustomer: typeof import('./services/customers').getCustomer
-  const getCustomers: typeof import('./services/customers').getCustomers
   const getDaysSinceOrder: typeof import('./services/customers').getDaysSinceOrder
   const getDaysUntilBilling: typeof import('./helpers/date').getDaysUntilBilling
   const getEmployee: typeof import('./services/employees').getEmployee
@@ -128,13 +117,10 @@ declare global {
   const getNextBillingDate: typeof import('./helpers/date').getNextBillingDate
   const getPendingDeliveryCount: typeof import('./services/dashboard').getPendingDeliveryCount
   const getPeriodDates: typeof import('./services/payroll').getPeriodDates
-  const getProducts: typeof import('./services/products').getProducts
   const getRiderJugsDelivered: typeof import('./services/employees').getRiderJugsDelivered
   const getSale: typeof import('./services/sales').getSale
-  const getSales: typeof import('./services/sales').getSales
   const getStreets: typeof import('./services/streets').getStreets
   const getUpcomingBookingCount: typeof import('./services/dashboard').getUpcomingBookingCount
-  const getVehicles: typeof import('./services/vehicles').getVehicles
   const getWorkdays: typeof import('./helpers/workday').getWorkdays
   const h: typeof import('vue').h
   const ignorableWatch: typeof import('@vueuse/core').ignorableWatch
@@ -159,9 +145,7 @@ declare global {
   const listCoverageRecords: typeof import('./services/areas').listCoverageRecords
   const listCustomerSales: typeof import('./services/customers').listCustomerSales
   const listCustomers: typeof import('./services/customers').listCustomers
-  const listDeliveries: typeof import('./services/deliveries').listDeliveries
   const listDeliverySales: typeof import('./services/deliveries').listDeliverySales
-  const listEmployees: typeof import('./services/employees').listEmployees
   const listExpenses: typeof import('./services/expenses').listExpenses
   const listLogs: typeof import('./services/maintenance').listLogs
   const listPriceOverrides: typeof import('./services/customers').listPriceOverrides
@@ -170,7 +154,6 @@ declare global {
   const listRiders: typeof import('./services/areas').listRiders
   const listSalaryRecords: typeof import('./services/employees').listSalaryRecords
   const listSales: typeof import('./services/sales').listSales
-  const listStreetsInBbox: typeof import('./helpers/geocode').listStreetsInBbox
   const listTasks: typeof import('./services/maintenance').listTasks
   const listTemplates: typeof import('./services/bookings').listTemplates
   const listTopRiders: typeof import('./services/deliveries').listTopRiders
@@ -210,8 +193,6 @@ declare global {
   const onWatcherCleanup: typeof import('vue').onWatcherCleanup
   const parseMoney: typeof import('./helpers/money').parseMoney
   const pausableWatch: typeof import('@vueuse/core').pausableWatch
-  const paymentsService: typeof import('./services/payments').paymentsService
-  const propertiesService: typeof import('./services/properties').propertiesService
   const provide: typeof import('vue').provide
   const provideLocal: typeof import('@vueuse/core').provideLocal
   const reactify: typeof import('@vueuse/core').reactify
@@ -235,10 +216,8 @@ declare global {
   const resolveRef: typeof import('@vueuse/core').resolveRef
   const searchBarangays: typeof import('./helpers/geocode').searchBarangays
   const searchCities: typeof import('./helpers/geocode').searchCities
-  const searchStreets: typeof import('./helpers/geocode').searchStreets
   const setActivePinia: typeof import('pinia').setActivePinia
   const setMapStoreSuffix: typeof import('pinia').setMapStoreSuffix
-  const settingsService: typeof import('./services/settings').settingsService
   const shallowReactive: typeof import('vue').shallowReactive
   const shallowReadonly: typeof import('vue').shallowReadonly
   const shallowRef: typeof import('vue').shallowRef
@@ -258,12 +237,9 @@ declare global {
   const subtractDays: typeof import('./helpers/date').subtractDays
   const supabase: typeof import('./helpers/supabase').supabase
   const supabaseAdmin: typeof import('./helpers/supabaseAdmin').supabaseAdmin
-  const supabaseKey: typeof import('./lib/supabase').supabaseKey
   const syncRef: typeof import('@vueuse/core').syncRef
   const syncRefs: typeof import('@vueuse/core').syncRefs
   const templateRef: typeof import('@vueuse/core').templateRef
-  const tenantPortalService: typeof import('./services/tenantPortal').tenantPortalService
-  const tenantsService: typeof import('./services/tenants').tenantsService
   const throttledRef: typeof import('@vueuse/core').throttledRef
   const throttledWatch: typeof import('@vueuse/core').throttledWatch
   const toISODate: typeof import('./helpers/date').toISODate
@@ -280,7 +256,6 @@ declare global {
   const tryOnScopeDispose: typeof import('@vueuse/core').tryOnScopeDispose
   const tryOnUnmounted: typeof import('@vueuse/core').tryOnUnmounted
   const tryToCatch: typeof import('./composables/useAsync').tryToCatch
-  const unitsService: typeof import('./services/units').unitsService
   const unref: typeof import('vue').unref
   const unrefElement: typeof import('@vueuse/core').unrefElement
   const until: typeof import('@vueuse/core').until
@@ -321,8 +296,6 @@ declare global {
   const useAuthStore: typeof import('./stores/auth').useAuthStore
   const useBase64: typeof import('@vueuse/core').useBase64
   const useBattery: typeof import('@vueuse/core').useBattery
-  const useBillingCreateForm: typeof import('./composables/useBillingCreateForm').useBillingCreateForm
-  const useBillingStore: typeof import('./stores/billing').useBillingStore
   const useBluetooth: typeof import('@vueuse/core').useBluetooth
   const useBreakpoints: typeof import('@vueuse/core').useBreakpoints
   const useBroadcastChannel: typeof import('@vueuse/core').useBroadcastChannel
@@ -341,10 +314,6 @@ declare global {
   const useCssVar: typeof import('@vueuse/core').useCssVar
   const useCssVars: typeof import('vue').useCssVars
   const useCurrentElement: typeof import('@vueuse/core').useCurrentElement
-  const useCustomerAddressMutations: typeof import('./composables/useCustomerAddressMutations').useCustomerAddressMutations
-  const useCustomerDetail: typeof import('./composables/useCustomerDetail').useCustomerDetail
-  const useCustomerPriceOverrideMutations: typeof import('./composables/useCustomerPriceOverrideMutations').useCustomerPriceOverrideMutations
-  const useCustomerStaleness: typeof import('./composables/useCustomerStaleness').useCustomerStaleness
   const useCycleList: typeof import('@vueuse/core').useCycleList
   const useDark: typeof import('@vueuse/core').useDark
   const useDashboardCounters: typeof import('./composables/useDashboardCounters').useDashboardCounters
@@ -425,8 +394,6 @@ declare global {
   const usePreferredReducedMotion: typeof import('@vueuse/core').usePreferredReducedMotion
   const usePreferredReducedTransparency: typeof import('@vueuse/core').usePreferredReducedTransparency
   const usePrevious: typeof import('@vueuse/core').usePrevious
-  const usePriceResolver: typeof import('./composables/usePriceResolver').usePriceResolver
-  const usePropertiesStore: typeof import('./stores/properties').usePropertiesStore
   const useRafFn: typeof import('@vueuse/core').useRafFn
   const useRefHistory: typeof import('@vueuse/core').useRefHistory
   const useResizeObserver: typeof import('@vueuse/core').useResizeObserver
@@ -439,9 +406,7 @@ declare global {
   const useScroll: typeof import('@vueuse/core').useScroll
   const useScrollLock: typeof import('@vueuse/core').useScrollLock
   const useSessionStorage: typeof import('@vueuse/core').useSessionStorage
-  const useSettingsStore: typeof import('./stores/settings').useSettingsStore
   const useShare: typeof import('@vueuse/core').useShare
-  const useSidebarExpanded: typeof import('./composables/useSidebarExpanded').useSidebarExpanded
   const useSlots: typeof import('vue').useSlots
   const useSorted: typeof import('@vueuse/core').useSorted
   const useSpeechRecognition: typeof import('@vueuse/core').useSpeechRecognition
@@ -454,14 +419,10 @@ declare global {
   const useSwipe: typeof import('@vueuse/core').useSwipe
   const useTemplateRef: typeof import('vue').useTemplateRef
   const useTemplateRefsList: typeof import('@vueuse/core').useTemplateRefsList
-  const useTenantCreateForm: typeof import('./composables/useTenantCreateForm').useTenantCreateForm
-  const useTenantPortalStore: typeof import('./stores/tenantPortal').useTenantPortalStore
   const useTenantStore: typeof import('./stores/tenant').useTenantStore
-  const useTenantsStore: typeof import('./stores/tenants').useTenantsStore
   const useTextDirection: typeof import('@vueuse/core').useTextDirection
   const useTextSelection: typeof import('@vueuse/core').useTextSelection
   const useTextareaAutosize: typeof import('@vueuse/core').useTextareaAutosize
-  const useThemeStore: typeof import('./stores/theme').useThemeStore
   const useThrottle: typeof import('@vueuse/core').useThrottle
   const useThrottleFn: typeof import('@vueuse/core').useThrottleFn
   const useThrottledRefHistory: typeof import('@vueuse/core').useThrottledRefHistory
@@ -477,10 +438,8 @@ declare global {
   const useToast: typeof import('./composables/useToast').useToast
   const useToggle: typeof import('@vueuse/core').useToggle
   const useTransition: typeof import('@vueuse/core').useTransition
-  const useUnitsStore: typeof import('./stores/units').useUnitsStore
   const useUrlSearchParams: typeof import('@vueuse/core').useUrlSearchParams
   const useUserMedia: typeof import('@vueuse/core').useUserMedia
-  const useUserStore: typeof import('./stores/user').useUserStore
   const useVModel: typeof import('@vueuse/core').useVModel
   const useVModels: typeof import('@vueuse/core').useVModels
   const useVibrate: typeof import('@vueuse/core').useVibrate
@@ -493,7 +452,6 @@ declare global {
   const useWindowFocus: typeof import('@vueuse/core').useWindowFocus
   const useWindowScroll: typeof import('@vueuse/core').useWindowScroll
   const useWindowSize: typeof import('@vueuse/core').useWindowSize
-  const usersService: typeof import('./services/users').usersService
   const voidSale: typeof import('./services/sales').voidSale
   const watch: typeof import('vue').watch
   const watchArray: typeof import('@vueuse/core').watchArray

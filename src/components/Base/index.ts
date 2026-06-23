@@ -19,6 +19,7 @@ export { default as BaseModal } from './BaseModal.vue';
 export { default as BasePagination } from './BasePagination.vue';
 export { default as BaseSearch } from './BaseSearch.vue';
 export { default as BaseSelect } from './BaseSelect.vue';
+export { default as BaseSkeleton } from './BaseSkeleton.vue';
 export { default as BaseSpinner } from './BaseSpinner.vue';
 export { default as BaseTable } from './BaseTable.vue';
 export { default as BaseTableActions } from './BaseTableActions.vue';
