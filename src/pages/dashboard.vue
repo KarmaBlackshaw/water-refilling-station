@@ -183,7 +183,9 @@ const alertTo = computed(() => (counters.maintenanceAlertCount.value > 0 ? '/mai
       </div>
 
       <!-- 3. Map widget (admin only) -->
-      <DashboardMap v-if="userRole === 'admin'" class="h-[400px]" />
+      <div v-if="userRole === 'admin'" class="h-100">
+        <DashboardMap />
+      </div>
 
       <!-- 4. Two-column body -->
       <div class="grid grid-cols-2 gap-4">

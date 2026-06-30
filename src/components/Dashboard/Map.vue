@@ -84,6 +84,7 @@ const areaOptions = computed(() => areas.value.map((a) => ({ label: a.name, valu
 
 const mapEl = ref<HTMLDivElement | null>(null);
 let map: MapboxMap | null = null;
+const resizeObs: ResizeObserver | null = null;
 const markers = new Map<string, MapboxMarker>();
 let fitDone = false;
 
@@ -294,12 +295,17 @@ onMounted(async () => {
     fitToVisible();
   });
 
+  resizeObs = new ResizeObserver(() => map?.resize());
+  resizeObs.observe(mapEl.value!);
+
   watch(visiblePins, () => {
     renderPins(mapbox);
   });
 });
 
 onBeforeUnmount(() => {
+  resizeObs?.disconnect();
+  resizeObs = null;
   map?.remove();
   map = null;
   markers.clear();

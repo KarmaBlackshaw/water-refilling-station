@@ -38,6 +38,20 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/admin/clients/': RouteRecordInfo<
+      '/admin/clients/',
+      '/admin/clients',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/clients/[id]': RouteRecordInfo<
+      '/admin/clients/[id]',
+      '/admin/clients/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/areas/': RouteRecordInfo<
       '/areas/',
       '/areas',
@@ -180,6 +194,18 @@ declare module 'vue-router/auto-routes' {
     'src/pages/index.vue': {
       routes:
         | '/'
+      views:
+        | never
+    }
+    'src/pages/admin/clients/index.vue': {
+      routes:
+        | '/admin/clients/'
+      views:
+        | never
+    }
+    'src/pages/admin/clients/[id].vue': {
+      routes:
+        | '/admin/clients/[id]'
       views:
         | never
     }

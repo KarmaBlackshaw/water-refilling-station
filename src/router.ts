@@ -21,12 +21,27 @@ router.beforeEach(async (to) => {
   }
 
   const publicRoutes: string[] = [ROUTES.LOGIN, ROUTES.FORGOT_PASSWORD, ROUTES.RESET_PASSWORD];
+  const isPublic = publicRoutes.includes(to.path);
+  const isAdminRoute = to.path.startsWith('/admin');
 
-  if (!publicRoutes.includes(to.path) && !auth.isAuthenticated) {
+  if (!isPublic && !auth.isAuthenticated) {
     return ROUTES.LOGIN;
   }
 
-  if (to.path === ROUTES.LOGIN && auth.isAuthenticated) {
+  if (!auth.isAuthenticated) {
+    return;
+  }
+
+  // Authenticated: keep superadmins inside /admin and tenant users out of it.
+  if (to.path === ROUTES.LOGIN) {
+    return auth.isSuperadmin ? ROUTES.ADMIN_CLIENTS : ROUTES.DASHBOARD;
+  }
+
+  if (auth.isSuperadmin && !isAdminRoute && !isPublic) {
+    return ROUTES.ADMIN_CLIENTS;
+  }
+
+  if (!auth.isSuperadmin && isAdminRoute) {
     return ROUTES.DASHBOARD;
   }
 });

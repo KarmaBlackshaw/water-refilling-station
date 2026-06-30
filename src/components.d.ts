@@ -11,6 +11,15 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AdminBranchesCard: typeof import('./components/Admin/BranchesCard.vue')['default']
+    AdminBranchFormModal: typeof import('./components/Admin/BranchFormModal.vue')['default']
+    AdminClientFormModal: typeof import('./components/Admin/ClientFormModal.vue')['default']
+    AdminClientStats: typeof import('./components/Admin/ClientStats.vue')['default']
+    AdminSidebar: typeof import('./components/Admin/Sidebar.vue')['default']
+    AdminTopbar: typeof import('./components/Admin/Topbar.vue')['default']
+    AdminUserFormModal: typeof import('./components/Admin/UserFormModal.vue')['default']
+    AdminUsersCard: typeof import('./components/Admin/UsersCard.vue')['default']
+    AppTopbar: typeof import('./components/AppTopbar.vue')['default']
     AreaCoverageModal: typeof import('./components/Area/CoverageModal.vue')['default']
     AreaFormModal: typeof import('./components/Area/FormModal.vue')['default']
     BaseBadge: typeof import('./components/Base/BaseBadge.vue')['default']
@@ -27,7 +36,8 @@ declare module 'vue' {
     BaseFullPageTabs: typeof import('./components/Base/BaseFullPageTabs.vue')['default']
     BaseFullPageTabsHeader: typeof import('./components/Base/BaseFullPageTabsHeader.vue')['default']
     BaseInput: typeof import('./components/Base/BaseInput.vue')['default']
-    BaseKpiCard: typeof import('./components/Base/BaseKpiCard.vue')['default']
+    BaseKpiCard: typeof import('./components/Base/Kpi/Card.vue')['default']
+    BaseKpiTile: typeof import('./components/Base/Kpi/Tile.vue')['default']
     BaseModal: typeof import('./components/Base/BaseModal.vue')['default']
     BasePagination: typeof import('./components/Base/BasePagination.vue')['default']
     BaseSearch: typeof import('./components/Base/BaseSearch.vue')['default']
@@ -90,6 +100,7 @@ declare module 'vue' {
     IconExpenses: typeof import('./components/Icon/IconExpenses.vue')['default']
     IconFilter: typeof import('./components/Icon/IconFilter.vue')['default']
     IconInbox: typeof import('./components/Icon/IconInbox.vue')['default']
+    IconLogout: typeof import('./components/Icon/IconLogout.vue')['default']
     IconMail: typeof import('./components/Icon/IconMail.vue')['default']
     IconMaintenance: typeof import('./components/Icon/IconMaintenance.vue')['default']
     IconMaximize: typeof import('./components/Icon/IconMaximize.vue')['default']
@@ -120,6 +131,7 @@ declare module 'vue' {
     TheSidebar: typeof import('./components/The/Sidebar.vue')['default']
     TheTopbar: typeof import('./components/The/Topbar.vue')['default']
     TheWaterBlobBackground: typeof import('./components/The/WaterBlobBackground.vue')['default']
+    UserMenu: typeof import('./components/User/Menu.vue')['default']
     VehicleFormModal: typeof import('./components/Vehicle/FormModal.vue')['default']
   }
 }

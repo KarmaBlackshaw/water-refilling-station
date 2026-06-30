@@ -1817,19 +1817,40 @@ export type Database = {
       };
       tenants: {
         Row: {
+          contact_name: string | null;
+          contact_phone: string | null;
           created_at: string;
           id: string;
           name: string;
+          status: Database['public']['Enums']['tenant_status'];
+          subscription_expires_on: string | null;
+          subscription_plan: Database['public']['Enums']['subscription_plan'];
+          subscription_price_centavos: number;
+          subscription_started_on: string;
         };
         Insert: {
+          contact_name?: string | null;
+          contact_phone?: string | null;
           created_at?: string;
           id?: string;
           name: string;
+          status?: Database['public']['Enums']['tenant_status'];
+          subscription_expires_on?: string | null;
+          subscription_plan?: Database['public']['Enums']['subscription_plan'];
+          subscription_price_centavos?: number;
+          subscription_started_on?: string;
         };
         Update: {
+          contact_name?: string | null;
+          contact_phone?: string | null;
           created_at?: string;
           id?: string;
           name?: string;
+          status?: Database['public']['Enums']['tenant_status'];
+          subscription_expires_on?: string | null;
+          subscription_plan?: Database['public']['Enums']['subscription_plan'];
+          subscription_price_centavos?: number;
+          subscription_started_on?: string;
         };
         Relationships: [];
       };
@@ -1967,6 +1988,30 @@ export type Database = {
         Args: { p_branch_id: string; p_tenant_id: string };
         Returns: undefined;
       };
+      my_tenant_access: {
+        Args: Record<PropertyKey, never>;
+        Returns: { blocked: boolean; reason: string }[];
+      };
+      superadmin_tenant_overview: {
+        Args: { p_tenant_id?: string };
+        Returns: {
+          branches_count: number;
+          contact_name: string | null;
+          contact_phone: string | null;
+          created_at: string;
+          customers_count: number;
+          id: string;
+          name: string;
+          revenue_centavos: number;
+          sales_count: number;
+          status: Database['public']['Enums']['tenant_status'];
+          subscription_expires_on: string | null;
+          subscription_plan: Database['public']['Enums']['subscription_plan'];
+          subscription_price_centavos: number;
+          subscription_started_on: string;
+          users_count: number;
+        }[];
+      };
     };
     Enums: {
       attendance_status: 'present' | 'absent';
@@ -1980,6 +2025,8 @@ export type Database = {
       sale_source: 'walk_in' | 'delivery' | 'booking_fulfilled';
       sale_status: 'pending_delivery' | 'completed' | 'void';
       schedule_kind: 'time' | 'usage';
+      subscription_plan: 'monthly' | 'yearly' | 'lifetime';
+      tenant_status: 'active' | 'suspended';
       user_role: 'admin' | 'manager' | 'cashier' | 'rider';
     };
     CompositeTypes: {
@@ -2107,6 +2154,8 @@ export const Constants = {
       sale_source: ['walk_in', 'delivery', 'booking_fulfilled'],
       sale_status: ['pending_delivery', 'completed', 'void'],
       schedule_kind: ['time', 'usage'],
+      subscription_plan: ['monthly', 'yearly', 'lifetime'],
+      tenant_status: ['active', 'suspended'],
       user_role: ['admin', 'manager', 'cashier', 'rider'],
     },
   },

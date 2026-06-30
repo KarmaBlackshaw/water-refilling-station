@@ -75,10 +75,6 @@ const groups = computed(() => {
   return entries.map(([key, val]) => ({ riderId: key, ...val }));
 });
 
-function saleTotal(sale: DeliverySaleRow): number {
-  return sale.lines.reduce((sum, l) => sum + l.quantity * l.unit_price_centavos, 0);
-}
-
 const reconcileOpen = ref(false);
 const reconcileTarget = ref<DeliverySaleRow>();
 const newDeliveryOpen = ref(false);
@@ -159,18 +155,6 @@ function statusVariant(status: string): 'warning' | 'success' | 'default' {
                 <BaseBadge :variant="statusVariant(sale.status)">{{ statusLabel(sale.status) }}</BaseBadge>
               </div>
               <p v-if="sale.address" class="text-xs text-independence">{{ sale.address.label }} — {{ formatAddress(sale.address) }}</p>
-              <ul class="space-y-0.5">
-                <li v-for="line in sale.lines" :key="line.id" class="text-xs text-casual-navy">
-                  {{ line.quantity }}× {{ line.container_type?.name ?? '?' }}
-                  {{ line.product?.name ?? '' }}
-                  <span class="text-independence">
-                    @ <span class="num">{{ formatMoney(line.unit_price_centavos) }}</span>
-                  </span>
-                </li>
-              </ul>
-              <p class="text-sm font-semibold text-casual-navy">
-                Total: <span class="num">{{ formatMoney(saleTotal(sale)) }}</span>
-              </p>
               <p v-if="sale.notes" class="text-xs italic text-independence">{{ sale.notes }}</p>
               <div v-if="sale.status === 'pending_delivery'" class="pt-1">
                 <BaseButton variant="full-white" @click="openReconcile(sale)">Reconcile</BaseButton>

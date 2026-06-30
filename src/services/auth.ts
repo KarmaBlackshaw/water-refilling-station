@@ -25,3 +25,19 @@ export async function fetchProfile(userId: string): Promise<{ data: User | null;
 
   return { data, error };
 }
+
+/**
+ * Whether the current tenant user's client blocks login (suspended or expired
+ * subscription). Resolves via a SECURITY DEFINER RPC, so it works even when the
+ * user's app_metadata.tenant_id is unset. Fails open on any error.
+ */
+export async function fetchTenantAccess(): Promise<{ blocked: boolean; reason: string | null }> {
+  const { data, error } = await supabase.rpc('my_tenant_access');
+  const row = data?.[0];
+
+  if (error || !row) {
+    return { blocked: false, reason: null };
+  }
+
+  return { blocked: row.blocked, reason: row.reason };
+}

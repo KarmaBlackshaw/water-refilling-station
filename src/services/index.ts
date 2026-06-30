@@ -1,5 +1,6 @@
 /** This file is auto generated */
 
+export * from './admin';
 export * from './areas';
 export * from './auth';
 export * from './bookings';

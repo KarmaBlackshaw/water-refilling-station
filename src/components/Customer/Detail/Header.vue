@@ -32,19 +32,10 @@ const emit = defineEmits<{ edit: [] }>();
       </BaseButton>
     </div>
 
-    <div class="grid grid-cols-3 divide-x divide-sparkling-silver border-t border-sparkling-silver">
-      <div class="px-4 py-3">
-        <p class="text-xs text-oslo">AR Balance</p>
-        <p class="num mt-0.5 text-lg font-semibold" :class="arBalance > 0 ? 'text-strong-amber' : 'text-casual-navy'">{{ formatMoney(arBalance) }}</p>
-      </div>
-      <div class="px-4 py-3">
-        <p class="text-xs text-oslo">Addresses</p>
-        <p class="num mt-0.5 text-lg font-semibold text-casual-navy">{{ addressCount }}</p>
-      </div>
-      <div class="px-4 py-3">
-        <p class="text-xs text-oslo">Containers out</p>
-        <p class="num mt-0.5 text-lg font-semibold" :class="containersOut > 0 ? 'text-strong-amber' : 'text-casual-navy'">{{ containersOut }}</p>
-      </div>
+    <div class="grid grid-cols-3 gap-3 px-4 pb-4">
+      <BaseKpiTile label="AR Balance" :value="formatMoney(arBalance)" :tone="arBalance > 0 ? 'warning' : 'default'" />
+      <BaseKpiTile label="Addresses" :value="addressCount" />
+      <BaseKpiTile label="Containers out" :value="containersOut" :tone="containersOut > 0 ? 'warning' : 'default'" />
     </div>
   </BaseCard>
 </template>

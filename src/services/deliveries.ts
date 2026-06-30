@@ -1,6 +1,6 @@
 import { today } from '@/helpers/date';
 import { supabase } from '@/helpers/supabase';
-import type { PaymentMethod, Sale } from '@/types/database';
+import type { Sale } from '@/types/database';
 
 export type DeliverySaleRow = Awaited<ReturnType<typeof listDeliverySales>>[number];
 
@@ -31,6 +31,7 @@ export async function listDeliverySales(date?: string) {
   return data ?? [];
 }
 
+/** Assign a customer to a rider for a date. Items + payment are recorded later by the rider. */
 export async function createDeliverySale(data: {
   customer_id: string;
   address_id?: string | null;
@@ -38,21 +39,9 @@ export async function createDeliverySale(data: {
   sale_date: string;
   tenant_id: string;
   branch_id: string;
-  lines: Array<{
-    product_id: string;
-    container_type_id: string;
-    quantity: number;
-    unit_price_centavos: number;
-    is_new_container: boolean;
-  }>;
-  payments: Array<{
-    method: PaymentMethod;
-    amount_centavos: number;
-    gcash_ref?: string | null;
-  }>;
   notes?: string | null;
 }): Promise<Sale> {
-  const { data: sale, error: saleError } = await supabase
+  const { data: sale, error } = await supabase
     .from('sales')
     .insert({
       tenant_id: data.tenant_id,
@@ -68,44 +57,8 @@ export async function createDeliverySale(data: {
     .select()
     .single();
 
-  if (saleError) {
-    throw saleError;
-  }
-
-  if (data.lines.length > 0) {
-    const { error: linesError } = await supabase.from('sale_lines').insert(
-      data.lines.map((l) => ({
-        tenant_id: data.tenant_id,
-        branch_id: data.branch_id,
-        sale_id: sale.id,
-        product_id: l.product_id,
-        container_type_id: l.container_type_id,
-        quantity: l.quantity,
-        unit_price_centavos: l.unit_price_centavos,
-        is_new_container: l.is_new_container,
-      })),
-    );
-
-    if (linesError) {
-      throw linesError;
-    }
-  }
-
-  if (data.payments.length > 0) {
-    const { error: paymentsError } = await supabase.from('sale_payments').insert(
-      data.payments.map((p) => ({
-        tenant_id: data.tenant_id,
-        branch_id: data.branch_id,
-        sale_id: sale.id,
-        method: p.method,
-        amount_centavos: p.amount_centavos,
-        gcash_ref: p.gcash_ref ?? null,
-      })),
-    );
-
-    if (paymentsError) {
-      throw paymentsError;
-    }
+  if (error) {
+    throw error;
   }
 
   return sale;

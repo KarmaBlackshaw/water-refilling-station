@@ -1,15 +1,8 @@
 <script setup lang="ts">
-import type { Option } from '@/types';
-import type { PaymentMethod } from '@/types/database';
+import type { CustomerWithArea } from '@/services/customers';
 import { formatAddress } from '@/helpers/address';
 
 defineOptions({ name: 'DeliveryNewModal' });
-
-const paymentMethodOptions: Option<PaymentMethod>[] = [
-  { label: 'Cash', value: 'cash' },
-  { label: 'GCash', value: 'gcash' },
-  { label: 'On Account', value: 'on_account' },
-];
 
 const open = defineModel<boolean>({ required: true });
 
@@ -23,53 +16,15 @@ const emit = defineEmits<{
 
 const auth = useAuthStore();
 
-const form = reactive<{
-  customer_id: string;
-  rider_id: string;
-  address_id: string;
-  sale_date: string;
-  notes: string;
-  payment_method: PaymentMethod;
-  payment_amount: string;
-  payment_gcash_ref: string;
-}>({
-  customer_id: '',
-  rider_id: '',
-  address_id: '',
+const form = reactive({
   sale_date: defaultDate,
-  notes: '',
-  payment_method: 'cash',
-  payment_amount: '',
-  payment_gcash_ref: '',
+  area_id: '',
 });
 
-const lines = ref<
-  Array<{
-    product_id: string;
-    container_type_id: string;
-    quantity: number;
-    unit_price_centavos: number;
-    is_new_container: boolean;
-  }>
->([]);
+const selectedIds = ref<Set<string>>(new Set());
 
-function emptyLine() {
-  return {
-    product_id: '',
-    container_type_id: '',
-    quantity: 1,
-    unit_price_centavos: 0,
-    is_new_container: false,
-  };
-}
-
-function addLine() {
-  lines.value.push(emptyLine());
-}
-
-function removeLine(idx: number) {
-  lines.value.splice(idx, 1);
-}
+const { data: areasRes, run: loadAreas } = useAsync(() => listAreas(auth.tenantId, auth.branchId));
+const areas = computed(() => areasRes.value?.data ?? []);
 
 const { data: customersRes, run: loadCustomers } = useAsync(() => listCustomers(auth.tenantId, auth.branchId));
 const customers = computed(() => customersRes.value?.data ?? []);
@@ -77,83 +32,102 @@ const customers = computed(() => customersRes.value?.data ?? []);
 const { data: ridersRes, run: loadRiders } = useAsync(() => listRiders(auth.tenantId, auth.branchId));
 const riders = computed(() => ridersRes.value?.data ?? []);
 
-const { data: productsRes, run: loadProducts } = useAsync(() => listProducts(auth.tenantId, auth.branchId));
-const products = computed(() => productsRes.value?.data ?? []);
-
-const { data: containerTypesRes, run: loadContainerTypes } = useAsync(() => listContainerTypes(auth.tenantId, auth.branchId));
-const containerTypes = computed(() => containerTypesRes.value?.data ?? []);
-
-const { data: customerAddressesRes } = useAsync(
+const { data: activeRider } = useAsync(
   () => {
-    if (!form.customer_id) {
+    if (!form.area_id) {
       return Promise.resolve(null);
     }
 
-    return listAddresses(form.customer_id);
+    return getActiveRiderForArea(form.area_id, form.sale_date);
   },
-  { watch: () => form.customer_id },
+  { watch: () => `${form.area_id}|${form.sale_date}` },
 );
-const customerAddresses = computed(() => customerAddressesRes.value?.data ?? []);
 
-watch(customerAddresses, (list) => {
-  const def = (list ?? []).find((a) => a.is_default);
+const areaOptions = computed(() => areas.value.map((a) => ({ label: a.name, value: a.id })));
+const areaCustomers = computed(() => (form.area_id ? customers.value.filter((c) => c.area_id === form.area_id) : []));
 
-  form.address_id = def?.id ?? '';
+const resolvedRiderName = computed(() => {
+  const id = activeRider.value?.riderId;
+
+  return id ? (riders.value.find((r) => r.id === id)?.full_name ?? '') : '';
 });
+
+const allSelected = computed(() => areaCustomers.value.length > 0 && selectedIds.value.size === areaCustomers.value.length);
+
+function defaultAddress(c: CustomerWithArea) {
+  const addrs = (c.addresses ?? []).filter((a) => !a.deleted_at);
+
+  return addrs.find((a) => a.is_default) ?? addrs[0] ?? null;
+}
+
+function defaultAddressLabel(c: CustomerWithArea) {
+  const a = defaultAddress(c);
+
+  return a ? `${a.label} — ${formatAddress(a)}` : '';
+}
+
+function toggle(id: string) {
+  const next = new Set(selectedIds.value);
+
+  if (next.has(id)) {
+    next.delete(id);
+  } else {
+    next.add(id);
+  }
+
+  selectedIds.value = next;
+}
+
+function toggleAll() {
+  selectedIds.value = allSelected.value ? new Set() : new Set(areaCustomers.value.map((c) => c.id));
+}
+
+/** Selecting an area defaults to assigning every customer in it. */
+watch(
+  () => form.area_id,
+  () => {
+    selectedIds.value = new Set(areaCustomers.value.map((c) => c.id));
+  },
+);
 
 watch(open, (isOpen) => {
   if (!isOpen) {
     return;
   }
 
-  form.customer_id = '';
-  form.rider_id = '';
-  form.address_id = '';
   form.sale_date = defaultDate;
-  form.notes = '';
-  form.payment_method = 'cash';
-  form.payment_amount = '';
-  form.payment_gcash_ref = '';
-  lines.value = [emptyLine()];
-  Promise.all([loadCustomers(), loadRiders(), loadProducts(), loadContainerTypes()]);
+  form.area_id = '';
+  selectedIds.value = new Set();
+  Promise.all([loadAreas(), loadCustomers(), loadRiders()]);
 });
 
-const customerOptions = computed(() => (customers.value ?? []).map((c) => ({ label: c.name, value: c.id })));
-const riderOptions = computed(() => [{ label: '— No rider —', value: '' }, ...(riders.value ?? []).map((r) => ({ label: r.full_name, value: r.id }))]);
-const addressOptions = computed(() =>
-  (customerAddresses.value ?? []).map((a) => ({
-    label: `${a.label} — ${formatAddress(a)}`,
-    value: a.id,
-  })),
-);
-const productOptions = computed(() => (products.value ?? []).map((p) => ({ label: p.name, value: p.id })));
-const containerTypeOptions = computed(() => (containerTypes.value ?? []).map((c) => ({ label: c.name, value: c.id })));
-
-const total = computed(() => lines.value.reduce((s, l) => s + l.quantity * l.unit_price_centavos, 0));
-
 const { loading: saving, run: submit } = useAsync(async () => {
-  const amountCentavos = Math.round(parseFloat(form.payment_amount || '0') * 100);
+  const ids = [...selectedIds.value];
 
-  await createDeliverySale({
-    tenant_id: auth.tenantId,
-    branch_id: auth.branchId,
-    customer_id: form.customer_id,
-    address_id: form.address_id || null,
-    rider_id: form.rider_id || null,
-    sale_date: form.sale_date,
-    notes: form.notes || null,
-    lines: lines.value.filter((l) => l.product_id && l.container_type_id),
-    payments:
-      amountCentavos > 0
-        ? [
-            {
-              method: form.payment_method,
-              amount_centavos: amountCentavos,
-              gcash_ref: form.payment_method === 'gcash' ? form.payment_gcash_ref || null : null,
-            },
-          ]
-        : [],
-  });
+  if (ids.length === 0) {
+    return;
+  }
+
+  const riderId = activeRider.value?.riderId ?? null;
+
+  await Promise.all(
+    ids.map((id) => {
+      const c = customers.value.find((x) => x.id === id);
+
+      if (!c) {
+        return Promise.resolve();
+      }
+
+      return createDeliverySale({
+        tenant_id: auth.tenantId,
+        branch_id: auth.branchId,
+        customer_id: id,
+        address_id: defaultAddress(c)?.id ?? null,
+        rider_id: riderId,
+        sale_date: form.sale_date,
+      });
+    }),
+  );
 
   const saleDate = form.sale_date;
 
@@ -163,62 +137,53 @@ const { loading: saving, run: submit } = useAsync(async () => {
 </script>
 
 <template>
-  <BaseModal v-model:open="open" title="New Delivery" size="xl">
-    <form id="new-delivery-form" class="space-y-5" @submit.prevent="submit">
-      <BaseSelect
-        v-model="form.customer_id"
-        label="Customer"
-        :options="customerOptions"
-        placeholder="Select customer..."
-        search-placeholder="Search customer..."
-        searchable
-        required
-      />
+  <BaseModal v-model:open="open" title="Assign Deliveries" size="lg">
+    <form id="assign-delivery-form" class="space-y-5" @submit.prevent="submit">
       <div class="grid gap-4 grid-cols-2">
-        <BaseSelect v-model="form.rider_id" label="Rider" :options="riderOptions" placeholder="Select rider..." />
+        <BaseDatePicker v-model="form.sale_date" label="Delivery Date" required />
         <BaseSelect
-          v-model="form.address_id"
-          label="Delivery Address"
-          :options="addressOptions"
-          placeholder="Select address..."
-          :disabled="!form.customer_id"
+          v-model="form.area_id"
+          label="Area"
+          :options="areaOptions"
+          placeholder="Select area..."
+          search-placeholder="Search area..."
+          searchable
+          required
         />
       </div>
-      <BaseDatePicker v-model="form.sale_date" label="Delivery Date" required />
-      <div class="space-y-2">
-        <p class="text-sm font-medium text-casual-navy">Items</p>
-        <div v-for="(line, idx) in lines" :key="idx" class="grid grid-cols-[1fr_1fr_4rem_6rem_auto] items-end gap-2">
-          <BaseSelect v-model="line.product_id" :options="productOptions" placeholder="Product..." />
-          <BaseSelect v-model="line.container_type_id" :options="containerTypeOptions" placeholder="Container..." />
-          <BaseInput v-model="line.quantity" type="number" placeholder="Qty" />
-          <BaseInput
-            :model-value="(line.unit_price_centavos / 100).toFixed(2)"
-            type="number"
-            placeholder="Price (₱)"
-            @update:model-value="(v) => (line.unit_price_centavos = Math.round(Number(v) * 100))"
-          />
-          <button type="button" class="pb-1 text-independence hover:text-blaze-red focus:outline-none" aria-label="Remove line" @click="removeLine(idx)">
-            <IconClose class="size-4" />
+
+      <div v-if="form.area_id" class="rounded-lg bg-[--color-surface-raised] p-3 text-sm">
+        <p v-if="resolvedRiderName" class="flex items-center gap-2 text-casual-navy">
+          Rider: <span class="font-medium">{{ resolvedRiderName }}</span>
+          <BaseBadge v-if="activeRider?.isCovering" variant="warning">Covering</BaseBadge>
+        </p>
+        <p v-else class="text-blaze-red">No rider for this area — these deliveries will be unassigned.</p>
+      </div>
+
+      <div v-if="form.area_id" class="space-y-2">
+        <div class="flex items-center justify-between">
+          <p class="text-sm font-medium text-casual-navy">Customers ({{ selectedIds.size }}/{{ areaCustomers.length }})</p>
+          <button v-if="areaCustomers.length" type="button" class="text-xs font-medium text-tampa hover:underline focus:outline-none" @click="toggleAll">
+            {{ allSelected ? 'Clear all' : 'Select all' }}
           </button>
         </div>
-        <BaseButton type="button" variant="independence" @click="addLine">+ Add item</BaseButton>
-        <p class="text-right text-sm font-semibold text-casual-navy">
-          Total: <span class="num">{{ formatMoney(total) }}</span>
-        </p>
+        <BaseEmptyState v-if="areaCustomers.length === 0" title="No customers" description="No customers in this area." />
+        <ul v-else class="max-h-72 divide-y divide-sparkling-silver overflow-y-auto rounded-lg border border-sparkling-silver">
+          <li v-for="c in areaCustomers" :key="c.id" class="flex items-center gap-3 px-3 py-2">
+            <BaseCheckbox :model-value="selectedIds.has(c.id)" @update:model-value="toggle(c.id)" />
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-sm text-casual-navy">{{ c.name }}</p>
+              <p v-if="defaultAddressLabel(c)" class="truncate text-xs text-independence">{{ defaultAddressLabel(c) }}</p>
+            </div>
+          </li>
+        </ul>
       </div>
-      <div class="space-y-3">
-        <p class="text-sm font-medium text-casual-navy">Payment</p>
-        <div class="grid gap-3 grid-cols-2">
-          <BaseSelect v-model="form.payment_method" label="Method" :options="paymentMethodOptions" />
-          <BaseInput v-model="form.payment_amount" label="Amount (₱)" type="number" placeholder="0.00" />
-        </div>
-        <BaseInput v-if="form.payment_method === 'gcash'" v-model="form.payment_gcash_ref" label="GCash Reference #" placeholder="e.g. 1234567890" />
-      </div>
-      <BaseTextarea v-model="form.notes" label="Notes" :rows="2" />
     </form>
     <template #footer>
       <BaseButton variant="independence" @click="open = false">Cancel</BaseButton>
-      <BaseButton type="submit" form="new-delivery-form" :loading="saving">Create Delivery</BaseButton>
+      <BaseButton type="submit" form="assign-delivery-form" :loading="saving" :disabled="selectedIds.size === 0">
+        Assign {{ selectedIds.size || '' }} {{ selectedIds.size === 1 ? 'Delivery' : 'Deliveries' }}
+      </BaseButton>
     </template>
   </BaseModal>
 </template>

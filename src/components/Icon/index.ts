@@ -18,6 +18,7 @@ export { default as IconEmployees } from './IconEmployees.vue';
 export { default as IconExpenses } from './IconExpenses.vue';
 export { default as IconFilter } from './IconFilter.vue';
 export { default as IconInbox } from './IconInbox.vue';
+export { default as IconLogout } from './IconLogout.vue';
 export { default as IconMail } from './IconMail.vue';
 export { default as IconMaintenance } from './IconMaintenance.vue';
 export { default as IconMaximize } from './IconMaximize.vue';

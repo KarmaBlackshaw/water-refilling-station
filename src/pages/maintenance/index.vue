@@ -183,8 +183,8 @@ function taskMenu(task: MaintenanceTask) {
 
 <template>
   <div class="h-full overflow-y-auto p-6">
-    <div class="space-y-4">
-      <div class="flex items-center justify-between">
+    <BaseCard padding="none">
+      <div class="flex items-center justify-between gap-4 border-b border-sparkling-silver px-6 py-4">
         <div>
           <h1 class="text-2xl font-bold text-casual-navy">Maintenance</h1>
           <p class="text-sm text-oslo">Track maintenance schedules for plant and vehicles</p>
@@ -192,47 +192,41 @@ function taskMenu(task: MaintenanceTask) {
         <BaseButton @click="openAddTask">Add Task</BaseButton>
       </div>
 
-      <BaseTabs v-model="activeTab" :tabs="tabs" />
+      <div class="space-y-4 px-6 py-4">
+        <div class="grid grid-cols-2 gap-3">
+          <BaseKpiTile label="Overdue" :value="overdueCount" tone="danger" />
+          <BaseKpiTile label="Due this week" :value="dueThisWeekCount" tone="warning" />
+        </div>
 
-      <div class="grid grid-cols-2 gap-3">
-        <div class="rounded-lg border border-sparkling-silver bg-red-subtle px-4 py-3">
-          <p class="text-xs text-independence">Overdue</p>
-          <p class="num text-2xl font-semibold text-blaze-red">{{ overdueCount }}</p>
-        </div>
-        <div class="rounded-lg border border-sparkling-silver bg-amber-subtle px-4 py-3">
-          <p class="text-xs text-independence">Due this week</p>
-          <p class="num text-2xl font-semibold text-strong-amber">{{ dueThisWeekCount }}</p>
-        </div>
+        <BaseTabs v-model="activeTab" :tabs="tabs" />
       </div>
 
-      <BaseCard padding="none">
-        <BaseTable :columns="taskColumns" :data="tasks" :loading="loading">
-          <template #cell-vehicle="{ row }">
-            <span v-if="row.vehicles">
-              {{ row.vehicles.brand_model }}
-              <span v-if="row.vehicles.plate_number" class="text-oslo">({{ row.vehicles.plate_number }})</span>
-            </span>
-            <span v-else class="text-oslo">—</span>
-          </template>
-          <template #cell-schedule="{ row }">{{ scheduleLabel(row) }}</template>
-          <template #cell-last_done_at="{ row }">{{ row.last_done_at ?? '—' }}</template>
-          <template #cell-next_due_at="{ row }">{{ row.next_due_at ?? '—' }}</template>
-          <template #cell-status="{ row }">
-            <BaseBadge :variant="taskStatus(row).variant">{{ taskStatus(row).label }}</BaseBadge>
-          </template>
-          <template #cell-actions="{ row }">
-            <BaseTableActions :menu="taskMenu(row)" />
-          </template>
-          <template #empty>
-            <BaseEmptyState title="No maintenance tasks">
-              <template #actions>
-                <BaseButton @click="openAddTask">Add first task</BaseButton>
-              </template>
-            </BaseEmptyState>
-          </template>
-        </BaseTable>
-      </BaseCard>
-    </div>
+      <BaseTable :columns="taskColumns" :data="tasks" :loading="loading">
+        <template #cell-vehicle="{ row }">
+          <span v-if="row.vehicles">
+            {{ row.vehicles.brand_model }}
+            <span v-if="row.vehicles.plate_number" class="text-oslo">({{ row.vehicles.plate_number }})</span>
+          </span>
+          <span v-else class="text-oslo">—</span>
+        </template>
+        <template #cell-schedule="{ row }">{{ scheduleLabel(row) }}</template>
+        <template #cell-last_done_at="{ row }">{{ row.last_done_at ?? '—' }}</template>
+        <template #cell-next_due_at="{ row }">{{ row.next_due_at ?? '—' }}</template>
+        <template #cell-status="{ row }">
+          <BaseBadge :variant="taskStatus(row).variant">{{ taskStatus(row).label }}</BaseBadge>
+        </template>
+        <template #cell-actions="{ row }">
+          <BaseTableActions :menu="taskMenu(row)" />
+        </template>
+        <template #empty>
+          <BaseEmptyState title="No maintenance tasks">
+            <template #actions>
+              <BaseButton @click="openAddTask">Add first task</BaseButton>
+            </template>
+          </BaseEmptyState>
+        </template>
+      </BaseTable>
+    </BaseCard>
 
     <MaintenanceTaskFormModal
       v-model:open="taskModalOpen"

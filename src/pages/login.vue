@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ROUTES } from '@/constants/routes';
+import { AUTH_BLOCK } from '@/stores/auth';
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -8,6 +9,18 @@ const email = ref('');
 const password = ref('');
 const errorMsg = ref('');
 const loading = ref(false);
+
+function messageFor(error: { message: string }): string {
+  if (error.message === AUTH_BLOCK.SUSPENDED) {
+    return 'This account has been suspended. Please contact your provider.';
+  }
+
+  if (error.message === AUTH_BLOCK.EXPIRED) {
+    return 'Your subscription has expired. Please contact your provider to renew.';
+  }
+
+  return 'Invalid email or password';
+}
 
 async function handleLogin() {
   if (!email.value || !password.value) {
@@ -19,9 +32,9 @@ async function handleLogin() {
   const result = await auth.login(email.value, password.value);
 
   if (result.error) {
-    errorMsg.value = 'Invalid email or password';
+    errorMsg.value = messageFor(result.error);
   } else {
-    router.push(ROUTES.DASHBOARD);
+    router.push(auth.isSuperadmin ? ROUTES.ADMIN_CLIENTS : ROUTES.DASHBOARD);
   }
 
   loading.value = false;
