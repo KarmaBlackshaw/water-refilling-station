@@ -22,12 +22,8 @@ type CustomerRow = {
   id: string;
   name: string;
   phone: string | null;
-  area_id: string | null;
-};
-
-type AreaRow = {
-  id: string;
-  name: string;
+  rider_id: string | null;
+  backup_rider_id: string | null;
 };
 
 type RiderRow = {
@@ -38,30 +34,30 @@ type RiderRow = {
 const props = defineProps<{
   address: AddressRow;
   customer: CustomerRow;
-  area: AreaRow | null;
-  activeRider: RiderRow | null;
-  areaOptions: Option<string>[];
+  rider: RiderRow | null;
+  backupRider: RiderRow | null;
+  riderOptions: Option<string>[];
 }>();
 
 const emit = defineEmits<{
-  'reassign-area': [areaId: string];
+  'reassign-rider': [riderId: string];
   'toggle-pin-review': [];
 }>();
 
 const photoUrl = computedAsync(() => (props.address.photo_path ? getAddressPhotoUrl(props.address.photo_path) : undefined));
 
-const selectedAreaId = ref(props.customer.area_id ?? '');
+const selectedRiderId = ref(props.customer.rider_id ?? '');
 
 watch(
-  () => props.customer.area_id,
+  () => props.customer.rider_id,
   (val) => {
-    selectedAreaId.value = val ?? '';
+    selectedRiderId.value = val ?? '';
   },
 );
 
-function onReassign(areaId: string | number | null | undefined) {
-  if (typeof areaId === 'string' && areaId && areaId !== props.customer.area_id) {
-    emit('reassign-area', areaId);
+function onReassign(riderId: string | number | null | undefined) {
+  if (typeof riderId === 'string' && riderId && riderId !== props.customer.rider_id) {
+    emit('reassign-rider', riderId);
   }
 }
 </script>
@@ -78,17 +74,19 @@ function onReassign(areaId: string | number | null | undefined) {
 
     <div class="space-y-1 text-xs text-independence">
       <p>
-        Area: <span class="font-medium">{{ area?.name ?? 'Unassigned' }}</span>
+        Rider: <span class="font-medium">{{ rider?.full_name ?? 'Unassigned' }}</span>
       </p>
       <p>
-        Rider: <span class="font-medium">{{ activeRider?.full_name ?? 'None' }}</span>
+        Backup: <span class="font-medium">{{ backupRider?.full_name ?? '—' }}</span>
       </p>
     </div>
 
-    <div v-if="address.needs_pin_review" class="rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700">Needs pin verification</div>
+    <div v-if="address.needs_pin_review" class="rounded-md border border-strong-amber bg-amber-subtle px-2 py-1 text-xs font-medium text-strong-amber">
+      Needs pin verification
+    </div>
 
     <div class="space-y-2">
-      <BaseSelect v-model="selectedAreaId" label="Reassign area" :options="areaOptions" placeholder="Select area..." @update:model-value="onReassign" />
+      <BaseSelect v-model="selectedRiderId" label="Reassign rider" :options="riderOptions" placeholder="Select rider..." @update:model-value="onReassign" />
     </div>
 
     <button

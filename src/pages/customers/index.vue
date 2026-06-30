@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TableColumn } from '@/components/Base/BaseTable.vue';
 import type { Customer } from '@/types/database';
-import type { CustomerWithArea } from '@/services/customers';
+import type { CustomerWithRider } from '@/services/customers';
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
 import { formatAddress } from '@/helpers/address';
@@ -12,7 +12,7 @@ const router = useRouter();
 const { confirm } = useConfirm();
 const { tenantId, branchId } = storeToRefs(auth);
 
-type AddressLite = NonNullable<CustomerWithArea['addresses']>[number];
+type AddressLite = NonNullable<CustomerWithRider['addresses']>[number];
 
 const { data: customersRes, loading, run: load } = useAsync(() => listCustomers(tenantId.value, branchId.value), { immediate: true });
 
@@ -20,7 +20,7 @@ const customers = computed(() => customersRes.value?.data ?? []);
 
 const search = ref('');
 
-function defaultAddress(row: CustomerWithArea): AddressLite | null {
+function defaultAddress(row: CustomerWithRider): AddressLite | null {
   const live = (row.addresses ?? []).filter((a) => !a.deleted_at);
 
   return live.find((a) => a.is_default) ?? live[0] ?? null;
@@ -50,15 +50,16 @@ function openEdit(c: Customer) {
   router.push(ROUTES.CUSTOMER_EDIT(c.id));
 }
 
-function openDetail(c: CustomerWithArea) {
+function openDetail(c: CustomerWithRider) {
   router.push(ROUTES.CUSTOMER_DETAIL(c.id));
 }
 
-const columns: TableColumn<CustomerWithArea>[] = [
+const columns: TableColumn<CustomerWithRider>[] = [
   { key: 'name', label: 'Name' },
   { key: 'phone', label: 'Phone' },
   { key: 'type', label: 'Type' },
-  { key: 'area', label: 'Area' },
+  { key: 'rider', label: 'Rider' },
+  { key: 'backup_rider', label: 'Backup rider' },
   { key: 'address', label: 'Default address' },
   { key: 'actions', label: '', align: 'right' },
 ];
@@ -110,7 +111,9 @@ function rowMenu(row: Customer) {
           <BaseBadge variant="default" class="capitalize">{{ row.type }}</BaseBadge>
         </template>
 
-        <template #cell-area="{ row }">{{ row.area?.name ?? '—' }}</template>
+        <template #cell-rider="{ row }">{{ row.rider?.full_name ?? '—' }}</template>
+
+        <template #cell-backup_rider="{ row }">{{ row.backup_rider?.full_name ?? '—' }}</template>
 
         <template #cell-address="{ row }">
           <span v-if="defaultAddress(row)" class="text-sm text-casual-navy">{{ formatAddress(defaultAddress(row)!) }}</span>

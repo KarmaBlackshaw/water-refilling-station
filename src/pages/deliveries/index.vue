@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DeliverySaleRow } from '@/services/deliveries';
+import type { TableColumn } from '@/components/Base/BaseTable.vue';
 import { formatAddress } from '@/helpers/address';
 
 const route = useRoute();
@@ -117,6 +118,13 @@ function statusVariant(status: string): 'warning' | 'success' | 'default' {
 
   return 'default';
 }
+
+const deliveryColumns: TableColumn<DeliverySaleRow>[] = [
+  { key: 'customer', label: 'Customer' },
+  { key: 'address', label: 'Address' },
+  { key: 'status', label: 'Status' },
+  { key: 'action', label: '', align: 'right' },
+];
 </script>
 
 <template>
@@ -137,32 +145,36 @@ function statusVariant(status: string): 'warning' | 'success' | 'default' {
       <!-- Board -->
       <BaseSpinner v-if="boardLoading" class="mx-auto mt-10" />
       <BaseEmptyState v-else-if="deliveries.length === 0" title="No deliveries" description="No delivery sales for this date." />
-      <div v-else class="space-y-8">
-        <section v-for="group in groups" :key="group.riderId ?? 'unassigned'">
-          <div class="mb-3 flex items-center gap-2">
+      <div v-else class="space-y-6">
+        <BaseCard v-for="group in groups" :key="group.riderId ?? 'unassigned'" padding="none">
+          <div class="flex items-center gap-2 px-5 py-3">
             <h2 class="text-sm font-semibold text-casual-navy">{{ group.riderName }}</h2>
             <span class="inline-flex items-center justify-center rounded-full bg-[--color-surface-raised] px-2 py-0.5 text-xs font-medium text-independence">
               {{ group.items.length }}
             </span>
           </div>
-          <div class="grid gap-3 grid-cols-3">
-            <BaseCard v-for="sale in group.items" :key="sale.id" padding="sm" class="flex flex-col gap-2">
-              <div class="flex items-start justify-between gap-2">
-                <div>
-                  <p class="font-medium text-casual-navy">{{ sale.customer?.name ?? '—' }}</p>
-                  <p v-if="sale.customer?.phone" class="text-xs text-independence">{{ sale.customer.phone }}</p>
-                </div>
-                <BaseBadge :variant="statusVariant(sale.status)">{{ statusLabel(sale.status) }}</BaseBadge>
-              </div>
-              <p v-if="sale.address" class="text-xs text-independence">{{ sale.address.label }} — {{ formatAddress(sale.address) }}</p>
-              <p v-if="sale.notes" class="text-xs italic text-independence">{{ sale.notes }}</p>
-              <div v-if="sale.status === 'pending_delivery'" class="pt-1">
-                <BaseButton variant="full-white" @click="openReconcile(sale)">Reconcile</BaseButton>
-              </div>
-              <p v-else class="pt-1 text-xs text-independence">Delivered</p>
-            </BaseCard>
-          </div>
-        </section>
+          <BaseTable :columns="deliveryColumns" :data="group.items" row-key="id">
+            <template #cell-customer="{ row }">
+              <p class="font-medium text-casual-navy">{{ row.customer?.name ?? '—' }}</p>
+              <p v-if="row.customer?.phone" class="text-xs text-independence">{{ row.customer.phone }}</p>
+            </template>
+
+            <template #cell-address="{ row }">
+              <p v-if="row.address" class="text-independence">{{ row.address.label }} — {{ formatAddress(row.address) }}</p>
+              <p v-else class="text-oslo">—</p>
+              <p v-if="row.notes" class="text-xs italic text-oslo">{{ row.notes }}</p>
+            </template>
+
+            <template #cell-status="{ row }">
+              <BaseBadge :variant="statusVariant(row.status)">{{ statusLabel(row.status) }}</BaseBadge>
+            </template>
+
+            <template #cell-action="{ row }">
+              <BaseButton v-if="row.status === 'pending_delivery'" variant="full-white" @click="openReconcile(row)">Reconcile</BaseButton>
+              <span v-else class="text-xs text-independence">Delivered</span>
+            </template>
+          </BaseTable>
+        </BaseCard>
       </div>
     </div>
 

@@ -1,6 +1,6 @@
 import { daysInMonth, nowISO } from '@/helpers/date';
 import { supabase } from '@/helpers/supabase';
-import type { Employee, UserRole } from '@/types/database';
+import type { AttendanceStatus, Employee, UserRole } from '@/types/database';
 
 // Employees
 export async function getEmployees(tenantId: string, branchId: string): Promise<Employee[]> {
@@ -33,15 +33,28 @@ export function createEmployee(data: {
   role: UserRole;
   monthly_salary_centavos: number;
   daily_quota_jugs?: number | null;
+  rest_days?: number[];
 }) {
   return supabase.from('employees').insert(data).select().single();
 }
 
 export function updateEmployee(
   id: string,
-  data: Partial<Pick<Employee, 'full_name' | 'phone' | 'hire_date' | 'monthly_salary_centavos' | 'daily_quota_jugs' | 'active' | 'user_id'>>,
+  data: Partial<Pick<Employee, 'full_name' | 'phone' | 'hire_date' | 'monthly_salary_centavos' | 'daily_quota_jugs' | 'rest_days' | 'active' | 'user_id'>>,
 ) {
   return supabase.from('employees').update(data).eq('id', id).select().single();
+}
+
+/** Riders are employees with role 'rider'; user_id links to the user customers.rider_id points at. */
+export function listRiderEmployees(tenantId: string, branchId: string) {
+  return supabase
+    .from('employees')
+    .select('id, user_id, full_name, rest_days, daily_quota_jugs')
+    .eq('tenant_id', tenantId)
+    .eq('branch_id', branchId)
+    .eq('role', 'rider')
+    .is('deleted_at', null)
+    .order('full_name');
 }
 
 export function softDeleteEmployee(id: string, deletedBy: string) {
@@ -61,8 +74,17 @@ export function listAttendanceForMonth(employeeId: string, year: number, month: 
   return supabase.from('employee_attendance').select('*').eq('employee_id', employeeId).gte('attendance_date', start).lte('attendance_date', end);
 }
 
-export function upsertAttendance(data: { tenant_id: string; branch_id: string; employee_id: string; attendance_date: string; status: 'present' | 'absent' }) {
+export function upsertAttendance(data: { tenant_id: string; branch_id: string; employee_id: string; attendance_date: string; status: AttendanceStatus }) {
   return supabase.from('employee_attendance').upsert(data, { onConflict: 'employee_id,attendance_date' }).select().single();
+}
+
+export function listAttendanceForDate(tenantId: string, branchId: string, date: string) {
+  return supabase
+    .from('employee_attendance')
+    .select('employee_id, attendance_date, status')
+    .eq('tenant_id', tenantId)
+    .eq('branch_id', branchId)
+    .eq('attendance_date', date);
 }
 
 // Salary records

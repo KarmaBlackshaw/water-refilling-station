@@ -52,13 +52,6 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
-    '/areas/': RouteRecordInfo<
-      '/areas/',
-      '/areas',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
     '/bookings/': RouteRecordInfo<
       '/bookings/',
       '/bookings',
@@ -157,6 +150,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/riders/': RouteRecordInfo<
+      '/riders/',
+      '/riders',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/sales/': RouteRecordInfo<
       '/sales/',
       '/sales',
@@ -206,12 +206,6 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/clients/[id].vue': {
       routes:
         | '/admin/clients/[id]'
-      views:
-        | never
-    }
-    'src/pages/areas/index.vue': {
-      routes:
-        | '/areas/'
       views:
         | never
     }
@@ -296,6 +290,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/reset-password.vue': {
       routes:
         | '/reset-password'
+      views:
+        | never
+    }
+    'src/pages/riders/index.vue': {
+      routes:
+        | '/riders/'
       views:
         | never
     }

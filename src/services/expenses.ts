@@ -4,12 +4,7 @@ import { getCurrentUserId } from '@/helpers/supabase';
 import type { OperationalExpense, ExpenseCategory } from '@/types/database';
 
 export function getExpenses(tenantId: string, branchId: string) {
-  return supabase
-    .from('operational_expenses')
-    .select('*, employees(full_name)')
-    .eq('tenant_id', tenantId)
-    .eq('branch_id', branchId)
-    .is('deleted_at', null);
+  return supabase.from('operational_expenses').select('*, employees(full_name)').eq('tenant_id', tenantId).eq('branch_id', branchId).is('deleted_at', null);
 }
 
 export type ExpenseWithPayee = NonNullable<Awaited<ReturnType<typeof getExpenses>>['data']>[number];

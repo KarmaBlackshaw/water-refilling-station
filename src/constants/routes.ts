@@ -6,7 +6,7 @@ export const ROUTES = {
   DASHBOARD: '/dashboard',
   ADMIN_CLIENTS: '/admin/clients',
   ADMIN_CLIENT_DETAIL: (id: string) => `/admin/clients/${id}`,
-  AREAS: '/areas',
+  RIDERS: '/riders',
   BOOKINGS: '/bookings',
   CUSTOMERS: '/customers',
   CUSTOMER_DETAIL: (id: string) => `/customers/${id}`,

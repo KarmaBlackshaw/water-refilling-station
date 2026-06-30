@@ -20,9 +20,9 @@ export function computeIncome(
   const start = dayjs(periodStart);
   const year = start.year();
   const month = start.month() + 1;
-  const dailyRate = dailyRateCentavos(employee.monthly_salary_centavos, year, month);
+  const dailyRate = dailyRateCentavos(employee.monthly_salary_centavos, year, month, employee.rest_days);
 
-  const workdays = getWorkdays(periodStart, periodEnd);
+  const workdays = getWorkdays(periodStart, periodEnd, employee.rest_days);
   const attendanceMap = new Map(attendanceRecords.map((a) => [a.attendance_date, a.status]));
 
   let workdaysPresent = 0;

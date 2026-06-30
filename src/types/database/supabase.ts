@@ -8,146 +8,6 @@ export type Database = {
   };
   public: {
     Tables: {
-      area_coverage_records: {
-        Row: {
-          area_id: string;
-          branch_id: string;
-          covering_rider_id: string;
-          created_at: string;
-          deleted_at: string | null;
-          deleted_by: string | null;
-          ends_on: string | null;
-          id: string;
-          starts_on: string;
-          tenant_id: string;
-        };
-        Insert: {
-          area_id: string;
-          branch_id: string;
-          covering_rider_id: string;
-          created_at?: string;
-          deleted_at?: string | null;
-          deleted_by?: string | null;
-          ends_on?: string | null;
-          id?: string;
-          starts_on: string;
-          tenant_id: string;
-        };
-        Update: {
-          area_id?: string;
-          branch_id?: string;
-          covering_rider_id?: string;
-          created_at?: string;
-          deleted_at?: string | null;
-          deleted_by?: string | null;
-          ends_on?: string | null;
-          id?: string;
-          starts_on?: string;
-          tenant_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'area_coverage_records_area_id_fkey';
-            columns: ['area_id'];
-            isOneToOne: false;
-            referencedRelation: 'areas';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'area_coverage_records_branch_id_fkey';
-            columns: ['branch_id'];
-            isOneToOne: false;
-            referencedRelation: 'branches';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'area_coverage_records_covering_rider_id_fkey';
-            columns: ['covering_rider_id'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'area_coverage_records_deleted_by_fkey';
-            columns: ['deleted_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'area_coverage_records_tenant_id_fkey';
-            columns: ['tenant_id'];
-            isOneToOne: false;
-            referencedRelation: 'tenants';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      areas: {
-        Row: {
-          branch_id: string;
-          created_at: string;
-          deleted_at: string | null;
-          deleted_by: string | null;
-          id: string;
-          name: string;
-          notes: string | null;
-          primary_rider_id: string | null;
-          tenant_id: string;
-        };
-        Insert: {
-          branch_id: string;
-          created_at?: string;
-          deleted_at?: string | null;
-          deleted_by?: string | null;
-          id?: string;
-          name: string;
-          notes?: string | null;
-          primary_rider_id?: string | null;
-          tenant_id: string;
-        };
-        Update: {
-          branch_id?: string;
-          created_at?: string;
-          deleted_at?: string | null;
-          deleted_by?: string | null;
-          id?: string;
-          name?: string;
-          notes?: string | null;
-          primary_rider_id?: string | null;
-          tenant_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'areas_branch_id_fkey';
-            columns: ['branch_id'];
-            isOneToOne: false;
-            referencedRelation: 'branches';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'areas_deleted_by_fkey';
-            columns: ['deleted_by'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'areas_primary_rider_id_fkey';
-            columns: ['primary_rider_id'];
-            isOneToOne: false;
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'areas_tenant_id_fkey';
-            columns: ['tenant_id'];
-            isOneToOne: false;
-            referencedRelation: 'tenants';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
       booking_items: {
         Row: {
           booking_id: string;
@@ -837,7 +697,7 @@ export type Database = {
       customers: {
         Row: {
           active: boolean;
-          area_id: string | null;
+          backup_rider_id: string | null;
           branch_id: string;
           created_at: string;
           deleted_at: string | null;
@@ -846,12 +706,13 @@ export type Database = {
           name: string;
           notes: string | null;
           phone: string | null;
+          rider_id: string | null;
           tenant_id: string;
           type: Database['public']['Enums']['customer_type'];
         };
         Insert: {
           active?: boolean;
-          area_id?: string | null;
+          backup_rider_id?: string | null;
           branch_id: string;
           created_at?: string;
           deleted_at?: string | null;
@@ -860,12 +721,13 @@ export type Database = {
           name: string;
           notes?: string | null;
           phone?: string | null;
+          rider_id?: string | null;
           tenant_id: string;
           type?: Database['public']['Enums']['customer_type'];
         };
         Update: {
           active?: boolean;
-          area_id?: string | null;
+          backup_rider_id?: string | null;
           branch_id?: string;
           created_at?: string;
           deleted_at?: string | null;
@@ -874,15 +736,16 @@ export type Database = {
           name?: string;
           notes?: string | null;
           phone?: string | null;
+          rider_id?: string | null;
           tenant_id?: string;
           type?: Database['public']['Enums']['customer_type'];
         };
         Relationships: [
           {
-            foreignKeyName: 'customers_area_id_fkey';
-            columns: ['area_id'];
+            foreignKeyName: 'customers_backup_rider_id_fkey';
+            columns: ['backup_rider_id'];
             isOneToOne: false;
-            referencedRelation: 'areas';
+            referencedRelation: 'users';
             referencedColumns: ['id'];
           },
           {
@@ -895,6 +758,13 @@ export type Database = {
           {
             foreignKeyName: 'customers_deleted_by_fkey';
             columns: ['deleted_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'customers_rider_id_fkey';
+            columns: ['rider_id'];
             isOneToOne: false;
             referencedRelation: 'users';
             referencedColumns: ['id'];
@@ -973,6 +843,7 @@ export type Database = {
           id: string;
           monthly_salary_centavos: number;
           phone: string | null;
+          rest_days: number[];
           role: Database['public']['Enums']['user_role'];
           tenant_id: string;
           user_id: string | null;
@@ -989,6 +860,7 @@ export type Database = {
           id?: string;
           monthly_salary_centavos: number;
           phone?: string | null;
+          rest_days?: number[];
           role?: Database['public']['Enums']['user_role'];
           tenant_id: string;
           user_id?: string | null;
@@ -1005,6 +877,7 @@ export type Database = {
           id?: string;
           monthly_salary_centavos?: number;
           phone?: string | null;
+          rest_days?: number[];
           role?: Database['public']['Enums']['user_role'];
           tenant_id?: string;
           user_id?: string | null;
@@ -1989,15 +1862,18 @@ export type Database = {
         Returns: undefined;
       };
       my_tenant_access: {
-        Args: Record<PropertyKey, never>;
-        Returns: { blocked: boolean; reason: string }[];
+        Args: never;
+        Returns: {
+          blocked: boolean;
+          reason: string;
+        }[];
       };
       superadmin_tenant_overview: {
         Args: { p_tenant_id?: string };
         Returns: {
           branches_count: number;
-          contact_name: string | null;
-          contact_phone: string | null;
+          contact_name: string;
+          contact_phone: string;
           created_at: string;
           customers_count: number;
           id: string;
@@ -2005,7 +1881,7 @@ export type Database = {
           revenue_centavos: number;
           sales_count: number;
           status: Database['public']['Enums']['tenant_status'];
-          subscription_expires_on: string | null;
+          subscription_expires_on: string;
           subscription_plan: Database['public']['Enums']['subscription_plan'];
           subscription_price_centavos: number;
           subscription_started_on: string;

@@ -22,6 +22,7 @@ export async function createUserAccount(params: {
     if (authError.message.includes('already been registered') || authError.message.includes('already exists')) {
       throw new Error('Username already taken — choose another.');
     }
+
     throw authError;
   }
 

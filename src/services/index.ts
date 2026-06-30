@@ -1,7 +1,6 @@
 /** This file is auto generated */
 
 export * from './admin';
-export * from './areas';
 export * from './auth';
 export * from './bookings';
 export * from './customers';
@@ -13,6 +12,7 @@ export * from './maintenance';
 export * from './payroll';
 export * from './pricing';
 export * from './products';
+export * from './riders';
 export * from './sales';
 export * from './settings';
 export * from './streets';

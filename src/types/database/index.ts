@@ -1,6 +1,5 @@
 /** This file is auto generated */
 
-export * from './area';
 export * from './booking';
 export * from './common';
 export * from './container';

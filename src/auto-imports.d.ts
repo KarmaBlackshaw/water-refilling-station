@@ -16,11 +16,17 @@ declare global {
   const SIDEBAR_GENERAL_NAV: typeof import('./constants/sidebarNav').SIDEBAR_GENERAL_NAV
   const SIDEBAR_MAIN_NAV: typeof import('./constants/sidebarNav').SIDEBAR_MAIN_NAV
   const STATE_META: typeof import('./helpers/clients').STATE_META
+  const WEEKDAYS: typeof import('./constants/rider').WEEKDAYS
   const acceptHMRUpdate: typeof import('pinia').acceptHMRUpdate
   const addDays: typeof import('./helpers/date').addDays
+  const assignRider: typeof import('./services/riders').assignRider
   const asyncComputed: typeof import('@vueuse/core').asyncComputed
   const autoResetRef: typeof import('@vueuse/core').autoResetRef
   const avatarColor: typeof import('./helpers/avatar').avatarColor
+  const buildAbsencesByRider: typeof import('./helpers/riderCoverage').buildAbsencesByRider
+  const buildAttendanceByRider: typeof import('./helpers/riderCoverage').buildAttendanceByRider
+  const buildRidersById: typeof import('./helpers/riderCoverage').buildRidersById
+  const buildScheduleByRider: typeof import('./helpers/riderCoverage').buildScheduleByRider
   const cancelBooking: typeof import('./services/bookings').cancelBooking
   const clientState: typeof import('./helpers/clients').clientState
   const computeIncome: typeof import('./services/payroll').computeIncome
@@ -54,6 +60,7 @@ declare global {
   const createReactiveFn: typeof import('@vueuse/core').createReactiveFn
   const createRef: typeof import('@vueuse/core').createRef
   const createReusableTemplate: typeof import('@vueuse/core').createReusableTemplate
+  const createRiderAbsence: typeof import('./services/riders').createRiderAbsence
   const createSalaryRecord: typeof import('./services/employees').createSalaryRecord
   const createSharedComposable: typeof import('@vueuse/core').createSharedComposable
   const createStreet: typeof import('./services/streets').createStreet
@@ -72,6 +79,7 @@ declare global {
   const daysInMonth: typeof import('./helpers/date').daysInMonth
   const debouncedRef: typeof import('@vueuse/core').debouncedRef
   const debouncedWatch: typeof import('@vueuse/core').debouncedWatch
+  const defaultBarangay: typeof import('./helpers/address').defaultBarangay
   const defineAsyncComponent: typeof import('vue').defineAsyncComponent
   const defineComponent: typeof import('vue').defineComponent
   const defineStore: typeof import('pinia').defineStore
@@ -85,6 +93,7 @@ declare global {
   const effectScope: typeof import('vue').effectScope
   const endCoverageRecord: typeof import('./services/areas').endCoverageRecord
   const endOfMonth: typeof import('./helpers/date').endOfMonth
+  const endRiderAbsence: typeof import('./services/riders').endRiderAbsence
   const extendRef: typeof import('@vueuse/core').extendRef
   const fetchProfile: typeof import('./services/auth').fetchProfile
   const fetchSettings: typeof import('./services/settings').fetchSettings
@@ -142,12 +151,14 @@ declare global {
   const isReactive: typeof import('vue').isReactive
   const isReadonly: typeof import('vue').isReadonly
   const isRef: typeof import('vue').isRef
+  const isRiderAbsent: typeof import('./helpers/riderCoverage').isRiderAbsent
   const isShallow: typeof import('vue').isShallow
   const isValidDate: typeof import('./helpers/date').isValidDate
   const isWorkdayDate: typeof import('./helpers/workday').isWorkdayDate
   const listAddresses: typeof import('./services/customers').listAddresses
   const listAddressesForMap: typeof import('./services/customers').listAddressesForMap
   const listAreas: typeof import('./services/areas').listAreas
+  const listAttendanceForDate: typeof import('./services/employees').listAttendanceForDate
   const listAttendanceForMonth: typeof import('./services/employees').listAttendanceForMonth
   const listBookings: typeof import('./services/bookings').listBookings
   const listClientBranches: typeof import('./services/admin').listClientBranches
@@ -163,7 +174,9 @@ declare global {
   const listPriceOverrides: typeof import('./services/customers').listPriceOverrides
   const listProductPricing: typeof import('./services/products').listProductPricing
   const listProducts: typeof import('./services/products').listProducts
-  const listRiders: typeof import('./services/areas').listRiders
+  const listRiderAbsences: typeof import('./services/riders').listRiderAbsences
+  const listRiderEmployees: typeof import('./services/employees').listRiderEmployees
+  const listRiders: typeof import('./services/riders').listRiders
   const listSalaryRecords: typeof import('./services/employees').listSalaryRecords
   const listSales: typeof import('./services/sales').listSales
   const listTasks: typeof import('./services/maintenance').listTasks
@@ -205,6 +218,7 @@ declare global {
   const onWatcherCleanup: typeof import('vue').onWatcherCleanup
   const parseMoney: typeof import('./helpers/money').parseMoney
   const pausableWatch: typeof import('@vueuse/core').pausableWatch
+  const pickDefaultAddress: typeof import('./helpers/address').pickDefaultAddress
   const provide: typeof import('vue').provide
   const provideLocal: typeof import('@vueuse/core').provideLocal
   const provisionUser: typeof import('./services/admin').provisionUser
@@ -227,6 +241,8 @@ declare global {
   const resolveComponent: typeof import('vue').resolveComponent
   const resolvePrice: typeof import('./services/pricing').resolvePrice
   const resolveRef: typeof import('@vueuse/core').resolveRef
+  const resolveRider: typeof import('./helpers/riderCoverage').resolveRider
+  const riderStatus: typeof import('./helpers/riderCoverage').riderStatus
   const searchBarangays: typeof import('./helpers/geocode').searchBarangays
   const searchCities: typeof import('./helpers/geocode').searchCities
   const setActivePinia: typeof import('pinia').setActivePinia
@@ -245,6 +261,7 @@ declare global {
   const softDeleteEmployee: typeof import('./services/employees').softDeleteEmployee
   const softDeletePriceOverride: typeof import('./services/customers').softDeletePriceOverride
   const softDeleteProduct: typeof import('./services/products').softDeleteProduct
+  const softDeleteRiderAbsence: typeof import('./services/riders').softDeleteRiderAbsence
   const startOfMonth: typeof import('./helpers/date').startOfMonth
   const storeToRefs: typeof import('pinia').storeToRefs
   const submitSalaryRecord: typeof import('./services/employees').submitSalaryRecord
@@ -282,6 +299,7 @@ declare global {
   const updateExpense: typeof import('./services/expenses').updateExpense
   const updatePassword: typeof import('./services/auth').updatePassword
   const updateProduct: typeof import('./services/products').updateProduct
+  const updateRiderRestDays: typeof import('./services/riders').updateRiderRestDays
   const updateTask: typeof import('./services/maintenance').updateTask
   const updateTemplate: typeof import('./services/bookings').updateTemplate
   const updateVehicle: typeof import('./services/vehicles').updateVehicle
@@ -503,13 +521,16 @@ declare global {
   export type { Bbox, GeoFeature } from './helpers/geocode'
   import('./helpers/geocode')
   // @ts-ignore
+  export type { RiderSchedule, RiderDayStatus } from './helpers/riderCoverage'
+  import('./helpers/riderCoverage')
+  // @ts-ignore
   export type { ClientSubscriptionInput, CreateClientInput } from './services/admin'
   import('./services/admin')
   // @ts-ignore
   export type { BookingRow, TemplateRow } from './services/bookings'
   import('./services/bookings')
   // @ts-ignore
-  export type { CustomerWithArea, MapAddrRow, CustomerDetail, CustomerAddressRow, CustomerPriceOverrideWithRels, CustomerSaleWithRels, Customer, CustomerAddress, CustomerPriceOverride } from './services/customers'
+  export type { CustomerWithRider, MapAddrRow, CustomerDetail, CustomerAddressRow, CustomerPriceOverrideWithRels, CustomerSaleWithRels, Customer, CustomerAddress, CustomerPriceOverride } from './services/customers'
   import('./services/customers')
   // @ts-ignore
   export type { DeliverySaleRow, TopRiderRow } from './services/deliveries'
@@ -552,11 +573,15 @@ declare module 'vue' {
     readonly SIDEBAR_GENERAL_NAV: UnwrapRef<typeof import('./constants/sidebarNav')['SIDEBAR_GENERAL_NAV']>
     readonly SIDEBAR_MAIN_NAV: UnwrapRef<typeof import('./constants/sidebarNav')['SIDEBAR_MAIN_NAV']>
     readonly STATE_META: UnwrapRef<typeof import('./helpers/clients')['STATE_META']>
+    readonly WEEKDAYS: UnwrapRef<typeof import('./constants/rider')['WEEKDAYS']>
     readonly acceptHMRUpdate: UnwrapRef<typeof import('pinia')['acceptHMRUpdate']>
     readonly addDays: UnwrapRef<typeof import('./helpers/date')['addDays']>
+    readonly assignRider: UnwrapRef<typeof import('./services/riders')['assignRider']>
     readonly asyncComputed: UnwrapRef<typeof import('@vueuse/core')['asyncComputed']>
     readonly autoResetRef: UnwrapRef<typeof import('@vueuse/core')['autoResetRef']>
     readonly avatarColor: UnwrapRef<typeof import('./helpers/avatar')['avatarColor']>
+    readonly buildAttendanceByRider: UnwrapRef<typeof import('./helpers/riderCoverage')['buildAttendanceByRider']>
+    readonly buildScheduleByRider: UnwrapRef<typeof import('./helpers/riderCoverage')['buildScheduleByRider']>
     readonly cancelBooking: UnwrapRef<typeof import('./services/bookings')['cancelBooking']>
     readonly clientState: UnwrapRef<typeof import('./helpers/clients')['clientState']>
     readonly computeIncome: UnwrapRef<typeof import('./services/payroll')['computeIncome']>
@@ -571,12 +596,10 @@ declare module 'vue' {
     readonly countWorkdays: UnwrapRef<typeof import('./helpers/workday')['countWorkdays']>
     readonly createAddress: UnwrapRef<typeof import('./services/customers')['createAddress']>
     readonly createApp: UnwrapRef<typeof import('vue')['createApp']>
-    readonly createArea: UnwrapRef<typeof import('./services/areas')['createArea']>
     readonly createBooking: UnwrapRef<typeof import('./services/bookings')['createBooking']>
     readonly createClient: UnwrapRef<typeof import('./services/admin')['createClient']>
     readonly createClientBranch: UnwrapRef<typeof import('./services/admin')['createClientBranch']>
     readonly createContainerType: UnwrapRef<typeof import('./services/products')['createContainerType']>
-    readonly createCoverageRecord: UnwrapRef<typeof import('./services/areas')['createCoverageRecord']>
     readonly createCustomer: UnwrapRef<typeof import('./services/customers')['createCustomer']>
     readonly createDeliverySale: UnwrapRef<typeof import('./services/deliveries')['createDeliverySale']>
     readonly createEmployee: UnwrapRef<typeof import('./services/employees')['createEmployee']>
@@ -608,6 +631,7 @@ declare module 'vue' {
     readonly daysInMonth: UnwrapRef<typeof import('./helpers/date')['daysInMonth']>
     readonly debouncedRef: UnwrapRef<typeof import('@vueuse/core')['debouncedRef']>
     readonly debouncedWatch: UnwrapRef<typeof import('@vueuse/core')['debouncedWatch']>
+    readonly defaultBarangay: UnwrapRef<typeof import('./helpers/address')['defaultBarangay']>
     readonly defineAsyncComponent: UnwrapRef<typeof import('vue')['defineAsyncComponent']>
     readonly defineComponent: UnwrapRef<typeof import('vue')['defineComponent']>
     readonly defineStore: UnwrapRef<typeof import('pinia')['defineStore']>
@@ -619,7 +643,6 @@ declare module 'vue' {
     readonly diffInDays: UnwrapRef<typeof import('./helpers/date')['diffInDays']>
     readonly eagerComputed: UnwrapRef<typeof import('@vueuse/core')['eagerComputed']>
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
-    readonly endCoverageRecord: UnwrapRef<typeof import('./services/areas')['endCoverageRecord']>
     readonly endOfMonth: UnwrapRef<typeof import('./helpers/date')['endOfMonth']>
     readonly extendRef: UnwrapRef<typeof import('@vueuse/core')['extendRef']>
     readonly fetchProfile: UnwrapRef<typeof import('./services/auth')['fetchProfile']>
@@ -640,7 +663,6 @@ declare module 'vue' {
     readonly getARBalance: UnwrapRef<typeof import('./services/customers')['getARBalance']>
     readonly getActiveCustomerCount: UnwrapRef<typeof import('./services/dashboard')['getActiveCustomerCount']>
     readonly getActivePinia: UnwrapRef<typeof import('pinia')['getActivePinia']>
-    readonly getActiveRiderForArea: UnwrapRef<typeof import('./services/areas')['getActiveRiderForArea']>
     readonly getAddressPhotoUrl: UnwrapRef<typeof import('./helpers/storage')['getAddressPhotoUrl']>
     readonly getAttendance: UnwrapRef<typeof import('./services/employees')['getAttendance']>
     readonly getClientOverview: UnwrapRef<typeof import('./services/admin')['getClientOverview']>
@@ -678,19 +700,19 @@ declare module 'vue' {
     readonly isReactive: UnwrapRef<typeof import('vue')['isReactive']>
     readonly isReadonly: UnwrapRef<typeof import('vue')['isReadonly']>
     readonly isRef: UnwrapRef<typeof import('vue')['isRef']>
+    readonly isRiderAbsent: UnwrapRef<typeof import('./helpers/riderCoverage')['isRiderAbsent']>
     readonly isShallow: UnwrapRef<typeof import('vue')['isShallow']>
     readonly isValidDate: UnwrapRef<typeof import('./helpers/date')['isValidDate']>
     readonly isWorkdayDate: UnwrapRef<typeof import('./helpers/workday')['isWorkdayDate']>
     readonly listAddresses: UnwrapRef<typeof import('./services/customers')['listAddresses']>
     readonly listAddressesForMap: UnwrapRef<typeof import('./services/customers')['listAddressesForMap']>
-    readonly listAreas: UnwrapRef<typeof import('./services/areas')['listAreas']>
+    readonly listAttendanceForDate: UnwrapRef<typeof import('./services/employees')['listAttendanceForDate']>
     readonly listAttendanceForMonth: UnwrapRef<typeof import('./services/employees')['listAttendanceForMonth']>
     readonly listBookings: UnwrapRef<typeof import('./services/bookings')['listBookings']>
     readonly listClientBranches: UnwrapRef<typeof import('./services/admin')['listClientBranches']>
     readonly listClientUsers: UnwrapRef<typeof import('./services/admin')['listClientUsers']>
     readonly listClients: UnwrapRef<typeof import('./services/admin')['listClients']>
     readonly listContainerTypes: UnwrapRef<typeof import('./services/products')['listContainerTypes']>
-    readonly listCoverageRecords: UnwrapRef<typeof import('./services/areas')['listCoverageRecords']>
     readonly listCustomerSales: UnwrapRef<typeof import('./services/customers')['listCustomerSales']>
     readonly listCustomers: UnwrapRef<typeof import('./services/customers')['listCustomers']>
     readonly listDeliverySales: UnwrapRef<typeof import('./services/deliveries')['listDeliverySales']>
@@ -699,7 +721,8 @@ declare module 'vue' {
     readonly listPriceOverrides: UnwrapRef<typeof import('./services/customers')['listPriceOverrides']>
     readonly listProductPricing: UnwrapRef<typeof import('./services/products')['listProductPricing']>
     readonly listProducts: UnwrapRef<typeof import('./services/products')['listProducts']>
-    readonly listRiders: UnwrapRef<typeof import('./services/areas')['listRiders']>
+    readonly listRiderEmployees: UnwrapRef<typeof import('./services/employees')['listRiderEmployees']>
+    readonly listRiders: UnwrapRef<typeof import('./services/riders')['listRiders']>
     readonly listSalaryRecords: UnwrapRef<typeof import('./services/employees')['listSalaryRecords']>
     readonly listSales: UnwrapRef<typeof import('./services/sales')['listSales']>
     readonly listTasks: UnwrapRef<typeof import('./services/maintenance')['listTasks']>
@@ -741,6 +764,7 @@ declare module 'vue' {
     readonly onWatcherCleanup: UnwrapRef<typeof import('vue')['onWatcherCleanup']>
     readonly parseMoney: UnwrapRef<typeof import('./helpers/money')['parseMoney']>
     readonly pausableWatch: UnwrapRef<typeof import('@vueuse/core')['pausableWatch']>
+    readonly pickDefaultAddress: UnwrapRef<typeof import('./helpers/address')['pickDefaultAddress']>
     readonly provide: UnwrapRef<typeof import('vue')['provide']>
     readonly provideLocal: UnwrapRef<typeof import('@vueuse/core')['provideLocal']>
     readonly provisionUser: UnwrapRef<typeof import('./services/admin')['provisionUser']>
@@ -763,6 +787,8 @@ declare module 'vue' {
     readonly resolveComponent: UnwrapRef<typeof import('vue')['resolveComponent']>
     readonly resolvePrice: UnwrapRef<typeof import('./services/pricing')['resolvePrice']>
     readonly resolveRef: UnwrapRef<typeof import('@vueuse/core')['resolveRef']>
+    readonly resolveRider: UnwrapRef<typeof import('./helpers/riderCoverage')['resolveRider']>
+    readonly riderStatus: UnwrapRef<typeof import('./helpers/riderCoverage')['riderStatus']>
     readonly searchBarangays: UnwrapRef<typeof import('./helpers/geocode')['searchBarangays']>
     readonly searchCities: UnwrapRef<typeof import('./helpers/geocode')['searchCities']>
     readonly setActivePinia: UnwrapRef<typeof import('pinia')['setActivePinia']>
@@ -774,9 +800,7 @@ declare module 'vue' {
     readonly signIn: UnwrapRef<typeof import('./services/auth')['signIn']>
     readonly signOut: UnwrapRef<typeof import('./services/auth')['signOut']>
     readonly softDeleteAddress: UnwrapRef<typeof import('./services/customers')['softDeleteAddress']>
-    readonly softDeleteArea: UnwrapRef<typeof import('./services/areas')['softDeleteArea']>
     readonly softDeleteContainerType: UnwrapRef<typeof import('./services/products')['softDeleteContainerType']>
-    readonly softDeleteCoverageRecord: UnwrapRef<typeof import('./services/areas')['softDeleteCoverageRecord']>
     readonly softDeleteCustomer: UnwrapRef<typeof import('./services/customers')['softDeleteCustomer']>
     readonly softDeleteEmployee: UnwrapRef<typeof import('./services/employees')['softDeleteEmployee']>
     readonly softDeletePriceOverride: UnwrapRef<typeof import('./services/customers')['softDeletePriceOverride']>
@@ -810,7 +834,6 @@ declare module 'vue' {
     readonly unrefElement: UnwrapRef<typeof import('@vueuse/core')['unrefElement']>
     readonly until: UnwrapRef<typeof import('@vueuse/core')['until']>
     readonly updateAddress: UnwrapRef<typeof import('./services/customers')['updateAddress']>
-    readonly updateArea: UnwrapRef<typeof import('./services/areas')['updateArea']>
     readonly updateClient: UnwrapRef<typeof import('./services/admin')['updateClient']>
     readonly updateContainerType: UnwrapRef<typeof import('./services/products')['updateContainerType']>
     readonly updateCustomer: UnwrapRef<typeof import('./services/customers')['updateCustomer']>

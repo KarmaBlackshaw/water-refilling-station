@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Product, ContainerType, PaymentMethod } from '@/types/database';
-import type { CustomerWithArea } from '@/services/customers';
+import type { CustomerWithRider } from '@/services/customers';
 import { loadPricing as fetchPricing, resolvePrice as resolvePriceFn, type PricingData } from '@/services/pricing';
 import { formatMoney } from '@/helpers/money';
 import IconClose from '@/components/Icon/IconClose.vue';
@@ -40,7 +40,7 @@ export interface WalkInSubmitPayload {
 const open = defineModel<boolean>('open', { required: true });
 
 const { customers, products, containerTypes, saving } = defineProps<{
-  customers: CustomerWithArea[];
+  customers: CustomerWithRider[];
   products: Product[];
   containerTypes: ContainerType[];
   saving?: boolean;
@@ -70,7 +70,7 @@ function resolvePrice(productId: string, containerTypeId: string, isNewContainer
 }
 
 const customerSearch = ref('');
-const selectedCustomer = ref<CustomerWithArea>();
+const selectedCustomer = ref<CustomerWithRider>();
 const showCustomerDropdown = ref(false);
 
 const filteredCustomers = computed(() => {
@@ -89,7 +89,7 @@ function closeCustomerDropdown() {
   }, 150);
 }
 
-function selectCustomer(c: CustomerWithArea) {
+function selectCustomer(c: CustomerWithRider) {
   selectedCustomer.value = c;
   customerSearch.value = c.name;
   showCustomerDropdown.value = false;
@@ -260,7 +260,7 @@ function submit() {
                 @mousedown.prevent="selectCustomer(c)"
               >
                 <span>{{ c.name }}</span>
-                <span class="text-independence text-xs">{{ c.area?.name ?? '' }}</span>
+                <span class="text-independence text-xs">{{ c.rider?.full_name ?? '' }}</span>
               </button>
             </div>
           </div>
@@ -268,7 +268,7 @@ function submit() {
         </div>
         <p v-if="selectedCustomer" class="text-xs text-dark-green-turquoise mt-1">
           Selected: {{ selectedCustomer.name }}
-          <span v-if="selectedCustomer.area"> — {{ selectedCustomer.area.name }}</span>
+          <span v-if="selectedCustomer.rider"> — {{ selectedCustomer.rider.full_name }}</span>
         </p>
       </div>
 

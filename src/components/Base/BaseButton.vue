@@ -18,7 +18,7 @@ const {
 
 const variantClass = computed(() => {
   const map: Partial<Record<Color, string>> = {
-    'tampa': 'bg-tampa text-white font-semibold hover:opacity-90',
+    tampa: 'bg-tampa text-white font-semibold hover:opacity-90',
     'full-white': 'bg-full-white text-casual-navy border border-sparkling-silver hover:bg-bright-chrome',
     independence: 'text-independence hover:bg-hover',
     'blaze-red': 'bg-blaze-red text-white hover:opacity-90',

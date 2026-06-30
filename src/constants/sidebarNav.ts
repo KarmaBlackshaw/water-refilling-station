@@ -29,7 +29,7 @@ export const SIDEBAR_MAIN_NAV: SidebarNavItem[] = [
   { label: 'Deliveries', to: ROUTES.DELIVERIES, icon: IconDeliveries },
   { label: 'Bookings', to: ROUTES.BOOKINGS, icon: IconBookings },
   { label: 'Products', to: ROUTES.PRODUCTS, icon: IconProducts },
-  { label: 'Areas', to: ROUTES.AREAS, icon: IconAreas },
+  { label: 'Riders', to: ROUTES.RIDERS, icon: IconAreas },
   { label: 'Employees', to: ROUTES.EMPLOYEES, icon: IconEmployees },
   { label: 'Maintenance', to: ROUTES.MAINTENANCE, icon: IconMaintenance, badgeKey: 'maintenanceAlertCount' },
   { label: 'Vehicles', to: ROUTES.VEHICLES, icon: IconVehicles },

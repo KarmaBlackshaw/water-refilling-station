@@ -5,6 +5,7 @@ export { default as IconArrowUpRight } from './IconArrowUpRight.vue';
 export { default as IconBell } from './IconBell.vue';
 export { default as IconBookings } from './IconBookings.vue';
 export { default as IconBuilding } from './IconBuilding.vue';
+export { default as IconCalendar } from './IconCalendar.vue';
 export { default as IconCheck } from './IconCheck.vue';
 export { default as IconChevronDown } from './IconChevronDown.vue';
 export { default as IconChevronRight } from './IconChevronRight.vue';

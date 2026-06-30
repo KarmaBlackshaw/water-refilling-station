@@ -2,7 +2,7 @@ import { dayjs, nowISO } from '@/helpers/date';
 import { supabase } from '@/helpers/supabase';
 import type { Customer, CustomerAddress, CustomerPriceOverride, CustomerType } from '@/types/database';
 
-export type CustomerWithArea = NonNullable<Awaited<ReturnType<typeof listCustomers>>['data']>[number];
+export type CustomerWithRider = NonNullable<Awaited<ReturnType<typeof listCustomers>>['data']>[number];
 export type MapAddrRow = NonNullable<Awaited<ReturnType<typeof listAddressesForMap>>['data']>[number];
 export type CustomerDetail = NonNullable<Awaited<ReturnType<typeof getCustomer>>['data']>;
 export type CustomerAddressRow = NonNullable<Awaited<ReturnType<typeof listAddresses>>['data']>[number];
@@ -13,7 +13,7 @@ export function listCustomers(tenantId: string, branchId: string) {
   return supabase
     .from('customers')
     .select(
-      '*, area:areas(id, name), addresses:customer_addresses(id, label, street, barangay, city, landmark, lat, lng, is_default, needs_pin_review, photo_path, deleted_at)',
+      '*, rider:users!rider_id(id, full_name), backup_rider:users!backup_rider_id(id, full_name), addresses:customer_addresses(id, label, street, barangay, city, landmark, lat, lng, is_default, needs_pin_review, photo_path, deleted_at)',
     )
     .eq('tenant_id', tenantId)
     .eq('branch_id', branchId)
@@ -25,7 +25,7 @@ export function getCustomer(id: string) {
   return supabase
     .from('customers')
     .select(
-      '*, area:areas(id, name), addresses:customer_addresses(id, label, street, barangay, city, landmark, lat, lng, is_default, needs_pin_review, photo_path, deleted_at)',
+      '*, rider:users!rider_id(id, full_name), backup_rider:users!backup_rider_id(id, full_name), addresses:customer_addresses(id, label, street, barangay, city, landmark, lat, lng, is_default, needs_pin_review, photo_path, deleted_at)',
     )
     .eq('id', id)
     .single();
@@ -37,13 +37,14 @@ export function createCustomer(data: {
   name: string;
   phone?: string | null;
   type: CustomerType;
-  area_id?: string | null;
+  rider_id?: string | null;
+  backup_rider_id?: string | null;
   notes?: string | null;
 }) {
   return supabase.from('customers').insert(data).select().single();
 }
 
-export function updateCustomer(id: string, data: Partial<Pick<Customer, 'name' | 'phone' | 'type' | 'area_id' | 'notes' | 'active'>>) {
+export function updateCustomer(id: string, data: Partial<Pick<Customer, 'name' | 'phone' | 'type' | 'rider_id' | 'backup_rider_id' | 'notes' | 'active'>>) {
   return supabase.from('customers').update(data).eq('id', id).select().single();
 }
 
@@ -99,7 +100,7 @@ export function listAddressesForMap(tenantId: string, branchId: string) {
       `
       id, label, street, barangay, city, landmark, lat, lng,
       needs_pin_review, photo_path,
-      customer:customers!customer_id(id, name, phone, area_id, area:areas(id, name, primary_rider_id))
+      customer:customers!customer_id(id, name, phone, rider_id, backup_rider_id, rider:users!rider_id(id, full_name), backup_rider:users!backup_rider_id(id, full_name))
     `,
     )
     .eq('tenant_id', tenantId)

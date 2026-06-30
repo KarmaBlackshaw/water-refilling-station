@@ -24,6 +24,13 @@
   --radius-panel: 0.75rem;
   --radius-pill: 9999px;
 
+  /* Rider palette — decorative hues for per-rider map markers */
+  --color-rider-blue: #3b82f6;
+  --color-rider-purple: #8b5cf6;
+  --color-rider-pink: #ec4899;
+  --color-rider-teal: #14b8a6;
+  --color-rider-orange: #f97316;
+
   /* Subtle fills */
   --color-emerald-subtle: rgba(16, 185, 129, 0.10);
   --color-red-subtle: rgba(239, 68, 68, 0.10);
@@ -41,6 +48,12 @@
     color 0.15s ease,
     border-color 0.15s ease,
     box-shadow 0.2s ease;
+}
+
+/* Text selection — force the conventional blue, ignore OS highlight color */
+::selection {
+  background-color: #b3d4fc;
+  color: var(--color-casual-navy);
 }
 
 body {
@@ -94,6 +107,13 @@ label {
 @keyframes skeleton-shimmer {
   to {
     background-position: -200% 0;
+  }
+}
+
+/* Respect users who prefer reduced motion: drop the shimmer animation. */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
   }
 }
 

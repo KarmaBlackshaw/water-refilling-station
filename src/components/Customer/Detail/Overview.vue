@@ -17,8 +17,12 @@ defineProps<{
       <p class="mb-3 text-sm font-semibold text-casual-navy">Details</p>
       <dl class="divide-y divide-sparkling-silver text-sm">
         <div class="flex items-center justify-between gap-4 py-2.5 first:pt-0">
-          <dt class="text-oslo">Area</dt>
-          <dd class="font-medium text-casual-navy">{{ customer.area?.name ?? '—' }}</dd>
+          <dt class="text-oslo">Rider</dt>
+          <dd class="font-medium text-casual-navy">{{ customer.rider?.full_name ?? '—' }}</dd>
+        </div>
+        <div class="flex items-center justify-between gap-4 py-2.5">
+          <dt class="text-oslo">Backup rider</dt>
+          <dd class="font-medium text-casual-navy">{{ customer.backup_rider?.full_name ?? '—' }}</dd>
         </div>
         <div class="flex justify-between gap-4 py-2.5 last:pb-0">
           <dt class="text-oslo">Default address</dt>

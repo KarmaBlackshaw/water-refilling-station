@@ -59,6 +59,7 @@ const { loading: saving, run: save } = useAsync(
     role: UserRole;
     monthly_salary_centavos: number;
     daily_quota_jugs: number | null;
+    rest_days: number[];
     account?: { username: string; password: string };
   }) => {
     saveError.value = undefined;
@@ -87,6 +88,7 @@ const { loading: saving, run: save } = useAsync(
         hire_date: payload.hire_date,
         monthly_salary_centavos: payload.monthly_salary_centavos,
         daily_quota_jugs: payload.daily_quota_jugs,
+        rest_days: payload.rest_days,
         ...(userId ? { user_id: userId } : {}),
       });
     } else {
@@ -105,6 +107,7 @@ const { loading: saving, run: save } = useAsync(
         role: payload.role,
         monthly_salary_centavos: payload.monthly_salary_centavos,
         daily_quota_jugs: payload.daily_quota_jugs,
+        rest_days: payload.rest_days,
       });
     }
 

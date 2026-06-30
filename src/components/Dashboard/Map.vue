@@ -5,7 +5,6 @@ import type mapboxgl from 'mapbox-gl';
 
 type MapboxLib = typeof mapboxgl;
 import { listAddressesForMap, updateAddress, updateCustomer, type MapAddrRow } from '@/services/customers';
-import { listAreas, listRiders } from '@/services/areas';
 import { formatAddress } from '@/helpers/address';
 import DashboardMapPopup from './MapPopup.vue';
 
@@ -18,30 +17,22 @@ const { tenantId, branchId } = storeToRefs(auth);
 const toast = useToast();
 
 const { data: addrsRes, error: addrsError, run: refetchAddrs } = useAsync(() => listAddressesForMap(tenantId.value, branchId.value), { immediate: true });
-const { data: areasRes } = useAsync(() => listAreas(tenantId.value, branchId.value), { immediate: true });
 const { data: ridersRes } = useAsync(() => listRiders(tenantId.value, branchId.value), { immediate: true });
 
 const allAddrs = computed(() => addrsRes.value?.data ?? []);
-const areas = computed(() => areasRes.value?.data ?? []);
 const riders = computed(() => ridersRes.value?.data ?? []);
 
 const mappable = computed(() => allAddrs.value.filter((a): a is MappableAddr => a.lat != null && a.lng != null));
 
 const needsPinList = computed(() => allAddrs.value.filter((a) => a.lat == null || a.lng == null || a.needs_pin_review));
 
-const selectedAreaIds = ref<string[]>([]);
 const selectedRiderIds = ref<string[]>([]);
 const needsPinOnly = ref(false);
 
 const visiblePins = computed(() =>
   mappable.value.filter((a) => {
     const customer = a.customer;
-
-    if (selectedAreaIds.value.length && !selectedAreaIds.value.includes(customer?.area_id ?? '')) {
-      return false;
-    }
-
-    const riderId = customer?.area?.primary_rider_id ?? null;
+    const riderId = customer?.rider_id ?? null;
 
     if (selectedRiderIds.value.length && !selectedRiderIds.value.includes(riderId ?? '')) {
       return false;
@@ -55,12 +46,21 @@ const visiblePins = computed(() =>
   }),
 );
 
-const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+const COLORS = [
+  'var(--color-rider-blue)',
+  'var(--color-blaze-red)',
+  'var(--color-dark-green-turquoise)',
+  'var(--color-strong-amber)',
+  'var(--color-rider-purple)',
+  'var(--color-rider-pink)',
+  'var(--color-rider-teal)',
+  'var(--color-rider-orange)',
+];
 const colorCache = new Map<string, string>();
 
 function riderColor(id: string | null): string {
   if (!id) {
-    return '#94a3b8';
+    return 'var(--color-oslo)';
   }
 
   const cached = colorCache.get(id);
@@ -80,11 +80,11 @@ function riderColor(id: string | null): string {
   return color;
 }
 
-const areaOptions = computed(() => areas.value.map((a) => ({ label: a.name, value: a.id })));
+const riderOptions = computed(() => riders.value.map((r) => ({ label: r.full_name, value: r.id })));
 
-const mapEl = ref<HTMLDivElement | null>(null);
+const mapEl = ref<HTMLDivElement>();
 let map: MapboxMap | null = null;
-const resizeObs: ResizeObserver | null = null;
+let resizeObs: ResizeObserver | null = null;
 const markers = new Map<string, MapboxMarker>();
 let fitDone = false;
 
@@ -97,7 +97,7 @@ function makeMarkerEl(riderId: string | null, needsReview: boolean): HTMLDivElem
     width: 16px; height: 16px;
     border-radius: 50%;
     background: ${riderColor(riderId)};
-    border: 2px solid #fff;
+    border: 2px solid var(--color-full-white);
     box-shadow: 0 1px 3px rgba(0,0,0,.4);
     cursor: pointer;
     position: relative;
@@ -109,8 +109,8 @@ function makeMarkerEl(riderId: string | null, needsReview: boolean): HTMLDivElem
       position: absolute; top: -3px; right: -3px;
       width: 7px; height: 7px;
       border-radius: 50%;
-      background: #ef4444;
-      border: 1px solid #fff;
+      background: var(--color-blaze-red);
+      border: 1px solid var(--color-full-white);
     `;
     el.appendChild(badge);
   }
@@ -125,9 +125,8 @@ function openPopup(mapbox: MapboxLib, addr: MapAddrRow) {
     return;
   }
 
-  const areaObj = customer.area ? { id: customer.area.id, name: customer.area.name } : null;
-  const riderId = customer.area?.primary_rider_id ?? null;
-  const activeRider = riderId ? (riders.value.find((r) => r.id === riderId) ?? null) : null;
+  const rider = customer.rider ?? null;
+  const backupRider = customer.backup_rider ?? null;
 
   const node = document.createElement('div');
 
@@ -148,16 +147,17 @@ function openPopup(mapbox: MapboxLib, addr: MapAddrRow) {
       id: customer.id,
       name: customer.name,
       phone: customer.phone,
-      area_id: customer.area_id,
+      rider_id: customer.rider_id,
+      backup_rider_id: customer.backup_rider_id,
     },
-    area: areaObj,
-    activeRider: activeRider ? { id: activeRider.id, full_name: activeRider.full_name } : null,
-    areaOptions: areaOptions.value,
-    onReassignArea: async (areaId: string) => {
-      const { error } = await updateCustomer(customer.id, { area_id: areaId });
+    rider,
+    backupRider,
+    riderOptions: riderOptions.value,
+    onReassignRider: async (riderId: string) => {
+      const { error } = await updateCustomer(customer.id, { rider_id: riderId });
 
       if (error) {
-        toast.error('Failed to reassign area');
+        toast.error('Failed to reassign rider');
         return;
       }
 
@@ -197,7 +197,7 @@ function renderPins(mapbox: MapboxLib) {
   }
 
   for (const addr of visiblePins.value) {
-    const riderId = addr.customer?.area?.primary_rider_id ?? null;
+    const riderId = addr.customer?.rider_id ?? null;
 
     if (markers.has(addr.id)) {
       const existing = markers.get(addr.id)!;
@@ -213,8 +213,8 @@ function renderPins(mapbox: MapboxLib) {
           position: absolute; top: -3px; right: -3px;
           width: 7px; height: 7px;
           border-radius: 50%;
-          background: #ef4444;
-          border: 1px solid #fff;
+          background: var(--color-blaze-red);
+          border: 1px solid var(--color-full-white);
         `;
         existingEl.appendChild(b);
       } else if (!addr.needs_pin_review && badge) {
@@ -313,16 +313,6 @@ onBeforeUnmount(() => {
 
 const needsPinExpanded = ref(false);
 
-function toggleArea(id: string) {
-  const idx = selectedAreaIds.value.indexOf(id);
-
-  if (idx === -1) {
-    selectedAreaIds.value = [...selectedAreaIds.value, id];
-  } else {
-    selectedAreaIds.value = selectedAreaIds.value.filter((x) => x !== id);
-  }
-}
-
 function toggleRider(id: string) {
   const idx = selectedRiderIds.value.indexOf(id);
 
@@ -335,7 +325,7 @@ function toggleRider(id: string) {
 </script>
 
 <template>
-  <div class="flex h-full flex-col md:flex-row overflow-hidden rounded-xl border border-sparkling-silver bg-full-white">
+  <div class="flex h-full flex-col overflow-hidden rounded-xl border border-sparkling-silver bg-full-white md:flex-row">
     <BaseEmptyState v-if="!hasToken" title="Map unavailable" description="Set VITE_MAPBOX_TOKEN to enable the map." class="flex-1" />
 
     <template v-else>
@@ -358,26 +348,6 @@ function toggleRider(id: string) {
       <div class="flex w-full flex-col gap-4 overflow-y-auto border-t border-sparkling-silver p-4 md:w-72 md:border-l md:border-t-0">
         <div class="space-y-3">
           <p class="text-xs font-semibold uppercase tracking-wide text-oslo">Filters</p>
-
-          <div v-if="areas.length > 0" class="space-y-1.5">
-            <p class="text-xs text-independence">Areas</p>
-            <div class="flex flex-wrap gap-1.5">
-              <button
-                v-for="area in areas"
-                :key="area.id"
-                type="button"
-                class="rounded-full border px-2.5 py-0.5 text-xs transition-colors"
-                :class="
-                  selectedAreaIds.includes(area.id)
-                    ? 'border-tampa bg-tampa text-full-white'
-                    : 'border-sparkling-silver bg-full-white text-casual-navy hover:bg-bright-chrome'
-                "
-                @click="toggleArea(area.id)"
-              >
-                {{ area.name }}
-              </button>
-            </div>
-          </div>
 
           <div v-if="riders.length > 0" class="space-y-1.5">
             <p class="text-xs text-independence">Riders</p>
@@ -414,7 +384,7 @@ function toggleRider(id: string) {
               {{ rider.full_name }}
             </div>
             <div class="flex items-center gap-2 text-xs text-casual-navy">
-              <span class="inline-block size-2.5 shrink-0 rounded-full bg-[#94a3b8]" />
+              <span class="inline-block size-2.5 shrink-0 rounded-full bg-oslo" />
               Unassigned
             </div>
           </div>
