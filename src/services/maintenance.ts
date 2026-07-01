@@ -5,14 +5,20 @@ import type { MaintenanceLog, MaintenanceScope, MaintenanceTask, ScheduleKind } 
 
 export type MaintenanceTaskRow = Awaited<ReturnType<typeof listTasks>>[number];
 
-export async function listTasks(scope: MaintenanceScope) {
-  const { data, error } = await supabase
+export async function listTasks(scope: MaintenanceScope, filters?: { search?: string }) {
+  let query = supabase
     .from('maintenance_tasks')
     .select('*, vehicles(brand_model, plate_number)')
     .eq('scope', scope)
     .eq('active', true)
     .is('deleted_at', null)
     .order('created_at', { ascending: false });
+
+  if (filters?.search) {
+    query = query.ilike('task_type', `%${filters.search}%`);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     throw error;

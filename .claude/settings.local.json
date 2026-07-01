@@ -43,6 +43,11 @@
             "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/recall-memory.sh\" SessionStart",
             "statusMessage": "Loading repo memory"
+          },
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/obsidian-recall.sh\" SessionStart",
+            "statusMessage": "Loading Obsidian memory"
           }
         ]
       }
@@ -54,6 +59,22 @@
             "type": "command",
             "command": "printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"REPO RULE: before responding, invoke these skills via the Skill tool, in order: using-superpowers, dispatching-parallel-agents, vue-best-practices, web-component-design, vue-pinia-best-practices. Skip an invocation only if that skill is already loaded this session.\"}}'",
             "statusMessage": "Loading repo skills"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/save-memory.sh\"",
+            "statusMessage": "Saving repo memory"
+          },
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/obsidian-push.sh\"",
+            "statusMessage": "Saving to Obsidian"
           }
         ]
       }

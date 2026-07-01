@@ -3,8 +3,21 @@ import { supabase } from '@/helpers/supabase';
 import { getCurrentUserId } from '@/helpers/supabase';
 import type { Vehicle, MaintenanceTask } from '@/types/database';
 
-export async function listVehicles(): Promise<Vehicle[]> {
-  const { data, error } = await supabase.from('vehicles').select('*').is('deleted_at', null).order('brand_model');
+/**
+ * List all non-deleted vehicles, optionally filtered by a search term.
+ *
+ * @param filters.search - Case-insensitive substring matched against `brand_model` OR `plate_number`.
+ */
+export async function listVehicles(filters?: { search?: string }): Promise<Vehicle[]> {
+  let query = supabase.from('vehicles').select('*').is('deleted_at', null).order('brand_model');
+
+  if (filters?.search) {
+    const s = filters.search;
+
+    query = query.or('brand_model.ilike.%' + s + '%,plate_number.ilike.%' + s + '%');
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     throw error;

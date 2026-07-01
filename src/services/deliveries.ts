@@ -1,28 +1,49 @@
 import { today } from '@/helpers/date';
 import { supabase } from '@/helpers/supabase';
-import type { Sale } from '@/types/database';
+import type { Sale, SaleStatus } from '@/types/database';
 
 export type DeliverySaleRow = Awaited<ReturnType<typeof listDeliverySales>>[number];
 
-export async function listDeliverySales(date?: string) {
+/** Maps a UI status filter key to the underlying `sales.status` values it covers. */
+const DELIVERY_STATUS_MAP: Record<string, SaleStatus[]> = {
+  pending: ['pending_delivery'],
+  completed: ['completed'],
+  void: ['void'],
+};
+
+export async function listDeliverySales(date?: string, filters?: { search?: string; status?: string }) {
   const targetDate = date ?? today();
 
-  const { data, error } = await supabase
+  /** Inner-join customer so a name search filters parent rows (deliveries always have a customer). */
+  let query = supabase
     .from('sales')
     .select(
       `
       *,
-      customer:customers(name, phone),
+      customer:customers!inner(name, phone),
       address:customer_addresses(street, barangay, city, landmark, label),
       rider:users!rider_id(full_name),
       lines:sale_lines(*, product:products(name), container_type:container_types(name))
     `,
     )
     .in('source', ['delivery', 'booking_fulfilled'])
-    .neq('status', 'void')
     .is('deleted_at', null)
     .eq('sale_date', targetDate)
     .order('created_at', { ascending: true });
+
+  const statuses = filters?.status ? DELIVERY_STATUS_MAP[filters.status] : undefined;
+
+  if (statuses) {
+    query = query.in('status', statuses);
+  } else {
+    query = query.neq('status', 'void');
+  }
+
+  if (filters?.search) {
+    query = query.ilike('customer.name', `%${filters.search}%`);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     throw error;
@@ -62,6 +83,18 @@ export async function createDeliverySale(data: {
   }
 
   return sale;
+}
+
+/** Edit a single delivery's rider / date / address / notes. Pass null to clear rider or address. */
+export async function updateDeliverySale(
+  id: string,
+  data: { rider_id: string | null; address_id: string | null; sale_date: string; notes: string | null },
+): Promise<void> {
+  const { error } = await supabase.from('sales').update(data).eq('id', id);
+
+  if (error) {
+    throw error;
+  }
 }
 
 export type TopRiderRow = Awaited<ReturnType<typeof listTopRiders>>[number];

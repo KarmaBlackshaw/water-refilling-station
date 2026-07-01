@@ -6,9 +6,8 @@ import type { Dayjs } from 'dayjs';
 export type BookingRow = Awaited<ReturnType<typeof listBookings>>[number];
 export type TemplateRow = Awaited<ReturnType<typeof listTemplates>>[number];
 
-// Day-of-week mapping: 0=Mon..5=Sat (no Sunday)
+/** Day-of-week mapping: 0=Mon..5=Sat (no Sunday). dayjs.day(): 0=Sun,1=Mon..6=Sat → Mon=0..Sat=5, Sun excluded. */
 function jsToMon0(jsDay: number): number {
-  // dayjs.day(): 0=Sun,1=Mon..6=Sat → Mon=0..Sat=5, Sun excluded
   return (jsDay + 6) % 7;
 }
 
@@ -30,7 +29,7 @@ function matchesCadence(template: TemplateRow, date: Dayjs, from: Dayjs): boolea
   }
 
   if (template.cadence === 'monthly') {
-    // First matching day_of_week in the calendar month
+    /** First matching day_of_week in the calendar month. */
     let d = date.startOf('month');
 
     while (jsToMon0(d.day()) !== template.day_of_week) {
@@ -42,14 +41,14 @@ function matchesCadence(template: TemplateRow, date: Dayjs, from: Dayjs): boolea
   return false;
 }
 
-export async function listBookings(params?: { from?: string; to?: string; status?: BookingStatus; customerId?: string }) {
+export async function listBookings(params?: { from?: string; to?: string; status?: BookingStatus; customerId?: string; search?: string }) {
   const start = today();
   const defaultTo = addDays(start, 14);
 
   let query = supabase
     .from('bookings')
     .select(
-      '*, customer:customers(name), rider:users!rider_id(full_name), items:booking_items(*, product:products(name), container_type:container_types(name))',
+      '*, customer:customers!inner(name), rider:users!rider_id(full_name), items:booking_items(*, product:products(name), container_type:container_types(name))',
     )
     .is('deleted_at', null)
     .order('scheduled_date');
@@ -67,6 +66,10 @@ export async function listBookings(params?: { from?: string; to?: string; status
 
   if (params?.customerId) {
     query = query.eq('customer_id', params.customerId);
+  }
+
+  if (params?.search) {
+    query = query.ilike('customer.name', `%${params.search}%`);
   }
 
   const { data, error } = await query;
@@ -259,7 +262,6 @@ export async function cancelBooking(id: string): Promise<void> {
 }
 
 export async function materializeBookings(tenantId: string, branchId: string, from: string, to: string): Promise<number> {
-  // Load all active templates with their items
   const { data: templates, error: templatesError } = await supabase
     .from('booking_templates')
     .select(
@@ -281,7 +283,7 @@ export async function materializeBookings(tenantId: string, branchId: string, fr
   const fromDate = dayjs(from);
   const toDate = dayjs(to);
 
-  // Collect all (template_id, date) combos that should exist
+  /** All (template_id, date) combos that should exist in the requested range. */
   const needed: Array<{ template: TemplateRow; date: string }> = [];
 
   for (const template of templates) {
@@ -300,7 +302,6 @@ export async function materializeBookings(tenantId: string, branchId: string, fr
     return 0;
   }
 
-  // Load existing bookings for this range to avoid duplicates
   const { data: existing, error: existingError } = await supabase
     .from('bookings')
     .select('template_id, scheduled_date')
@@ -316,14 +317,13 @@ export async function materializeBookings(tenantId: string, branchId: string, fr
 
   const existingSet = new Set((existing ?? []).map((b) => `${b.template_id}|${b.scheduled_date}`));
 
-  // Filter to only truly new bookings
+  /** Only bookings that don't already exist in the DB. */
   const toCreate = needed.filter(({ template, date }) => !existingSet.has(`${template.id}|${date}`));
 
   if (toCreate.length === 0) {
     return 0;
   }
 
-  // Insert bookings in one batch
   const bookingRows = toCreate.map(({ template, date }) => ({
     tenant_id: tenantId,
     branch_id: branchId,
@@ -341,7 +341,6 @@ export async function materializeBookings(tenantId: string, branchId: string, fr
     throw createError;
   }
 
-  // Match created bookings back to their templates to insert items
   if (createdBookings && createdBookings.length > 0) {
     const templateMap = new Map(templates.map((t) => [t.id, t]));
 
@@ -409,7 +408,6 @@ export async function fulfillBooking(
 
   const items = booking.items ?? [];
 
-  // 2. Create sale
   const { data: sale, error: saleError } = await supabase
     .from('sales')
     .insert({
@@ -430,7 +428,6 @@ export async function fulfillBooking(
     throw saleError ?? new Error('Failed to create sale');
   }
 
-  // 3. Insert sale lines
   const priceMap = new Map(prices.map((p) => [`${p.product_id}|${p.container_type_id}`, p.unit_price_centavos]));
 
   const saleLines = items.map((item) => ({
@@ -452,7 +449,6 @@ export async function fulfillBooking(
     }
   }
 
-  // 4. Update booking
   const { error: updateError } = await supabase.from('bookings').update({ status: 'fulfilled', sale_id: sale.id }).eq('id', bookingId);
 
   if (updateError) {

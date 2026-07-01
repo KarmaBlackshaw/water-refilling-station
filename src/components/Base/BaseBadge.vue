@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import type { Size } from '@/types';
-
-type BadgeVariant = 'default' | 'success' | 'warning' | 'danger' | 'info';
+import type { BadgeVariant, Size } from '@/types';
 
 const { variant = 'default', size = 'md' } = defineProps<{
   variant?: BadgeVariant;

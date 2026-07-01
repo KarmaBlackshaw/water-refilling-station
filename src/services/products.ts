@@ -2,9 +2,15 @@ import { nowISO } from '@/helpers/date';
 import { supabase } from '@/helpers/supabase';
 import type { Product, ContainerType } from '@/types/database';
 
-// Products
-export function listProducts(tenantId: string, branchId: string) {
-  return supabase.from('products').select('*').eq('tenant_id', tenantId).eq('branch_id', branchId).is('deleted_at', null).order('sort_order');
+/** List all active products for a branch, optionally filtered by name. */
+export function listProducts(tenantId: string, branchId: string, filters?: { search?: string }) {
+  let query = supabase.from('products').select('*').eq('tenant_id', tenantId).eq('branch_id', branchId).is('deleted_at', null).order('sort_order');
+
+  if (filters?.search) {
+    query = query.ilike('name', `%${filters.search}%`);
+  }
+
+  return query;
 }
 
 export function createProduct(data: { tenant_id: string; branch_id: string; name: string; sort_order?: number }) {
@@ -19,9 +25,15 @@ export function softDeleteProduct(id: string, deletedBy: string) {
   return supabase.from('products').update({ deleted_at: nowISO(), deleted_by: deletedBy }).eq('id', id);
 }
 
-// Container types
-export function listContainerTypes(tenantId: string, branchId: string) {
-  return supabase.from('container_types').select('*').eq('tenant_id', tenantId).eq('branch_id', branchId).is('deleted_at', null).order('sort_order');
+/** List all active container types for a branch, optionally filtered by name. */
+export function listContainerTypes(tenantId: string, branchId: string, filters?: { search?: string }) {
+  let query = supabase.from('container_types').select('*').eq('tenant_id', tenantId).eq('branch_id', branchId).is('deleted_at', null).order('sort_order');
+
+  if (filters?.search) {
+    query = query.ilike('name', `%${filters.search}%`);
+  }
+
+  return query;
 }
 
 export function createContainerType(data: { tenant_id: string; branch_id: string; name: string; deposit_centavos: number; sort_order?: number }) {
@@ -36,7 +48,7 @@ export function softDeleteContainerType(id: string, deletedBy: string) {
   return supabase.from('container_types').update({ deleted_at: nowISO(), deleted_by: deletedBy }).eq('id', id);
 }
 
-// Product pricing
+/** List all product pricing entries for a branch, ordered by most recent effective date. */
 export function listProductPricing(tenantId: string, branchId: string) {
   return supabase.from('product_pricing').select('*').eq('tenant_id', tenantId).eq('branch_id', branchId).order('effective_from', { ascending: false });
 }

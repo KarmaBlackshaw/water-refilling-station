@@ -27,11 +27,21 @@ export type CreateClientInput = ClientSubscriptionInput & {
   admin_password: string;
 };
 
-// ---- Reads ---------------------------------------------------------------
+/** ---- Reads --------------------------------------------------------------- */
 
-/** All clients with aggregated stats. */
-export function listClients() {
-  return supabaseAdmin.rpc('superadmin_tenant_overview');
+/**
+ * All clients with aggregated stats, optionally filtered by name or contact name.
+ *
+ * PostgREST permits `.or()` / `.ilike()` on RPC results, so no second query is needed.
+ */
+export function listClients(filters?: { search?: string }) {
+  let query = supabaseAdmin.rpc('superadmin_tenant_overview');
+
+  if (filters?.search) {
+    query = query.or(`name.ilike.%${filters.search}%,contact_name.ilike.%${filters.search}%`);
+  }
+
+  return query;
 }
 
 /** A single client with aggregated stats. */
@@ -47,7 +57,7 @@ export function listClientUsers(tenantId: string) {
   return supabaseAdmin.from('users').select('*').eq('tenant_id', tenantId).is('deleted_at', null).order('created_at');
 }
 
-// ---- Tenant writes -------------------------------------------------------
+/** ---- Tenant writes ------------------------------------------------------- */
 
 export function updateClient(tenantId: string, data: ClientSubscriptionInput) {
   return supabaseAdmin.from('tenants').update(data).eq('id', tenantId).select().single();
@@ -57,7 +67,7 @@ export function setClientStatus(tenantId: string, status: TenantStatus) {
   return supabaseAdmin.from('tenants').update({ status }).eq('id', tenantId).select('id, status').single();
 }
 
-// ---- Provisioning (service role) -----------------------------------------
+/** ---- Provisioning (service role) ----------------------------------------- */
 
 /** Create the auth user (with app_metadata) and its `users` row. */
 export async function provisionUser(params: {

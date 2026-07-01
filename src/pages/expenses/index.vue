@@ -2,6 +2,8 @@
 import type { TableColumn } from '@/components/Base/BaseTable.vue';
 import type { ExpenseCategory, FilterDefinition, FilterValues } from '@/types';
 import { formatMoney } from '@/helpers/money';
+import { startOfMonth, today } from '@/helpers/date';
+import { useRouteQueryStrings } from '@/composables/useRouteQueryStrings';
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
 
@@ -29,14 +31,32 @@ const CATEGORY_VARIANT: Record<ExpenseCategory, BadgeVariant> = {
   other: 'default',
 };
 
-const filterValues = ref<FilterValues>({
+/** URL-backed filter refs — each key maps to a query-string param. */
+const {
+  q: search,
+  category,
+  from,
+  to,
+} = useRouteQueryStrings({
+  q: '',
+  category: '',
   from: startOfMonth(),
   to: today(),
-  category: '',
+});
+
+/** Writable computed bridging individual URL refs to the `FilterValues` object the filter bar expects. */
+const filterValues = computed<FilterValues>({
+  get: () => ({ category: category.value, from: from.value, to: to.value }),
+  set: (v) => {
+    category.value = v['category'] ?? '';
+    from.value = v['from'] ?? '';
+    to.value = v['to'] ?? '';
+  },
 });
 
 const categoryOptions = computed(() => CATEGORIES.map((c) => ({ label: CATEGORY_LABEL[c], value: c })));
 
+/** Guard that maps a raw string to a typed `ExpenseCategory` via runtime lookup. */
 function toCategory(value: string | undefined): ExpenseCategory | undefined {
   return CATEGORIES.find((c) => c === value);
 }
@@ -49,7 +69,7 @@ const filterDefinitions = computed<FilterDefinition[]>(() => [
 type ExpenseRow = Awaited<ReturnType<typeof listExpenses>>['rows'][number];
 
 const {
-  data: expenses,
+  data: expensesRes,
   loading,
   run: load,
 } = useAsync(
@@ -61,31 +81,34 @@ const {
     return listExpenses({
       tenantId: tenantId.value,
       branchId: branchId.value,
-      from: filterValues.value.from ?? '',
-      to: filterValues.value.to ?? '',
-      category: toCategory(filterValues.value.category),
+      from: from.value || undefined,
+      to: to.value || undefined,
+      category: toCategory(category.value),
+      search: search.value || undefined,
     });
   },
   {
     immediate: true,
-    watch: filterValues,
+    watch: [search, category, from, to],
     defaultValue: { rows: [], count: 0 },
     disableResetValue: true,
   },
 );
 
-const totalCentavos = computed(() => expenses.value?.rows.reduce((s, e) => s + e.amount_centavos, 0) ?? 0);
+const expenseRows = computed(() => expensesRes.value?.rows ?? []);
+
+const totalCentavos = computed(() => expenseRows.value.reduce((s, e) => s + e.amount_centavos, 0));
 
 const byCategory = computed(() => {
   const map: Partial<Record<ExpenseCategory, number>> = {};
 
-  for (const e of expenses.value?.rows ?? []) {
+  for (const e of expenseRows.value) {
     map[e.category] = (map[e.category] ?? 0) + e.amount_centavos;
   }
   return map;
 });
 
-const { data } = useAsync(
+const { data: employeesRes } = useAsync(
   () => {
     if (!tenantId.value || !branchId.value) {
       return Promise.resolve([]);
@@ -100,7 +123,7 @@ const { data } = useAsync(
   },
 );
 
-const employees = computed(() => data.value ?? []);
+const employees = computed(() => employeesRes.value ?? []);
 
 const employeeOptions = computed(() => [
   {
@@ -147,30 +170,6 @@ const { loading: saving, run: saveExpense } = useAsync(
   },
 );
 
-const search = ref('');
-
-const filteredExpenses = computed(() => {
-  const q = search.value.trim().toLowerCase();
-
-  if (!q) {
-    return expenses.value?.rows ?? [];
-  }
-
-  return (expenses.value?.rows ?? []).filter((e) => {
-    if (e.description?.toLowerCase().includes(q)) {
-      return true;
-    }
-
-    const emp = e.employees;
-
-    if (emp && typeof emp === 'object' && 'full_name' in emp) {
-      return String(emp.full_name).toLowerCase().includes(q);
-    }
-
-    return false;
-  });
-});
-
 function rowMenu(row: ExpenseRow) {
   return [
     {
@@ -209,7 +208,7 @@ const columns: TableColumn<ExpenseRow>[] = [
 <template>
   <div class="h-full overflow-y-auto p-6">
     <BaseCard padding="none" class="flex flex-col gap-5">
-      <BaseTableHeader v-model:search="search" title="Expenses" subtitle="Track and categorize operational expenses" :count="filteredExpenses.length">
+      <BaseTableHeader v-model:search="search" title="Expenses" subtitle="Track and categorize operational expenses" :count="expenseRows.length">
         <template #actions>
           <BaseButton @click="openAdd">Add Expense</BaseButton>
         </template>
@@ -235,7 +234,7 @@ const columns: TableColumn<ExpenseRow>[] = [
         </div>
       </div>
 
-      <BaseTable :columns="columns" :data="filteredExpenses" :loading="loading">
+      <BaseTable :columns="columns" :data="expenseRows" :loading="loading">
         <template #cell-category="{ row }">
           <BaseBadge :variant="CATEGORY_VARIANT[row.category]">
             {{ CATEGORY_LABEL[row.category] }}

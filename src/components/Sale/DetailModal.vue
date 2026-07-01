@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TableColumn } from '@/components/Base/BaseTable.vue';
+import type { BadgeVariant } from '@/types';
 import type { SaleDetail } from '@/services/sales';
 import { formatMoney } from '@/helpers/money';
 
@@ -12,9 +13,9 @@ const { sale, lines, payments, loading, sourceBadgeVariant, sourceLabel, statusB
   lines: SaleDetail['lines'];
   payments: SaleDetail['payments'];
   loading?: boolean;
-  sourceBadgeVariant: (s: string) => 'default' | 'info' | 'warning' | 'success' | 'danger';
+  sourceBadgeVariant: (s: string) => BadgeVariant;
   sourceLabel: (s: string) => string;
-  statusBadgeVariant: (s: string) => 'default' | 'info' | 'warning' | 'success' | 'danger';
+  statusBadgeVariant: (s: string) => BadgeVariant;
   statusLabel: (s: string) => string;
 }>();
 

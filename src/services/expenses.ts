@@ -124,7 +124,8 @@ export async function listExpenses(params: {
   const q = params.search?.trim();
 
   if (q) {
-    query = query.ilike('description', `%${q}%`);
+    /** Search description on the main table and payee name on the joined employees relation. */
+    query = query.or(`description.ilike.%${q}%,employees.full_name.ilike.%${q}%`);
   }
 
   query = query.order('expense_date', { ascending: false }).range(rangeFrom, rangeTo);

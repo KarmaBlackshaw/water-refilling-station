@@ -2,6 +2,7 @@
 import type { Employee, UserRole } from '@/types/database';
 import type { TableColumn } from '@/components/Base/BaseTable.vue';
 import { formatMoney } from '@/helpers/money';
+import { useRouteQueryStrings } from '@/composables/useRouteQueryStrings';
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
 
@@ -9,29 +10,20 @@ const auth = useAuthStore();
 const { confirm } = useConfirm();
 const { tenantId, branchId } = storeToRefs(auth);
 
+const { q: search } = useRouteQueryStrings({ q: '' });
+
 const {
-  data,
+  data: employeesRes,
   loading,
   run: load,
-} = useAsync(() => getEmployees(tenantId.value, branchId.value), {
+} = useAsync(() => getEmployees(tenantId.value, branchId.value, { search: search.value || undefined }), {
   immediate: true,
   defaultValue: [],
   disableResetValue: true,
+  watch: [search],
 });
 
-const employees = computed(() => data.value ?? []);
-
-const search = ref('');
-
-const filteredEmployees = computed(() => {
-  const q = search.value.trim().toLowerCase();
-
-  if (!q) {
-    return employees.value;
-  }
-
-  return employees.value.filter((e) => e.full_name?.toLowerCase().includes(q) || e.phone?.toLowerCase().includes(q));
-});
+const filteredEmployees = computed(() => employeesRes.value ?? []);
 
 const modalOpen = ref(false);
 const editingEmployee = ref<Employee>();

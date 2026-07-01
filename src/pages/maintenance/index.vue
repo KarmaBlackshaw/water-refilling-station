@@ -2,6 +2,7 @@
 import type { MaintenanceTask, MaintenanceScope, ScheduleKind, Vehicle } from '@/types/database';
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
+import { useRouteQueryStrings } from '@/composables/useRouteQueryStrings';
 
 const auth = useAuthStore();
 const { tenantId, branchId } = storeToRefs(auth);
@@ -13,15 +14,17 @@ const tabs = [
 ];
 const activeTab = ref<MaintenanceScope>('water_plant');
 
+const { q: search } = useRouteQueryStrings({ q: '' });
+
 const {
   data: tasks,
   loading,
   run: load,
-} = useAsync(() => listTasks(activeTab.value), {
+} = useAsync(() => listTasks(activeTab.value, { search: search.value || undefined }), {
   immediate: true,
   defaultValue: [],
   disableResetValue: true,
-  watch: activeTab,
+  watch: [activeTab, search],
 });
 
 const todayIso = today();
@@ -183,16 +186,14 @@ function taskMenu(task: MaintenanceTask) {
 
 <template>
   <div class="h-full overflow-y-auto p-6">
-    <BaseCard padding="none">
-      <div class="flex items-center justify-between gap-4 border-b border-sparkling-silver px-6 py-4">
-        <div>
-          <h1 class="text-2xl font-bold text-casual-navy">Maintenance</h1>
-          <p class="text-sm text-oslo">Track maintenance schedules for plant and vehicles</p>
-        </div>
-        <BaseButton @click="openAddTask">Add Task</BaseButton>
-      </div>
+    <BaseCard padding="none" class="flex flex-col gap-5">
+      <BaseTableHeader v-model:search="search" title="Maintenance" subtitle="Track maintenance schedules for plant and vehicles" :count="(tasks ?? []).length">
+        <template #actions>
+          <BaseButton @click="openAddTask">Add Task</BaseButton>
+        </template>
+      </BaseTableHeader>
 
-      <div class="space-y-4 px-6 py-4">
+      <div class="space-y-4 px-5">
         <div class="grid grid-cols-2 gap-3">
           <BaseKpiTile label="Overdue" :value="overdueCount" tone="danger" />
           <BaseKpiTile label="Due this week" :value="dueThisWeekCount" tone="warning" />

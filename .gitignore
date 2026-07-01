@@ -25,6 +25,9 @@ coverage
 *.sln
 *.sw?
 
+# Claude local memory pointer (machine-specific Obsidian paths)
+CLAUDE.local.md
+
 *.tsbuildinfo
 
 .eslintcache

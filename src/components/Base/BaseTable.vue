@@ -11,7 +11,7 @@ export interface TableColumn<TRow = Record<string, unknown>> {
 </script>
 
 <script setup lang="ts" generic="TRow extends object">
-import BaseSpinner from './BaseSpinner.vue';
+import BaseSkeleton from './BaseSkeleton.vue';
 import BaseEmptyState from './BaseEmptyState.vue';
 
 const props = withDefaults(
@@ -22,11 +22,13 @@ const props = withDefaults(
     rowKey?: keyof TRow | ((row: TRow, index: number) => string | number);
     emptyTitle?: string;
     emptyDescription?: string;
+    loadingRows?: number;
   }>(),
   {
     loading: false,
     emptyTitle: 'No data',
     emptyDescription: undefined,
+    loadingRows: 5,
   },
 );
 
@@ -109,13 +111,15 @@ function alignClass(a?: TableColumn<TRow>['align']): string {
         </tr>
       </thead>
       <tbody>
-        <tr v-if="loading">
-          <td :colspan="columns.length" class="py-8 text-center">
-            <slot name="loading">
-              <BaseSpinner class="mx-auto" />
-            </slot>
-          </td>
-        </tr>
+        <template v-if="loading">
+          <slot name="loading">
+            <tr v-for="n in loadingRows" :key="`sk-${n}`">
+              <td v-for="col in columns" :key="col.key" class="px-4 py-3 border-b border-sparkling-silver">
+                <BaseSkeleton class="h-4 w-2/3" />
+              </td>
+            </tr>
+          </slot>
+        </template>
         <tr v-else-if="rows.length === 0">
           <td :colspan="columns.length" class="border-b border-sparkling-silver">
             <slot name="empty">

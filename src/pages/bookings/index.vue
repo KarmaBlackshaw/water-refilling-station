@@ -5,6 +5,8 @@ import type { BookingRow, TemplateRow } from '@/services/bookings';
 import type { TableColumn } from '@/components/Base/BaseTable.vue';
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
+import { addDays, today } from '@/helpers/date';
+import { useRouteQueryStrings } from '@/composables/useRouteQueryStrings';
 
 const auth = useAuthStore();
 const { tenantId, branchId } = storeToRefs(auth);
@@ -29,6 +31,7 @@ async function loadShared() {
   products.value = prodRes.data ?? [];
   containerTypes.value = ctRes.data ?? [];
 }
+
 const TABS = [
   { key: 'bookings', label: 'Upcoming Bookings' },
   { key: 'templates', label: 'Templates' },
@@ -36,18 +39,38 @@ const TABS = [
 
 const activeTab = ref<(typeof TABS)[number]['key']>(TABS[0].key);
 
-const statusOptions = [
+const statusOptions: { label: string; value: BookingStatus }[] = [
   { label: 'Pending', value: 'pending' },
   { label: 'Fulfilled', value: 'fulfilled' },
   { label: 'Cancelled', value: 'cancelled' },
 ];
 
-type BookingFilterValues = { from: string; to: string; status: BookingStatus | '' };
+/** Runtime guard: converts a raw URL string to a valid BookingStatus or undefined. */
+function toBookingStatus(value: string): BookingStatus | undefined {
+  return statusOptions.find((o) => o.value === value)?.value;
+}
 
-const filterValues = ref<BookingFilterValues>({
+const {
+  q: search,
+  from,
+  to,
+  status,
+} = useRouteQueryStrings({
+  q: '',
   from: today(),
   to: addDays(today(), 14),
   status: '',
+});
+
+type BookingFilterValues = { from: string; to: string; status: string };
+
+const filterValues = computed<BookingFilterValues>({
+  get: () => ({ from: from.value, to: to.value, status: status.value }),
+  set: (v) => {
+    from.value = v.from ?? '';
+    to.value = v.to ?? '';
+    status.value = v.status ?? '';
+  },
 });
 
 const filterDefinitions = computed<FilterDefinition[]>(() => [
@@ -66,30 +89,33 @@ const filterDefinitions = computed<FilterDefinition[]>(() => [
 ]);
 
 const {
-  data: bookings,
+  data: bookingsRes,
   loading: bookingsLoading,
   run: loadBookings,
 } = useAsync(
   () =>
     listBookings({
-      from: filterValues.value.from,
-      to: filterValues.value.to,
-      status: filterValues.value.status || undefined,
+      from: from.value || undefined,
+      to: to.value || undefined,
+      status: toBookingStatus(status.value),
+      search: search.value || undefined,
     }),
   {
     immediate: true,
     defaultValue: [],
     disableResetValue: true,
-    watch: filterValues,
+    watch: [search, from, to, status],
   },
 );
 
-function statusVariant(status: string): 'warning' | 'success' | 'default' {
-  if (status === 'pending') {
+const bookings = computed(() => bookingsRes.value ?? []);
+
+function statusVariant(s: string): 'warning' | 'success' | 'default' {
+  if (s === 'pending') {
     return 'warning';
   }
 
-  if (status === 'fulfilled') {
+  if (s === 'fulfilled') {
     return 'success';
   }
 
@@ -168,13 +194,23 @@ const { loading: fulfillLoading, run: handleFulfill } = useAsync(
 );
 
 const {
-  data: templates,
+  data: templatesRes,
   loading: templatesLoading,
   run: loadTemplates,
 } = useAsync(() => listTemplates(), {
   immediate: true,
   defaultValue: [],
   disableResetValue: true,
+});
+
+const filteredTemplates = computed(() => {
+  const q = search.value.trim().toLowerCase();
+
+  if (!q) {
+    return templatesRes.value ?? [];
+  }
+
+  return (templatesRes.value ?? []).filter((t) => t.customer?.name?.toLowerCase().includes(q));
 });
 
 const cadenceOptions = [
@@ -195,6 +231,7 @@ const dayOptions = [
 function cadenceLabel(c: string): string {
   return cadenceOptions.find((o) => o.value === c)?.label ?? c;
 }
+
 function dayLabel(d: number): string {
   return dayOptions.find((o) => o.value === d)?.label ?? String(d);
 }
@@ -305,28 +342,6 @@ function templateRowMenu(row: TemplateRow) {
   ];
 }
 
-const search = ref('');
-
-const filteredBookings = computed(() => {
-  const q = search.value.trim().toLowerCase();
-
-  if (!q) {
-    return bookings.value ?? [];
-  }
-
-  return (bookings.value ?? []).filter((b) => b.customer?.name?.toLowerCase().includes(q));
-});
-
-const filteredTemplates = computed(() => {
-  const q = search.value.trim().toLowerCase();
-
-  if (!q) {
-    return templates.value ?? [];
-  }
-
-  return (templates.value ?? []).filter((t) => t.customer?.name?.toLowerCase().includes(q));
-});
-
 const bookingColumns: TableColumn<BookingRow>[] = [
   { key: 'scheduled_date', label: 'Date', class: 'num whitespace-nowrap' },
   { key: 'customer', label: 'Customer' },
@@ -356,7 +371,7 @@ onMounted(loadShared);
         v-model:search="search"
         title="Bookings"
         subtitle="Schedule and manage customer bookings"
-        :count="activeTab === 'bookings' ? filteredBookings.length : filteredTemplates.length"
+        :count="activeTab === 'bookings' ? bookings.length : filteredTemplates.length"
       >
         <template #actions>
           <BaseButton v-if="activeTab === 'bookings'" variant="full-white" @click="openGenerateConfirm">Generate</BaseButton>
@@ -372,7 +387,7 @@ onMounted(loadShared);
 
         <BaseTable
           :columns="bookingColumns"
-          :data="filteredBookings"
+          :data="bookings"
           :loading="bookingsLoading"
           empty-title="No bookings found"
           empty-description="Adjust filters or generate bookings from templates."

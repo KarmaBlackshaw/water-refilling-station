@@ -6,6 +6,7 @@ import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
 import { formatAddress } from '@/helpers/address';
 import { ROUTES } from '@/constants/routes';
+import { useRouteQueryStrings } from '@/composables/useRouteQueryStrings';
 
 const auth = useAuthStore();
 const router = useRouter();
@@ -14,33 +15,32 @@ const { tenantId, branchId } = storeToRefs(auth);
 
 type AddressLite = NonNullable<CustomerWithRider['addresses']>[number];
 
-const { data: customersRes, loading, run: load } = useAsync(() => listCustomers(tenantId.value, branchId.value), { immediate: true });
+const { q: search } = useRouteQueryStrings({ q: '' });
 
-const customers = computed(() => customersRes.value?.data ?? []);
+const {
+  data: customersRes,
+  loading,
+  run: load,
+} = useAsync(() => listCustomers(tenantId.value, branchId.value, { search: search.value || undefined }), {
+  immediate: true,
+  defaultValue: [],
+  disableResetValue: true,
+  watch: [search],
+});
 
-const search = ref('');
+const rows = computed(() => customersRes.value?.data ?? []);
 
-function defaultAddress(row: CustomerWithRider): AddressLite | null {
+function defaultAddress(row: CustomerWithRider): AddressLite | undefined {
   const live = (row.addresses ?? []).filter((a) => !a.deleted_at);
 
-  return live.find((a) => a.is_default) ?? live[0] ?? null;
+  return live.find((a) => a.is_default) ?? live[0];
 }
 
-const filtered = computed(() => {
-  const q = search.value.toLowerCase();
+function defaultAddressLabel(row: CustomerWithRider): string | undefined {
+  const addr = defaultAddress(row);
 
-  if (!q) {
-    return customers.value;
-  }
-
-  return customers.value.filter((c) => {
-    if (c.name.toLowerCase().includes(q) || (c.phone ?? '').includes(q)) {
-      return true;
-    }
-
-    return (c.addresses ?? []).some((a) => !a.deleted_at && formatAddress(a).toLowerCase().includes(q));
-  });
-});
+  return addr ? formatAddress(addr) : undefined;
+}
 
 function openAdd() {
   router.push(ROUTES.CUSTOMER_NEW);
@@ -92,13 +92,13 @@ function rowMenu(row: Customer) {
 <template>
   <div class="h-full overflow-y-auto p-6">
     <BaseCard padding="none" class="flex flex-col gap-5">
-      <BaseTableHeader v-model:search="search" title="Customers" subtitle="Manage customer accounts and delivery addresses" :count="filtered.length">
+      <BaseTableHeader v-model:search="search" title="Customers" subtitle="Manage customer accounts and delivery addresses" :count="rows.length">
         <template #actions>
           <BaseButton @click="openAdd">Add customer</BaseButton>
         </template>
       </BaseTableHeader>
 
-      <BaseTable :columns="columns" :data="filtered" :loading="loading" @row-click="openDetail">
+      <BaseTable :columns="columns" :data="rows" :loading="loading" @row-click="openDetail">
         <template #cell-name="{ row }">
           <RouterLink :to="ROUTES.CUSTOMER_DETAIL(row.id)" class="font-medium text-tampa hover:underline">
             {{ row.name }}
@@ -116,7 +116,7 @@ function rowMenu(row: Customer) {
         <template #cell-backup_rider="{ row }">{{ row.backup_rider?.full_name ?? '—' }}</template>
 
         <template #cell-address="{ row }">
-          <span v-if="defaultAddress(row)" class="text-sm text-casual-navy">{{ formatAddress(defaultAddress(row)!) }}</span>
+          <span v-if="defaultAddressLabel(row)" class="text-sm text-casual-navy">{{ defaultAddressLabel(row) }}</span>
           <span v-else class="text-sm text-oslo">—</span>
         </template>
 

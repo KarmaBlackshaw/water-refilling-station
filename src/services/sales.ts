@@ -5,8 +5,13 @@ import type { PaymentMethod, Sale, SaleSource, SaleStatus } from '@/types/databa
 export type SaleWithCustomer = Awaited<ReturnType<typeof listSales>>[number];
 export type SaleDetail = NonNullable<Awaited<ReturnType<typeof getSale>>>;
 
-export async function listSales(params?: { source?: SaleSource; status?: SaleStatus; from?: string; to?: string; customerId?: string }) {
-  let query = supabase.from('sales').select('*, customer:customers(name)').is('deleted_at', null).order('created_at', { ascending: false }).limit(100);
+export async function listSales(params?: { source?: SaleSource; status?: SaleStatus; from?: string; to?: string; customerId?: string; search?: string }) {
+  /** Left-join by default so walk-in sales with a null customer stay in the list; inner-join only when searching by customer name (null-customer rows can't match a name anyway). */
+  const base = params?.search
+    ? supabase.from('sales').select('*, customer:customers!inner(name)')
+    : supabase.from('sales').select('*, customer:customers(name)');
+
+  let query = base.is('deleted_at', null).order('created_at', { ascending: false }).limit(100);
 
   if (params?.source) {
     query = query.eq('source', params.source);
@@ -26,6 +31,10 @@ export async function listSales(params?: { source?: SaleSource; status?: SaleSta
 
   if (params?.customerId) {
     query = query.eq('customer_id', params.customerId);
+  }
+
+  if (params?.search) {
+    query = query.ilike('customer.name', `%${params.search}%`);
   }
 
   const { data, error } = await query;

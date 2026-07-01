@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import type { FilterDefinition, FilterValues } from '@/types';
+import type { BadgeVariant, FilterDefinition, FilterValues } from '@/types';
 import type { SaleDetail, SaleWithCustomer } from '@/services/sales';
 import type { WalkInSubmitPayload } from '@/components/Sale/WalkInModal.vue';
 import type { TableColumn } from '@/components/Base/BaseTable.vue';
+import type { SaleSource, SaleStatus } from '@/types/database';
 import IconTrash from '@/components/Icon/IconTrash.vue';
+import { useRouteQueryStrings } from '@/composables/useRouteQueryStrings';
 
 const auth = useAuthStore();
 const { confirm } = useConfirm();
@@ -11,6 +13,9 @@ const { tenantId, branchId } = storeToRefs(auth);
 const { success: toastSuccess, error: toastError } = useToast();
 
 type SaleRow = SaleWithCustomer & { total?: number };
+
+const SOURCE_VALUES: SaleSource[] = ['walk_in', 'delivery', 'booking_fulfilled'];
+const STATUS_VALUES: SaleStatus[] = ['pending_delivery', 'completed', 'void'];
 
 const sourceOptions = [
   { label: 'Walk-in', value: 'walk_in' },
@@ -23,11 +28,27 @@ const statusOptions = [
   { label: 'Pending Delivery', value: 'pending_delivery' },
 ];
 
-const filterValues = ref<FilterValues>({
-  source: '',
-  status: '',
-  from: '',
-  to: '',
+/** Runtime guard: returns the typed enum value only when `v` is a known `SaleSource`. */
+function toSaleSource(v: string): SaleSource | undefined {
+  return SOURCE_VALUES.find((s) => s === v);
+}
+
+/** Runtime guard: returns the typed enum value only when `v` is a known `SaleStatus`. */
+function toSaleStatus(v: string): SaleStatus | undefined {
+  return STATUS_VALUES.find((s) => s === v);
+}
+
+const { q: search, source, status, from, to } = useRouteQueryStrings({ q: '', source: '', status: '', from: '', to: '' });
+
+/** Bridges individual URL-backed refs to the object shape `BaseTableFilterBar` expects. */
+const filterValues = computed<FilterValues>({
+  get: () => ({ source: source.value, status: status.value, from: from.value, to: to.value }),
+  set: (v) => {
+    source.value = v.source ?? '';
+    status.value = v.status ?? '';
+    from.value = v.from ?? '';
+    to.value = v.to ?? '';
+  },
 });
 
 const filterDefinitions = computed<FilterDefinition[]>(() => [
@@ -37,75 +58,78 @@ const filterDefinitions = computed<FilterDefinition[]>(() => [
 ]);
 
 const {
-  data: sales,
+  data: salesRes,
   loading: loadingSales,
   run: loadSales,
 } = useAsync(
   () =>
     listSales({
-      source: filterValues.value.source || undefined,
-      status: filterValues.value.status || undefined,
-      from: filterValues.value.from || undefined,
-      to: filterValues.value.to || undefined,
+      source: toSaleSource(source.value),
+      status: toSaleStatus(status.value),
+      from: from.value || undefined,
+      to: to.value || undefined,
+      search: search.value || undefined,
     }),
   {
     immediate: true,
     defaultValue: [],
     disableResetValue: true,
-    watch: filterValues,
+    watch: [search, source, status, from, to],
   },
 );
 
-function sourceBadgeVariant(source: string): 'default' | 'info' | 'warning' | 'success' | 'danger' {
-  if (source === 'delivery') {
+const sales = computed(() => salesRes.value ?? []);
+
+function sourceBadgeVariant(src: string): BadgeVariant {
+  if (src === 'delivery') {
     return 'info';
   }
 
-  if (source === 'booking_fulfilled') {
+  if (src === 'booking_fulfilled') {
     return 'warning';
   }
 
   return 'default';
 }
 
-function sourceLabel(source: string) {
-  if (source === 'walk_in') {
+function sourceLabel(src: string) {
+  if (src === 'walk_in') {
     return 'Walk-in';
   }
 
-  if (source === 'delivery') {
+  if (src === 'delivery') {
     return 'Delivery';
   }
 
-  if (source === 'booking_fulfilled') {
+  if (src === 'booking_fulfilled') {
     return 'Booking';
   }
 
-  return source;
+  return src;
 }
 
-function statusBadgeVariant(status: string): 'default' | 'info' | 'warning' | 'success' | 'danger' {
-  if (status === 'completed') {
+function statusBadgeVariant(st: string): BadgeVariant {
+  if (st === 'completed') {
     return 'success';
   }
 
-  if (status === 'void') {
+  if (st === 'void') {
     return 'danger';
   }
 
-  if (status === 'pending_delivery') {
+  if (st === 'pending_delivery') {
     return 'warning';
   }
 
   return 'default';
 }
 
-function statusLabel(status: string) {
-  if (status === 'pending_delivery') {
+function statusLabel(st: string) {
+  if (st === 'pending_delivery') {
     return 'Pending';
   }
 
-  return status.charAt(0).toUpperCase() + status.slice(1);
+  return st.charAt(0).toUpperCase() + st.slice(1);
 }
 
 const detailOpen = ref(false);
@@ -174,18 +198,6 @@ async function submitWalkIn(payload: WalkInSubmitPayload) {
   }
 }
 
-const search = ref('');
-
-const filteredSales = computed(() => {
-  const q = search.value.trim().toLowerCase();
-
-  if (!q) {
-    return sales.value ?? [];
-  }
-
-  return (sales.value ?? []).filter((s) => s.customer?.name?.toLowerCase().includes(q));
-});
-
 const salesColumns: TableColumn<SaleRow>[] = [
   { key: 'sale_date', label: 'Date' },
   { key: 'customer', label: 'Customer' },
@@ -226,7 +238,7 @@ function rowMenu(row: SaleRow) {
 <template>
   <div class="h-full overflow-y-auto p-6">
     <BaseCard padding="none" class="flex flex-col gap-5">
-      <BaseTableHeader v-model:search="search" title="Sales" subtitle="Record and manage walk-in and delivery sales" :count="filteredSales.length">
+      <BaseTableHeader v-model:search="search" title="Sales" subtitle="Record and manage walk-in and delivery sales" :count="sales.length">
         <template #actions>
           <BaseButton @click="posOpen = true">New Walk-in Sale</BaseButton>
         </template>
@@ -234,7 +246,7 @@ function rowMenu(row: SaleRow) {
 
       <BaseTableFilterBar v-model="filterValues" :definitions="filterDefinitions" />
 
-      <BaseTable :columns="salesColumns" :data="filteredSales" :loading="loadingSales" empty-title="No sales found">
+      <BaseTable :columns="salesColumns" :data="sales" :loading="loadingSales" empty-title="No sales found">
         <template #cell-customer="{ row }">{{ row.customer?.name ?? '—' }}</template>
         <template #cell-source="{ row }">
           <BaseBadge :variant="sourceBadgeVariant(row.source)">{{ sourceLabel(row.source) }}</BaseBadge>

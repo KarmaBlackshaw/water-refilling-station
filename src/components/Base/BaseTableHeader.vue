@@ -9,7 +9,7 @@ const search = defineModel<string>('search', { required: true });
 </script>
 
 <template>
-  <div class="flex items-center justify-between gap-4 px-5 py-4">
+  <div class="flex items-center justify-between gap-4 px-5 pt-4">
     <div>
       <div class="flex items-center gap-2">
         <h1 class="text-lg font-bold text-casual-navy">{{ title }}</h1>

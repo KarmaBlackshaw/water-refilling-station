@@ -7,24 +7,26 @@ import IconClose from '@/components/Icon/IconClose.vue';
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import { ROUTES } from '@/constants/routes';
 import { clientState, PLAN_LABEL, STATE_META } from '@/helpers/clients';
+import { useRouteQueryStrings } from '@/composables/useRouteQueryStrings';
 
 const router = useRouter();
 const toast = useToast();
 const { confirm } = useConfirm();
 
-const { data: clientsRes, loading, run: load } = useAsync(() => listClients(), { immediate: true });
-const clients = computed(() => clientsRes.value?.data ?? []);
+const { q: search } = useRouteQueryStrings({ q: '' });
 
-const search = ref('');
-const filtered = computed(() => {
-  const q = search.value.trim().toLowerCase();
-
-  if (!q) {
-    return clients.value;
-  }
-
-  return clients.value.filter((c) => c.name.toLowerCase().includes(q) || (c.contact_name?.toLowerCase().includes(q) ?? false));
+const {
+  data: clientsRes,
+  loading,
+  run: load,
+} = useAsync(() => listClients({ search: search.value || undefined }), {
+  immediate: true,
+  defaultValue: [],
+  disableResetValue: true,
+  watch: [search],
 });
+
+const clients = computed(() => clientsRes.value?.data ?? []);
 
 const stats = computed(() => ({
   total: clients.value.length,
@@ -140,13 +142,13 @@ function rowMenu(client: TenantOverview) {
     <AdminClientStats :total="stats.total" :active="stats.active" :suspended="stats.suspended" :expiring-soon="stats.expiringSoon" :loading="loading" />
 
     <BaseCard padding="none" class="flex flex-col gap-5">
-      <BaseTableHeader v-model:search="search" title="Clients" subtitle="Manage client accounts and subscriptions" :count="filtered.length">
+      <BaseTableHeader v-model:search="search" title="Clients" subtitle="Manage client accounts and subscriptions" :count="clients.length">
         <template #actions>
           <BaseButton @click="openCreate">New client</BaseButton>
         </template>
       </BaseTableHeader>
 
-      <BaseTable :columns="columns" :data="filtered" :loading="loading" row-key="id" @row-click="goToDetail">
+      <BaseTable :columns="columns" :data="clients" :loading="loading" row-key="id" @row-click="goToDetail">
         <template #cell-subscription_plan="{ row }">{{ PLAN_LABEL[row.subscription_plan] }}</template>
         <template #cell-subscription_price_centavos="{ row }">{{ formatMoney(row.subscription_price_centavos) }}</template>
         <template #cell-state="{ row }">

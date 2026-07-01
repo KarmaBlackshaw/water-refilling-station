@@ -295,6 +295,7 @@ declare global {
   const updateClient: typeof import('./services/admin').updateClient
   const updateContainerType: typeof import('./services/products').updateContainerType
   const updateCustomer: typeof import('./services/customers').updateCustomer
+  const updateDeliverySale: typeof import('./services/deliveries').updateDeliverySale
   const updateEmployee: typeof import('./services/employees').updateEmployee
   const updateExpense: typeof import('./services/expenses').updateExpense
   const updatePassword: typeof import('./services/auth').updatePassword
@@ -427,10 +428,12 @@ declare global {
   const usePreferredReducedMotion: typeof import('@vueuse/core').usePreferredReducedMotion
   const usePreferredReducedTransparency: typeof import('@vueuse/core').usePreferredReducedTransparency
   const usePrevious: typeof import('@vueuse/core').usePrevious
+  const useQueryFetch: typeof import('./composables/useQueryFetch').useQueryFetch
   const useRafFn: typeof import('@vueuse/core').useRafFn
   const useRefHistory: typeof import('@vueuse/core').useRefHistory
   const useResizeObserver: typeof import('@vueuse/core').useResizeObserver
   const useRoute: typeof import('vue-router').useRoute
+  const useRouteQueryStrings: typeof import('./composables/useRouteQueryStrings').useRouteQueryStrings
   const useRouter: typeof import('vue-router').useRouter
   const useSSRWidth: typeof import('@vueuse/core').useSSRWidth
   const useScreenOrientation: typeof import('@vueuse/core').useScreenOrientation
@@ -471,6 +474,7 @@ declare global {
   const useToast: typeof import('./composables/useToast').useToast
   const useToggle: typeof import('@vueuse/core').useToggle
   const useTransition: typeof import('@vueuse/core').useTransition
+  const useUrlFilteredList: typeof import('./composables/useUrlFilteredList').useUrlFilteredList
   const useUrlSearchParams: typeof import('@vueuse/core').useUrlSearchParams
   const useUserMedia: typeof import('@vueuse/core').useUserMedia
   const useVModel: typeof import('@vueuse/core').useVModel
@@ -837,6 +841,7 @@ declare module 'vue' {
     readonly updateClient: UnwrapRef<typeof import('./services/admin')['updateClient']>
     readonly updateContainerType: UnwrapRef<typeof import('./services/products')['updateContainerType']>
     readonly updateCustomer: UnwrapRef<typeof import('./services/customers')['updateCustomer']>
+    readonly updateDeliverySale: UnwrapRef<typeof import('./services/deliveries')['updateDeliverySale']>
     readonly updateEmployee: UnwrapRef<typeof import('./services/employees')['updateEmployee']>
     readonly updateExpense: UnwrapRef<typeof import('./services/expenses')['updateExpense']>
     readonly updatePassword: UnwrapRef<typeof import('./services/auth')['updatePassword']>
@@ -972,6 +977,7 @@ declare module 'vue' {
     readonly useRefHistory: UnwrapRef<typeof import('@vueuse/core')['useRefHistory']>
     readonly useResizeObserver: UnwrapRef<typeof import('@vueuse/core')['useResizeObserver']>
     readonly useRoute: UnwrapRef<typeof import('vue-router')['useRoute']>
+    readonly useRouteQueryStrings: UnwrapRef<typeof import('./composables/useRouteQueryStrings')['useRouteQueryStrings']>
     readonly useRouter: UnwrapRef<typeof import('vue-router')['useRouter']>
     readonly useSSRWidth: UnwrapRef<typeof import('@vueuse/core')['useSSRWidth']>
     readonly useScreenOrientation: UnwrapRef<typeof import('@vueuse/core')['useScreenOrientation']>

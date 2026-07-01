@@ -2,15 +2,20 @@ import { daysInMonth, nowISO } from '@/helpers/date';
 import { supabase } from '@/helpers/supabase';
 import type { AttendanceStatus, Employee, UserRole } from '@/types/database';
 
-// Employees
-export async function getEmployees(tenantId: string, branchId: string): Promise<Employee[]> {
-  const { data, error } = await supabase
-    .from('employees')
-    .select('*')
-    .eq('tenant_id', tenantId)
-    .eq('branch_id', branchId)
-    .is('deleted_at', null)
-    .order('full_name');
+/**
+ * List all employees for the given tenant/branch, with optional server-side search.
+ * Search matches against `full_name` OR `phone` (case-insensitive).
+ */
+export async function getEmployees(tenantId: string, branchId: string, filters?: { search?: string }): Promise<Employee[]> {
+  let query = supabase.from('employees').select('*').eq('tenant_id', tenantId).eq('branch_id', branchId).is('deleted_at', null).order('full_name');
+
+  if (filters?.search) {
+    const s = filters.search;
+
+    query = query.or('full_name.ilike.%' + s + '%,phone.ilike.%' + s + '%');
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     throw error;
@@ -45,9 +50,12 @@ export function updateEmployee(
   return supabase.from('employees').update(data).eq('id', id).select().single();
 }
 
-/** Riders are employees with role 'rider'; user_id links to the user customers.rider_id points at. */
-export function listRiderEmployees(tenantId: string, branchId: string) {
-  return supabase
+/**
+ * List rider-role employees for the given tenant/branch, with optional server-side search.
+ * `user_id` links to the user that `customers.rider_id` points at.
+ */
+export function listRiderEmployees(tenantId: string, branchId: string, filters?: { search?: string }) {
+  let query = supabase
     .from('employees')
     .select('id, user_id, full_name, rest_days, daily_quota_jugs')
     .eq('tenant_id', tenantId)
@@ -55,17 +63,24 @@ export function listRiderEmployees(tenantId: string, branchId: string) {
     .eq('role', 'rider')
     .is('deleted_at', null)
     .order('full_name');
+
+  if (filters?.search) {
+    query = query.ilike('full_name', `%${filters.search}%`);
+  }
+
+  return query;
 }
 
 export function softDeleteEmployee(id: string, deletedBy: string) {
   return supabase.from('employees').update({ deleted_at: nowISO(), deleted_by: deletedBy }).eq('id', id);
 }
 
-// Attendance
+/** Fetch a single attendance record for an employee on a given date. */
 export function getAttendance(employeeId: string, date: string) {
   return supabase.from('employee_attendance').select('*').eq('employee_id', employeeId).eq('attendance_date', date).maybeSingle();
 }
 
+/** List all attendance records for an employee within a calendar month. */
 export function listAttendanceForMonth(employeeId: string, year: number, month: number) {
   const start = `${year}-${String(month).padStart(2, '0')}-01`;
   const lastDay = daysInMonth(year, month);
@@ -87,7 +102,7 @@ export function listAttendanceForDate(tenantId: string, branchId: string, date: 
     .eq('attendance_date', date);
 }
 
-// Salary records
+/** List salary records for an employee, most recent first. */
 export function listSalaryRecords(employeeId: string) {
   return supabase.from('salary_records').select('*').eq('employee_id', employeeId).order('period_start', { ascending: false });
 }
@@ -111,7 +126,7 @@ export function submitSalaryRecord(id: string, paidBy: string) {
   return supabase.from('salary_records').update({ paid_at: nowISO(), paid_by: paidBy }).eq('id', id).select().single();
 }
 
-// Get jugs delivered by a rider on a date (sum of sale_lines quantities for completed deliveries)
+/** Sum of jugs delivered by a rider on a given date (completed deliveries only). */
 export async function getRiderJugsDelivered(riderId: string, date: string): Promise<number> {
   const { data } = await supabase
     .from('sale_lines')

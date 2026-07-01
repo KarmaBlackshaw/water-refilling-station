@@ -9,6 +9,7 @@ import { WEEKDAYS } from '@/constants/rider';
 import { listRiderEmployees, listAttendanceForDate, updateEmployee, upsertAttendance, getAttendance } from '@/services/employees';
 import { listCustomers } from '@/services/customers';
 import { assignRider } from '@/services/riders';
+import { useRouteQueryStrings } from '@/composables/useRouteQueryStrings';
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconCalendar from '@/components/Icon/IconCalendar.vue';
 
@@ -65,6 +66,8 @@ const { tenantId, branchId } = storeToRefs(auth);
 
 const todayStr = getToday();
 
+const { q: search } = useRouteQueryStrings({ q: '' });
+
 const {
   data: pageData,
   loading,
@@ -72,11 +75,11 @@ const {
 } = useAsync(
   () =>
     Promise.all([
-      listRiderEmployees(tenantId.value, branchId.value),
+      listRiderEmployees(tenantId.value, branchId.value, { search: search.value || undefined }),
       listCustomers(tenantId.value, branchId.value),
       listAttendanceForDate(tenantId.value, branchId.value, todayStr),
     ]),
-  { immediate: true, disableResetValue: true },
+  { immediate: true, disableResetValue: true, watch: [search] },
 );
 
 const riderEmployees = computed((): RiderEmployee[] => pageData.value?.[0].data ?? []);
@@ -136,28 +139,7 @@ const riderViewRows = computed((): RiderViewRow[] =>
   }),
 );
 
-const search = ref('');
-
-const filteredRiderRows = computed(() => {
-  const q = search.value.trim().toLowerCase();
-
-  if (!q) {
-    return riderViewRows.value;
-  }
-
-  return riderViewRows.value.filter((row) => row.emp.full_name.toLowerCase().includes(q));
-});
-
-const unassignedCustomers = computed(() => {
-  const q = search.value.trim().toLowerCase();
-  const base = customers.value.filter((c) => !c.rider_id);
-
-  if (!q) {
-    return base;
-  }
-
-  return base.filter((c) => c.name.toLowerCase().includes(q));
-});
+const unassignedCustomers = computed(() => customers.value.filter((c) => !c.rider_id));
 
 /** Rest days modal */
 const restDaysModalOpen = ref(false);
@@ -268,14 +250,14 @@ const { loading: assignSaving, run: saveAssign } = useAsync(
 <template>
   <div class="h-full overflow-y-auto p-6">
     <BaseCard padding="none" class="flex flex-col gap-5">
-      <BaseTableHeader v-model:search="search" title="Riders" subtitle="Riders and the areas they cover" :count="filteredRiderRows.length">
+      <BaseTableHeader v-model:search="search" title="Riders" subtitle="Riders and the areas they cover" :count="riderViewRows.length">
         <template #actions>
           <BaseButton :disabled="riderEmployees.length === 0" @click="openAssign()">Assign customers</BaseButton>
         </template>
       </BaseTableHeader>
 
       <!-- Rider table -->
-      <BaseTable :columns="columns" :data="filteredRiderRows" :loading="loading" :row-key="(row) => row.emp.id">
+      <BaseTable :columns="columns" :data="riderViewRows" :loading="loading" :row-key="(row) => row.emp.id">
         <template #cell-rider="{ row }">
           <div class="flex items-center gap-2">
             <span class="font-medium text-casual-navy">{{ row.emp.full_name }}</span>

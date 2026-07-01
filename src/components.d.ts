@@ -73,6 +73,7 @@ declare module 'vue' {
     DashboardRoutePanel: typeof import('./components/Dashboard/RoutePanel.vue')['default']
     DashboardTaskList: typeof import('./components/Dashboard/TaskList.vue')['default']
     DashboardTopPerformance: typeof import('./components/Dashboard/TopPerformance.vue')['default']
+    DeliveryEditModal: typeof import('./components/Delivery/EditModal.vue')['default']
     DeliveryNewModal: typeof import('./components/Delivery/NewModal.vue')['default']
     DeliveryReconcileModal: typeof import('./components/Delivery/ReconcileModal.vue')['default']
     EmployeeFormModal: typeof import('./components/Employee/FormModal.vue')['default']

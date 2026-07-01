@@ -3,10 +3,14 @@ import type { TableColumn } from '@/components/Base/BaseTable.vue';
 import type { Vehicle } from '@/types/database';
 import IconEdit from '@/components/Icon/IconEdit.vue';
 import IconTrash from '@/components/Icon/IconTrash.vue';
+import { useRouteQueryStrings } from '@/composables/useRouteQueryStrings';
 
 const auth = useAuthStore();
 const { tenantId, branchId } = storeToRefs(auth);
 const { confirm } = useConfirm();
+
+/** URL-driven search; synced to `?q=` so the query survives refresh and sharing. */
+const { q: search } = useRouteQueryStrings({ q: '' });
 
 const {
   data: vehicleData,
@@ -14,7 +18,7 @@ const {
   run: load,
 } = useAsync(
   async () => {
-    const rows = await listVehicles();
+    const rows = await listVehicles({ search: search.value || undefined });
     const tasks = rows.length > 0 ? await listVehicleMaintenanceTasks(rows.map((v) => v.id)) : [];
 
     return { vehicles: rows, allTasks: tasks };
@@ -23,23 +27,12 @@ const {
     immediate: true,
     defaultValue: { vehicles: [], allTasks: [] },
     disableResetValue: true,
+    watch: [search],
   },
 );
 
 const vehicles = computed(() => vehicleData.value?.vehicles ?? []);
 const allTasks = computed(() => vehicleData.value?.allTasks ?? []);
-
-const search = ref('');
-
-const filteredVehicles = computed(() => {
-  const q = search.value.trim().toLowerCase();
-
-  if (!q) {
-    return vehicles.value;
-  }
-
-  return vehicles.value.filter((v) => v.brand_model?.toLowerCase().includes(q) || v.plate_number?.toLowerCase().includes(q));
-});
 
 const modalOpen = ref(false);
 const editingVehicle = ref<Vehicle>();
@@ -123,13 +116,13 @@ const columns: TableColumn<Vehicle>[] = [
 <template>
   <div class="h-full overflow-y-auto p-6">
     <BaseCard padding="none" class="flex flex-col gap-5">
-      <BaseTableHeader v-model:search="search" title="Vehicles" subtitle="Manage fleet vehicles and assignments" :count="filteredVehicles.length">
+      <BaseTableHeader v-model:search="search" title="Vehicles" subtitle="Manage fleet vehicles and assignments" :count="vehicles.length">
         <template #actions>
           <BaseButton @click="openAdd">Add Vehicle</BaseButton>
         </template>
       </BaseTableHeader>
 
-      <BaseTable :columns="columns" :data="filteredVehicles" :loading="loading">
+      <BaseTable :columns="columns" :data="vehicles" :loading="loading">
         <template #cell-type="{ row }">{{ labelForType(row.type) }}</template>
         <template #cell-year="{ row }">{{ row.year ?? '—' }}</template>
         <template #cell-pm_status="{ row }">

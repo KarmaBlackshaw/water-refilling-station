@@ -1,5 +1,6 @@
 /** This file is auto generated */
 
+export * from './badge';
 export * from './color';
 export * from './database/booking';
 export * from './database/common';

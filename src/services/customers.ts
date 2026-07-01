@@ -9,8 +9,12 @@ export type CustomerAddressRow = NonNullable<Awaited<ReturnType<typeof listAddre
 export type CustomerPriceOverrideWithRels = NonNullable<Awaited<ReturnType<typeof listPriceOverrides>>['data']>[number];
 export type CustomerSaleWithRels = NonNullable<Awaited<ReturnType<typeof listCustomerSales>>['data']>[number];
 
-export function listCustomers(tenantId: string, branchId: string) {
-  return supabase
+/**
+ * List customers for the given tenant + branch, with optional server-side filters.
+ * The trailing `filters` arg is optional so existing callers (riders page, etc.) compile unchanged.
+ */
+export function listCustomers(tenantId: string, branchId: string, filters?: { search?: string }) {
+  let query = supabase
     .from('customers')
     .select(
       '*, rider:users!rider_id(id, full_name), backup_rider:users!backup_rider_id(id, full_name), addresses:customer_addresses(id, label, street, barangay, city, landmark, lat, lng, is_default, needs_pin_review, photo_path, deleted_at)',
@@ -19,6 +23,14 @@ export function listCustomers(tenantId: string, branchId: string) {
     .eq('branch_id', branchId)
     .is('deleted_at', null)
     .order('name');
+
+  if (filters?.search) {
+    const s = filters.search;
+
+    query = query.or(`name.ilike.%${s}%,phone.ilike.%${s}%`);
+  }
+
+  return query;
 }
 
 export function getCustomer(id: string) {

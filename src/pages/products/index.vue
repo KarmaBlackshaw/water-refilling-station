@@ -14,6 +14,7 @@ import {
 } from '@/services/products';
 import type { TableColumn } from '@/components/Base/BaseTable.vue';
 import type { Product, ContainerType } from '@/types/database';
+import { useRouteQueryStrings } from '@/composables/useRouteQueryStrings';
 
 const tabs = [
   { key: 'products', label: 'Products' },
@@ -40,13 +41,16 @@ const activeTab = ref<'products' | 'containers'>('products');
 
 const { tenantId, branchId } = storeToRefs(auth);
 
+const { q: search } = useRouteQueryStrings({ q: '' });
+
 const {
   data: productsRes,
   loading: productsLoading,
   run: loadProducts,
-} = useAsync(() => listProducts(tenantId.value, branchId.value), {
+} = useAsync(() => listProducts(tenantId.value, branchId.value, { search: search.value || undefined }), {
   immediate: true,
   disableResetValue: true,
+  watch: [search],
 });
 
 const products = computed(() => productsRes.value?.data ?? []);
@@ -68,36 +72,15 @@ const {
   data: containerTypesRes,
   loading: containerTypesLoading,
   run: loadContainerTypes,
-} = useAsync(() => listContainerTypes(tenantId.value, branchId.value), {
+} = useAsync(() => listContainerTypes(tenantId.value, branchId.value, { search: search.value || undefined }), {
   immediate: true,
   disableResetValue: true,
+  watch: [search],
 });
 
 const containerTypes = computed(() => containerTypesRes.value?.data ?? []);
 const containerModalOpen = ref(false);
 const editingContainer = ref<ContainerType>();
-
-const search = ref('');
-
-const filteredProducts = computed(() => {
-  const q = search.value.trim().toLowerCase();
-
-  if (!q) {
-    return products.value;
-  }
-
-  return products.value.filter((p) => p.name.toLowerCase().includes(q));
-});
-
-const filteredContainers = computed(() => {
-  const q = search.value.trim().toLowerCase();
-
-  if (!q) {
-    return containerTypes.value;
-  }
-
-  return containerTypes.value.filter((c) => c.name.toLowerCase().includes(q));
-});
 
 const { loading: containerSaving, run: saveContainer } = useAsync(async (payload: { name: string; deposit_centavos: number; active: boolean }) => {
   if (editingContainer.value) {
@@ -191,7 +174,7 @@ function containerMenu(row: ContainerType) {
         v-model:search="search"
         title="Products"
         subtitle="Manage products and pricing"
-        :count="activeTab === 'products' ? filteredProducts.length : filteredContainers.length"
+        :count="activeTab === 'products' ? products.length : containerTypes.length"
       >
         <template #actions>
           <BaseButton v-if="activeTab === 'products'" @click="openAddProduct">Add product</BaseButton>
@@ -201,7 +184,7 @@ function containerMenu(row: ContainerType) {
 
       <BaseTableTabs v-model="activeTab" :tabs="tabs" />
 
-      <BaseTable v-if="activeTab === 'products'" :columns="productColumns" :data="filteredProducts" :loading="productsLoading" empty-title="No products yet">
+      <BaseTable v-if="activeTab === 'products'" :columns="productColumns" :data="products" :loading="productsLoading" empty-title="No products yet">
         <template #cell-status="{ row }">
           <BaseBadge :variant="row.active ? 'success' : 'default'">
             {{ row.active ? 'Active' : 'Inactive' }}
@@ -219,7 +202,7 @@ function containerMenu(row: ContainerType) {
         </template>
       </BaseTable>
 
-      <BaseTable v-else :columns="containerColumns" :data="filteredContainers" :loading="containerTypesLoading" empty-title="No container types yet">
+      <BaseTable v-else :columns="containerColumns" :data="containerTypes" :loading="containerTypesLoading" empty-title="No container types yet">
         <template #cell-deposit="{ row }">{{ formatMoney(row.deposit_centavos) }}</template>
         <template #cell-status="{ row }">
           <BaseBadge :variant="row.active ? 'success' : 'default'">
