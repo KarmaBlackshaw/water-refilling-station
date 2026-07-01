@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Stop hook: nudge the model to persist this session to the Obsidian vault via
-# the sync-brain skill's push mode. Companion to save-memory.sh. Only fires when
-# this repo is wired to a vault (CLAUDE.local.md present). Loop-guarded so the
-# re-wake it triggers doesn't loop.
+# the sync-brain skill's push mode. Only fires when this repo is wired to a
+# vault (CLAUDE.local.md present). Loop-guarded so the re-wake it triggers
+# doesn't loop.
 set -euo pipefail
 
 input=$(cat)

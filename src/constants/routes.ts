@@ -15,6 +15,8 @@ export const ROUTES = {
   DELIVERIES: '/deliveries',
   EMPLOYEES: '/employees',
   EMPLOYEE_DETAIL: (id: string) => `/employees/${id}`,
+  EMPLOYEE_NEW: '/employees/new',
+  EMPLOYEE_EDIT: (id: string) => `/employees/new?id=${id}`,
   EXPENSES: '/expenses',
   MAINTENANCE: '/maintenance',
   PRODUCTS: '/products',

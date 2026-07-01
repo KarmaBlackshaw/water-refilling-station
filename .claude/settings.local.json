@@ -1,6 +1,12 @@
 {
   "permissions": {
-    "allow": ["Bash(npx skills *)", "mcp__lean-ctx__ctx_read", "mcp__lean-ctx__ctx_search", "mcp__lean-ctx__ctx_tree", "mcp__lean-ctx__ctx_shell"]
+    "allow": [
+      "Bash(npx skills *)",
+      "mcp__lean-ctx__ctx_read",
+      "mcp__lean-ctx__ctx_search",
+      "mcp__lean-ctx__ctx_tree",
+      "mcp__lean-ctx__ctx_shell"
+    ]
   },
   "statusLine": {
     "type": "command",
@@ -41,11 +47,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/recall-memory.sh\" SessionStart",
-            "statusMessage": "Loading repo memory"
-          },
-          {
-            "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/obsidian-recall.sh\" SessionStart",
             "statusMessage": "Loading Obsidian memory"
           }
@@ -66,11 +67,6 @@
     "Stop": [
       {
         "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/save-memory.sh\"",
-            "statusMessage": "Saving repo memory"
-          },
           {
             "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/obsidian-push.sh\"",

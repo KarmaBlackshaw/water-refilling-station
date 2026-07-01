@@ -12,10 +12,12 @@ declare global {
   const EffectScope: typeof import('vue').EffectScope
   const MANILA_TZ: typeof import('./helpers/date').MANILA_TZ
   const PLAN_LABEL: typeof import('./helpers/clients').PLAN_LABEL
+  const ROLE_OPTIONS: typeof import('./constants/employee').ROLE_OPTIONS
   const ROUTES: typeof import('./constants/routes').ROUTES
   const SIDEBAR_GENERAL_NAV: typeof import('./constants/sidebarNav').SIDEBAR_GENERAL_NAV
   const SIDEBAR_MAIN_NAV: typeof import('./constants/sidebarNav').SIDEBAR_MAIN_NAV
   const STATE_META: typeof import('./helpers/clients').STATE_META
+  const USERNAME_PATTERN: typeof import('./constants/employee').USERNAME_PATTERN
   const WEEKDAYS: typeof import('./constants/rider').WEEKDAYS
   const acceptHMRUpdate: typeof import('pinia').acceptHMRUpdate
   const addDays: typeof import('./helpers/date').addDays
@@ -558,6 +560,9 @@ declare global {
   export type { CustomerForm, AddressFields } from './constants/customer'
   import('./constants/customer')
   // @ts-ignore
+  export type { EmployeeForm, EmployeeAccountForm } from './constants/employee'
+  import('./constants/employee')
+  // @ts-ignore
   export type { SidebarBadgeKey, SidebarNavItem } from './constants/sidebarNav'
   import('./constants/sidebarNav')
 }
@@ -573,10 +578,12 @@ declare module 'vue' {
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
     readonly MANILA_TZ: UnwrapRef<typeof import('./helpers/date')['MANILA_TZ']>
     readonly PLAN_LABEL: UnwrapRef<typeof import('./helpers/clients')['PLAN_LABEL']>
+    readonly ROLE_OPTIONS: UnwrapRef<typeof import('./constants/employee')['ROLE_OPTIONS']>
     readonly ROUTES: UnwrapRef<typeof import('./constants/routes')['ROUTES']>
     readonly SIDEBAR_GENERAL_NAV: UnwrapRef<typeof import('./constants/sidebarNav')['SIDEBAR_GENERAL_NAV']>
     readonly SIDEBAR_MAIN_NAV: UnwrapRef<typeof import('./constants/sidebarNav')['SIDEBAR_MAIN_NAV']>
     readonly STATE_META: UnwrapRef<typeof import('./helpers/clients')['STATE_META']>
+    readonly USERNAME_PATTERN: UnwrapRef<typeof import('./constants/employee')['USERNAME_PATTERN']>
     readonly WEEKDAYS: UnwrapRef<typeof import('./constants/rider')['WEEKDAYS']>
     readonly acceptHMRUpdate: UnwrapRef<typeof import('pinia')['acceptHMRUpdate']>
     readonly addDays: UnwrapRef<typeof import('./helpers/date')['addDays']>

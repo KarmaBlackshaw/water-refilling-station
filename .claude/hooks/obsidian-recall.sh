@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Injects Obsidian long-term memory (Learnings + Active Context) into context.
-# SessionStart companion to recall-memory.sh. Reads absolute vault paths from
-# the repo's gitignored CLAUDE.local.md so no personal paths live in git.
+# Injects Obsidian long-term memory (Learnings + Coding Rules + Active Context) into context.
+# SessionStart hook. Reads absolute vault paths from the repo's gitignored
+# CLAUDE.local.md so no personal paths live in git.
 # No-ops silently if CLAUDE.local.md or the target files are missing.
 # Arg $1 = hook event name (default: SessionStart).
 set -euo pipefail
@@ -15,11 +15,25 @@ PTR="$ROOT/CLAUDE.local.md"
 getpath() { grep -m1 "^$1=" "$PTR" 2>/dev/null | cut -d= -f2- || true; }
 
 LEARNINGS="$(getpath LEARNINGS)"
+RULES="$(getpath CODING_RULES)"
 ACTIVE="$(getpath ACTIVE_CONTEXT)"
 
 out=""
 if [ -n "$LEARNINGS" ] && [ -f "$LEARNINGS" ]; then
-  out+="# Global Master Learnings (Obsidian hub)"$'\n\n'"$(cat "$LEARNINGS")"$'\n\n'
+  out+="# Global Master Learnings (Obsidian hub — index)"$'\n\n'"$(cat "$LEARNINGS")"$'\n\n'
+  # Expand every atomic lesson note. The notes folder is the hub file without its
+  # extension: <vault>/Learnings.md -> <vault>/Learnings/. Index + full detail.
+  NOTES_DIR="${LEARNINGS%.md}"
+  if [ -d "$NOTES_DIR" ]; then
+    shopt -s nullglob
+    for note in "$NOTES_DIR"/*.md; do
+      out+="## Lesson: $(basename "${note%.md}")"$'\n\n'"$(cat "$note")"$'\n\n'
+    done
+    shopt -u nullglob
+  fi
+fi
+if [ -n "$RULES" ] && [ -f "$RULES" ]; then
+  out+="# Coding Rules — this repo (Obsidian spoke)"$'\n\n'"$(cat "$RULES")"$'\n\n'
 fi
 if [ -n "$ACTIVE" ] && [ -f "$ACTIVE" ]; then
   out+="# Active Context — this repo (Obsidian spoke)"$'\n\n'"$(cat "$ACTIVE")"$'\n'

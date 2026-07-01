@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { WEEKDAYS } from '@/constants/rider';
-
 defineOptions({ name: 'RiderRestDaysModal' });
 
 /** Rider-employee fields this modal needs. */
@@ -35,18 +33,6 @@ watch(
   { immediate: true },
 );
 
-function toggle(weekday: number, checked: boolean) {
-  const next = new Set(selected.value);
-
-  if (checked) {
-    next.add(weekday);
-  } else {
-    next.delete(weekday);
-  }
-
-  selected.value = next;
-}
-
 function submit() {
   emit(
     'submit',
@@ -60,15 +46,7 @@ function submit() {
     <form id="rest-days-form" @submit.prevent="submit">
       <fieldset class="m-0 border-0 p-0">
         <legend class="mb-1 text-xs text-oslo">Select the days this rider does not deliver. Leave all unchecked if this rider works every day.</legend>
-        <div class="mt-2 grid grid-cols-2 gap-2">
-          <BaseCheckbox
-            v-for="day in WEEKDAYS"
-            :key="day.value"
-            :model-value="selected.has(day.value)"
-            :label="day.label"
-            @update:model-value="toggle(day.value, $event)"
-          />
-        </div>
+        <BaseWeekdayToggle v-model="selected" class="mt-2" />
       </fieldset>
     </form>
 
