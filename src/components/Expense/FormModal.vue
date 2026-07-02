@@ -112,7 +112,7 @@ function submit() {
         required
       />
 
-      <BaseInput v-model="form.amountInput" label="Amount (₱)" type="number" required placeholder="0.00" step="0.01" min="0" />
+      <BaseInput v-model="form.amountInput" label="Amount" type="currency" required placeholder="0.00" />
 
       <BaseSelect v-model="form.payee_employee_id" label="Payee Employee" :options="employeeOptions" />
 

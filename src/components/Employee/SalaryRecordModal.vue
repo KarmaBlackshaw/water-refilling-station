@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatMoney, parseMoney } from '@/helpers/money';
+import { parseMoney } from '@/helpers/money';
 
 defineOptions({ name: 'EmployeeSalaryRecordModal' });
 
@@ -34,9 +34,9 @@ const emit = defineEmits<{
 const form = reactive({
   period_start: '',
   period_end: '',
-  base_pay_display: '',
-  commission_display: '',
-  gross_display: '',
+  base_pay: '',
+  commission: '',
+  gross: '',
   notes: '',
 });
 
@@ -50,15 +50,15 @@ watch(
     if (initial) {
       form.period_start = initial.period_start;
       form.period_end = initial.period_end;
-      form.base_pay_display = formatMoney(initial.base_pay_centavos);
-      form.commission_display = formatMoney(initial.commission_centavos);
-      form.gross_display = formatMoney(initial.gross_centavos);
+      form.base_pay = (initial.base_pay_centavos / 100).toFixed(2);
+      form.commission = (initial.commission_centavos / 100).toFixed(2);
+      form.gross = (initial.gross_centavos / 100).toFixed(2);
     } else {
       form.period_start = '';
       form.period_end = '';
-      form.base_pay_display = formatMoney(0);
-      form.commission_display = formatMoney(0);
-      form.gross_display = formatMoney(0);
+      form.base_pay = '';
+      form.commission = '';
+      form.gross = '';
     }
 
     form.notes = '';
@@ -70,9 +70,9 @@ function submit() {
   emit('submit', {
     period_start: form.period_start,
     period_end: form.period_end,
-    base_pay_centavos: parseMoney(form.base_pay_display),
-    commission_centavos: parseMoney(form.commission_display),
-    gross_centavos: parseMoney(form.gross_display),
+    base_pay_centavos: parseMoney(form.base_pay),
+    commission_centavos: parseMoney(form.commission),
+    gross_centavos: parseMoney(form.gross),
     notes: form.notes || undefined,
   });
 }
@@ -85,9 +85,9 @@ function submit() {
         <BaseDatePicker v-model="form.period_start" label="Period start" required />
         <BaseDatePicker v-model="form.period_end" label="Period end" required />
       </div>
-      <BaseInput v-model="form.base_pay_display" label="Base pay" placeholder="₱0.00" />
-      <BaseInput v-model="form.commission_display" label="Commission" placeholder="₱0.00" />
-      <BaseInput v-model="form.gross_display" label="Gross (editable)" placeholder="₱0.00" />
+      <BaseInput v-model="form.base_pay" label="Base pay" type="currency" placeholder="0.00" />
+      <BaseInput v-model="form.commission" label="Commission" type="currency" placeholder="0.00" />
+      <BaseInput v-model="form.gross" label="Gross (editable)" type="currency" placeholder="0.00" />
       <BaseTextarea v-model="form.notes" label="Notes" :rows="2" />
     </form>
     <template #footer>

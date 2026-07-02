@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ContainerType } from '@/types/database';
-import { formatMoney, parseMoney } from '@/helpers/money';
+import { parseMoney } from '@/helpers/money';
 
 defineOptions({ name: 'ProductContainerTypeFormModal' });
 
@@ -15,7 +15,7 @@ const emit = defineEmits<{
   submit: [payload: { name: string; deposit_centavos: number; active: boolean }];
 }>();
 
-const form = reactive({ name: '', deposit_display: '₱0.00', active: true });
+const form = reactive({ name: '', deposit: '', active: true });
 
 watch(
   () => open.value,
@@ -26,11 +26,11 @@ watch(
 
     if (containerType) {
       form.name = containerType.name;
-      form.deposit_display = formatMoney(containerType.deposit_centavos);
+      form.deposit = (containerType.deposit_centavos / 100).toFixed(2);
       form.active = containerType.active;
     } else {
       form.name = '';
-      form.deposit_display = formatMoney(0);
+      form.deposit = '';
       form.active = true;
     }
   },
@@ -40,7 +40,7 @@ watch(
 function submit() {
   emit('submit', {
     name: form.name,
-    deposit_centavos: parseMoney(form.deposit_display),
+    deposit_centavos: parseMoney(form.deposit),
     active: form.active,
   });
 }
@@ -50,7 +50,7 @@ function submit() {
   <BaseModal v-model:open="open" :title="containerType ? 'Edit container type' : 'Add container type'">
     <form id="container-form" class="space-y-4" @submit.prevent="submit">
       <BaseInput v-model="form.name" label="Name" required />
-      <BaseInput v-model="form.deposit_display" label="Deposit amount" placeholder="₱0.00" />
+      <BaseInput v-model="form.deposit" label="Deposit amount" type="currency" placeholder="0.00" />
       <BaseCheckbox v-model="form.active" label="Active" />
     </form>
     <template #footer>

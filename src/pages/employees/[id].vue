@@ -74,6 +74,12 @@ const todayIncome = computed(() => getIncomeBreakdown('today'));
 const weekIncome = computed(() => getIncomeBreakdown('this_week'));
 const monthIncome = computed(() => getIncomeBreakdown('this_month'));
 
+const incomePeriods = computed(() => [
+  { key: 'today' as const, label: 'Today', income: todayIncome.value },
+  { key: 'this_week' as const, label: 'This week', income: weekIncome.value },
+  { key: 'this_month' as const, label: 'This month', income: monthIncome.value },
+]);
+
 const salaryModalOpen = ref(false);
 const salaryInitial = ref<{
   period_start: string;
@@ -158,67 +164,47 @@ const salaryColumns: TableColumn<SalaryRecord>[] = [
     </div>
 
     <div v-else-if="employee" class="space-y-6">
-      <div class="flex items-start justify-between">
-        <div>
-          <h1 class="text-2xl font-bold text-casual-navy">{{ employee.full_name }}</h1>
-          <p class="text-sm text-oslo">Employee profile and payroll</p>
-          <BaseBadge :variant="employee.role === 'admin' ? 'info' : 'default'" class="mt-1">{{ employee.role }}</BaseBadge>
-        </div>
-        <div class="flex gap-2">
+      <BaseCard padding="none" class="flex flex-col gap-5">
+        <div class="flex items-start justify-between gap-4 px-5 pt-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-lg font-bold text-casual-navy">{{ employee.full_name }}</h1>
+              <BaseBadge :variant="employee.role === 'admin' ? 'info' : 'default'">{{ employee.role }}</BaseBadge>
+            </div>
+            <p class="text-xs text-oslo">Employee profile and payroll</p>
+          </div>
           <BaseButton :variant="todayAttendance?.status === 'present' ? 'full-white' : 'tampa'" @click="toggleTodayAttendance">
             {{ todayAttendance?.status === 'present' ? 'Mark absent' : 'Mark present' }}
           </BaseButton>
         </div>
-      </div>
 
-      <div class="grid gap-3 grid-cols-3">
-        <BaseCard padding="sm">
-          <p class="text-xs font-medium text-oslo uppercase tracking-wide">Today</p>
-          <p class="mt-1 text-xl font-semibold num text-casual-navy">{{ formatMoney(todayIncome?.grossCentavos ?? 0) }}</p>
-          <p class="mt-0.5 text-xs text-independence">
-            Base: {{ formatMoney(todayIncome?.basePayCentavos ?? 0) }} · Commission: {{ formatMoney(todayIncome?.commissionCentavos ?? 0) }}
-          </p>
-          <BaseButton variant="independence" class="mt-2 w-full" @click="openCreateSalary('today')">Create salary record</BaseButton>
-        </BaseCard>
+        <div class="grid grid-cols-3 gap-3 px-5 pb-5">
+          <BaseKpiTile v-for="period in incomePeriods" :key="period.key" :label="period.label" :value="formatMoney(period.income?.grossCentavos ?? 0)">
+            <p class="mt-0.5 text-xs text-independence">
+              Base: {{ formatMoney(period.income?.basePayCentavos ?? 0) }} · Commission: {{ formatMoney(period.income?.commissionCentavos ?? 0) }}
+            </p>
+            <BaseButton variant="independence" class="mt-2 w-full" @click="openCreateSalary(period.key)">Create salary record</BaseButton>
+          </BaseKpiTile>
+        </div>
+      </BaseCard>
 
-        <BaseCard padding="sm">
-          <p class="text-xs font-medium text-oslo uppercase tracking-wide">This week</p>
-          <p class="mt-1 text-xl font-semibold num text-casual-navy">{{ formatMoney(weekIncome?.grossCentavos ?? 0) }}</p>
-          <p class="mt-0.5 text-xs text-independence">
-            Base: {{ formatMoney(weekIncome?.basePayCentavos ?? 0) }} · Commission: {{ formatMoney(weekIncome?.commissionCentavos ?? 0) }}
-          </p>
-          <BaseButton variant="independence" class="mt-2 w-full" @click="openCreateSalary('this_week')">Create salary record</BaseButton>
-        </BaseCard>
-
-        <BaseCard padding="sm">
-          <p class="text-xs font-medium text-oslo uppercase tracking-wide">This month</p>
-          <p class="mt-1 text-xl font-semibold num text-casual-navy">{{ formatMoney(monthIncome?.grossCentavos ?? 0) }}</p>
-          <p class="mt-0.5 text-xs text-independence">
-            Base: {{ formatMoney(monthIncome?.basePayCentavos ?? 0) }} · Commission: {{ formatMoney(monthIncome?.commissionCentavos ?? 0) }}
-          </p>
-          <BaseButton variant="independence" class="mt-2 w-full" @click="openCreateSalary('this_month')">Create salary record</BaseButton>
-        </BaseCard>
-      </div>
-
-      <div>
-        <h2 class="mb-3 text-sm font-medium text-independence uppercase tracking-wide">Salary records</h2>
-        <BaseCard padding="none">
-          <BaseTable :columns="salaryColumns" :data="salaryRecords" empty-title="No salary records yet">
-            <template #cell-period="{ row }">{{ row.period_start }} – {{ row.period_end }}</template>
-            <template #cell-base_pay="{ row }">{{ formatMoney(row.base_pay_centavos) }}</template>
-            <template #cell-commission="{ row }">{{ formatMoney(row.commission_centavos) }}</template>
-            <template #cell-gross="{ row }">{{ formatMoney(row.gross_centavos) }}</template>
-            <template #cell-status="{ row }">
-              <BaseBadge :variant="row.paid_at ? 'success' : 'warning'">
-                {{ row.paid_at ? 'Paid' : 'Draft' }}
-              </BaseBadge>
-            </template>
-            <template #cell-actions="{ row }">
-              <BaseTableActions :menu="salaryRowMenu(row)" />
-            </template>
-          </BaseTable>
-        </BaseCard>
-      </div>
+      <BaseCard padding="none" class="flex flex-col gap-5">
+        <h2 class="px-5 pt-4 text-lg font-bold text-casual-navy">Salary records</h2>
+        <BaseTable :columns="salaryColumns" :data="salaryRecords" empty-title="No salary records yet">
+          <template #cell-period="{ row }">{{ row.period_start }} – {{ row.period_end }}</template>
+          <template #cell-base_pay="{ row }">{{ formatMoney(row.base_pay_centavos) }}</template>
+          <template #cell-commission="{ row }">{{ formatMoney(row.commission_centavos) }}</template>
+          <template #cell-gross="{ row }">{{ formatMoney(row.gross_centavos) }}</template>
+          <template #cell-status="{ row }">
+            <BaseBadge :variant="row.paid_at ? 'success' : 'warning'">
+              {{ row.paid_at ? 'Paid' : 'Draft' }}
+            </BaseBadge>
+          </template>
+          <template #cell-actions="{ row }">
+            <BaseTableActions :menu="salaryRowMenu(row)" />
+          </template>
+        </BaseTable>
+      </BaseCard>
     </div>
 
     <EmployeeSalaryRecordModal v-model:open="salaryModalOpen" :initial="salaryInitial" :saving="salarySaving" @submit="saveSalaryRecord" />

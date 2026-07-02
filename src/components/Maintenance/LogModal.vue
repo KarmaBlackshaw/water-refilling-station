@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { MaintenanceTask } from '@/types/database';
+import { parseMoney } from '@/helpers/money';
 
 defineOptions({ name: 'MaintenanceLogModal' });
 
@@ -16,7 +17,7 @@ const emit = defineEmits<{
 
 const form = reactive({
   performed_at: today(),
-  cost_display: '',
+  cost: '',
   notes: '',
 });
 
@@ -28,18 +29,16 @@ watch(
     }
 
     form.performed_at = today();
-    form.cost_display = '';
+    form.cost = '';
     form.notes = '';
   },
   { immediate: true },
 );
 
 function submit() {
-  const cost = form.cost_display ? Math.round(parseFloat(form.cost_display.replace(/[₱,\s]/g, '')) * 100) : null;
-
   emit('submit', {
     performed_at: form.performed_at,
-    cost_centavos: cost !== null && !isNaN(cost) ? cost : null,
+    cost_centavos: form.cost ? parseMoney(form.cost) : null,
     notes: form.notes || null,
   });
 }
@@ -54,7 +53,7 @@ function submit() {
 
       <BaseDatePicker v-model="form.performed_at" label="Performed at" required />
 
-      <BaseInput v-model="form.cost_display" label="Cost" placeholder="₱0.00" />
+      <BaseInput v-model="form.cost" label="Cost" type="currency" placeholder="0.00" />
 
       <BaseTextarea v-model="form.notes" label="Notes" placeholder="Optional notes…" :rows="3" />
     </form>

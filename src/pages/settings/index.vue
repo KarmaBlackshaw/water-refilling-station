@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatMoney, parseMoney } from '@/helpers/money';
+import { parseMoney } from '@/helpers/money';
 
 const auth = useAuthStore();
 const tenant = useTenantStore();
@@ -10,7 +10,7 @@ const form = reactive({
   staleness_days_walkin: '',
   booking_horizon_days: '',
   default_quota_jugs: '',
-  commission_display: '',
+  commission: '',
 });
 
 const saving = ref(false);
@@ -23,7 +23,7 @@ onMounted(async () => {
     form.staleness_days_walkin = String(tenant.stalenessDaysWalkin);
     form.booking_horizon_days = String(tenant.bookingHorizonDays);
     form.default_quota_jugs = String(tenant.defaultQuotaJugs);
-    form.commission_display = formatMoney(tenant.commissionPerJugCentavos);
+    form.commission = (tenant.commissionPerJugCentavos / 100).toFixed(2);
   }
 });
 
@@ -34,7 +34,7 @@ async function saveAll() {
     await tenant.saveSetting('staleness_days_walkin', form.staleness_days_walkin);
     await tenant.saveSetting('booking_horizon_days', form.booking_horizon_days);
     await tenant.saveSetting('default_quota_jugs', form.default_quota_jugs);
-    await tenant.saveSetting('commission_per_jug_centavos', String(parseMoney(form.commission_display)));
+    await tenant.saveSetting('commission_per_jug_centavos', String(parseMoney(form.commission)));
     toastSuccess('Settings saved');
   } catch {
     toastError('Failed to save settings');
@@ -79,9 +79,10 @@ async function saveAll() {
               helper-text="Used when no per-rider override is set"
             />
             <BaseInput
-              v-model="form.commission_display"
+              v-model="form.commission"
               label="Commission per jug over quota"
-              placeholder="₱1.00"
+              type="currency"
+              placeholder="1.00"
               helper-text="Amount paid to rider for each jug above their daily quota"
             />
           </div>

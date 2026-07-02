@@ -8,8 +8,13 @@ export function formatMoney(centavos: number): string {
   );
 }
 
-export function parseMoney(display: string): number {
-  const clean = display.replace(/[₱,\s]/g, '');
+/**
+ * Parse a money display value into centavos. Accepts a string (`"₱1,234.50"`)
+ * or a number — currency inputs render as `<input type="number">`, so Vue's
+ * v-model yields a number once edited.
+ */
+export function parseMoney(display: string | number): number {
+  const clean = String(display).replace(/[₱,\s]/g, '');
   const value = parseFloat(clean);
 
   if (isNaN(value)) {

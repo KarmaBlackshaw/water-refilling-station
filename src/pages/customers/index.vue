@@ -55,7 +55,7 @@ function openDetail(c: CustomerWithRider) {
 }
 
 const columns: TableColumn<CustomerWithRider>[] = [
-  { key: 'name', label: 'Name' },
+  { key: 'name', label: 'Name', class: 'font-medium text-casual-navy' },
   { key: 'phone', label: 'Phone' },
   { key: 'type', label: 'Type' },
   { key: 'rider', label: 'Rider' },
@@ -98,13 +98,7 @@ function rowMenu(row: Customer) {
         </template>
       </BaseTableHeader>
 
-      <BaseTable :columns="columns" :data="rows" :loading="loading" @row-click="openDetail">
-        <template #cell-name="{ row }">
-          <RouterLink :to="ROUTES.CUSTOMER_DETAIL(row.id)" class="font-medium text-tampa hover:underline">
-            {{ row.name }}
-          </RouterLink>
-        </template>
-
+      <BaseTable :columns="columns" :data="rows" :loading="loading" row-key="id" @row-click="openDetail">
         <template #cell-phone="{ row }">{{ row.phone ?? '—' }}</template>
 
         <template #cell-type="{ row }">

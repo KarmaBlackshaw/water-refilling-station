@@ -16,7 +16,12 @@ const auth = useAuthStore();
 const { tenantId, branchId } = storeToRefs(auth);
 const toast = useToast();
 
-const { data: addrsRes, error: addrsError, run: refetchAddrs } = useAsync(() => listAddressesForMap(tenantId.value, branchId.value), { immediate: true });
+const {
+  data: addrsRes,
+  error: addrsError,
+  loading: addrsLoading,
+  run: refetchAddrs,
+} = useAsync(() => listAddressesForMap(tenantId.value, branchId.value), { immediate: true });
 const { data: ridersRes } = useAsync(() => listRiders(tenantId.value, branchId.value), { immediate: true });
 
 const allAddrs = computed(() => addrsRes.value?.data ?? []);
@@ -230,48 +235,14 @@ function renderPins(mapbox: MapboxLib) {
   }
 }
 
-function fitToVisible() {
+function centerOnFirstCustomer() {
   if (!map || fitDone || visiblePins.value.length === 0) {
     return;
   }
 
-  if (visiblePins.value.length === 1) {
-    const a = visiblePins.value[0]!;
+  const first = visiblePins.value[0]!;
 
-    map.flyTo({ center: [a.lng, a.lat], zoom: 14 });
-    fitDone = true;
-    return;
-  }
-
-  let minLng = Infinity,
-    maxLng = -Infinity,
-    minLat = Infinity,
-    maxLat = -Infinity;
-
-  for (const a of visiblePins.value) {
-    if (a.lng < minLng) {
-      minLng = a.lng;
-    }
-
-    if (a.lng > maxLng) {
-      maxLng = a.lng;
-    }
-
-    if (a.lat < minLat) {
-      minLat = a.lat;
-    }
-
-    if (a.lat > maxLat) {
-      maxLat = a.lat;
-    }
-  }
-  map.fitBounds(
-    [
-      [minLng, minLat],
-      [maxLng, maxLat],
-    ],
-    { padding: 60 },
-  );
+  map.jumpTo({ center: [first.lng, first.lat], zoom: 14 });
   fitDone = true;
 }
 
@@ -292,7 +263,7 @@ onMounted(async () => {
   });
   map.on('load', () => {
     renderPins(mapbox);
-    fitToVisible();
+    centerOnFirstCustomer();
   });
 
   resizeObs = new ResizeObserver(() => map?.resize());
@@ -300,6 +271,7 @@ onMounted(async () => {
 
   watch(visiblePins, () => {
     renderPins(mapbox);
+    centerOnFirstCustomer();
   });
 });
 
@@ -337,6 +309,8 @@ function toggleRider(id: string) {
             </template>
           </BaseEmptyState>
         </div>
+
+        <BaseSkeleton v-else-if="addrsLoading" rounded="none" class="absolute inset-0 z-10 size-full" />
 
         <div v-else-if="mappable.length === 0 && !addrsError" class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-full-white/90">
           <BaseEmptyState title="No mapped addresses" description="No addresses with coordinates found for this branch." />

@@ -27,8 +27,12 @@ const {
 
 const filteredEmployees = computed(() => employeesRes.value ?? []);
 
+function openDetail(row: Employee) {
+  router.push(ROUTES.EMPLOYEE_DETAIL(row.id));
+}
+
 const employeeColumns: TableColumn<Employee>[] = [
-  { key: 'full_name', label: 'Name' },
+  { key: 'full_name', label: 'Name', class: 'font-medium text-casual-navy' },
   { key: 'role', label: 'Role' },
   { key: 'monthly_salary', label: 'Monthly salary', class: 'num' },
   { key: 'status', label: 'Status' },
@@ -69,12 +73,7 @@ function rowMenu(row: Employee) {
         </template>
       </BaseTableHeader>
 
-      <BaseTable :columns="employeeColumns" :data="filteredEmployees" :loading="loading">
-        <template #cell-full_name="{ row }">
-          <RouterLink :to="ROUTES.EMPLOYEE_DETAIL(row.id)" class="font-medium text-tampa hover:underline">
-            {{ row.full_name }}
-          </RouterLink>
-        </template>
+      <BaseTable :columns="employeeColumns" :data="filteredEmployees" :loading="loading" row-key="id" @row-click="openDetail">
         <template #cell-role="{ row }">
           <BaseBadge :variant="row.role === 'admin' ? 'info' : 'default'">{{ row.role }}</BaseBadge>
         </template>

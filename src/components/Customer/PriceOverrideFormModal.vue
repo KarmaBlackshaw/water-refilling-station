@@ -53,8 +53,8 @@ function submit() {
     <form id="override-form" class="space-y-4" @submit.prevent="submit">
       <BaseInput v-model="form.product_id" label="Product ID" required />
       <BaseInput v-model="form.container_type_id" label="Container type ID" required />
-      <BaseInput v-model="form.refill_price" label="Refill price (₱)" type="number" required />
-      <BaseInput v-model="form.new_container_price" label="New container price (₱)" type="number" required />
+      <BaseInput v-model="form.refill_price" label="Refill price" type="currency" required />
+      <BaseInput v-model="form.new_container_price" label="New container price" type="currency" required />
     </form>
     <template #footer>
       <BaseButton variant="independence" @click="open = false">Cancel</BaseButton>
