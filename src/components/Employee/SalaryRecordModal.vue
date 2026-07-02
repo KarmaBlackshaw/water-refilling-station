@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { parseMoney } from '@/helpers/money';
 
-defineOptions({ name: 'EmployeeSalaryRecordModal' });
+defineOptions({
+  name: 'EmployeeSalaryRecordModal',
+});
 
 interface InitialValues {
   period_start: string;
@@ -11,7 +13,9 @@ interface InitialValues {
   gross_centavos: number;
 }
 
-const open = defineModel<boolean>('open', { required: true });
+const open = defineModel<boolean>('open', {
+  required: true,
+});
 
 const { initial, saving } = defineProps<{
   initial?: InitialValues;
