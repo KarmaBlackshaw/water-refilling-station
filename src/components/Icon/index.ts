@@ -1,5 +1,6 @@
 /** This file is auto generated */
 
+export { default as IconAlertCircle } from './IconAlertCircle.vue';
 export { default as IconAreas } from './IconAreas.vue';
 export { default as IconArrowUpRight } from './IconArrowUpRight.vue';
 export { default as IconBell } from './IconBell.vue';

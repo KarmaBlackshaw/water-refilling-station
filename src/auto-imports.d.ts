@@ -76,6 +76,7 @@ declare global {
   const currentMonth: typeof import('./helpers/date').currentMonth
   const currentYear: typeof import('./helpers/date').currentYear
   const customRef: typeof import('vue').customRef
+  const customerDetailsSchema: typeof import('./constants/customer').customerDetailsSchema
   const dailyRateCentavos: typeof import('./helpers/workday').dailyRateCentavos
   const dayjs: typeof import('./helpers/date').dayjs
   const daysInMonth: typeof import('./helpers/date').daysInMonth
@@ -93,6 +94,8 @@ declare global {
   const diffInDays: typeof import('./helpers/date').diffInDays
   const eagerComputed: typeof import('@vueuse/core').eagerComputed
   const effectScope: typeof import('vue').effectScope
+  const employeeAccountSchema: typeof import('./constants/employee').employeeAccountSchema
+  const employeeDetailsSchema: typeof import('./constants/employee').employeeDetailsSchema
   const endCoverageRecord: typeof import('./services/areas').endCoverageRecord
   const endOfMonth: typeof import('./helpers/date').endOfMonth
   const endRiderAbsence: typeof import('./services/riders').endRiderAbsence
@@ -508,6 +511,7 @@ declare global {
   const watchTriggerable: typeof import('@vueuse/core').watchTriggerable
   const watchWithFilter: typeof import('@vueuse/core').watchWithFilter
   const whenever: typeof import('@vueuse/core').whenever
+  const zodErrors: typeof import('./helpers/validation').zodErrors
 }
 // for type re-export
 declare global {
@@ -529,6 +533,9 @@ declare global {
   // @ts-ignore
   export type { RiderSchedule, RiderDayStatus } from './helpers/riderCoverage'
   import('./helpers/riderCoverage')
+  // @ts-ignore
+  export type { TabErrors } from './helpers/validation'
+  import('./helpers/validation')
   // @ts-ignore
   export type { ClientSubscriptionInput, CreateClientInput } from './services/admin'
   import('./services/admin')
@@ -637,6 +644,7 @@ declare module 'vue' {
     readonly currentMonth: UnwrapRef<typeof import('./helpers/date')['currentMonth']>
     readonly currentYear: UnwrapRef<typeof import('./helpers/date')['currentYear']>
     readonly customRef: UnwrapRef<typeof import('vue')['customRef']>
+    readonly customerDetailsSchema: UnwrapRef<typeof import('./constants/customer')['customerDetailsSchema']>
     readonly dailyRateCentavos: UnwrapRef<typeof import('./helpers/workday')['dailyRateCentavos']>
     readonly dayjs: UnwrapRef<typeof import('./helpers/date')['dayjs']>
     readonly daysInMonth: UnwrapRef<typeof import('./helpers/date')['daysInMonth']>
@@ -654,6 +662,8 @@ declare module 'vue' {
     readonly diffInDays: UnwrapRef<typeof import('./helpers/date')['diffInDays']>
     readonly eagerComputed: UnwrapRef<typeof import('@vueuse/core')['eagerComputed']>
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
+    readonly employeeAccountSchema: UnwrapRef<typeof import('./constants/employee')['employeeAccountSchema']>
+    readonly employeeDetailsSchema: UnwrapRef<typeof import('./constants/employee')['employeeDetailsSchema']>
     readonly endOfMonth: UnwrapRef<typeof import('./helpers/date')['endOfMonth']>
     readonly extendRef: UnwrapRef<typeof import('@vueuse/core')['extendRef']>
     readonly fetchProfile: UnwrapRef<typeof import('./services/auth')['fetchProfile']>
@@ -1056,5 +1066,6 @@ declare module 'vue' {
     readonly watchTriggerable: UnwrapRef<typeof import('@vueuse/core')['watchTriggerable']>
     readonly watchWithFilter: UnwrapRef<typeof import('@vueuse/core')['watchWithFilter']>
     readonly whenever: UnwrapRef<typeof import('@vueuse/core')['whenever']>
+    readonly zodErrors: UnwrapRef<typeof import('./helpers/validation')['zodErrors']>
   }
 }

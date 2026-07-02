@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { FullPageTab } from '@/components/Base/BaseFullPageTabs.vue';
-import type { AddressFields, CustomerForm } from '@/constants/customer';
+import { customerDetailsSchema, type AddressFields, type CustomerForm } from '@/constants/customer';
 import { ROUTES } from '@/constants/routes';
+import { zodErrors } from '@/helpers/validation';
 
 const route = useRoute();
 const router = useRouter();
@@ -34,13 +35,13 @@ const addressFields = ref<AddressFields>({
 const addressLabel = ref('');
 const addressLandmark = ref('');
 
-const hasName = () => !!form.name.trim();
-
 const detailsTab: FullPageTab = {
   label: 'Details',
   value: 'details',
   title: isEdit ? 'Edit customer' : 'Add customer',
   subtitle: isEdit ? 'Update customer details' : 'Create a new customer account',
+  schema: customerDetailsSchema,
+  data: () => form,
 };
 
 const addressTab: FullPageTab = {
@@ -48,22 +49,11 @@ const addressTab: FullPageTab = {
   value: 'address',
   title: 'Default address',
   subtitle: 'Where the customer receives deliveries (optional)',
-  canNavigateTo: hasName,
 };
 
-const reviewTab: FullPageTab = {
-  label: 'Review',
-  value: 'review',
-  title: 'Review',
-  subtitle: isEdit ? 'Confirm the changes before saving' : 'Confirm the details before adding the customer',
-  canNavigateTo: hasName,
-};
-
-const tabs: FullPageTab[] = isEdit ? [detailsTab, reviewTab] : [detailsTab, addressTab];
+const tabs: FullPageTab[] = isEdit ? [detailsTab] : [detailsTab, addressTab];
 
 const activeTab = ref<FullPageTab>(detailsTab);
-
-const disableSave = computed(() => !hasName());
 
 const addressSummary = computed(() => [addressFields.value.street, addressFields.value.barangay, addressFields.value.city].filter(Boolean).join(', '));
 
@@ -131,12 +121,12 @@ const { loading: saving, run: save } = useAsync(async () => {
     v-model:tab="activeTab"
     :tabs="tabs"
     :loading="saving"
-    :disable-save="disableSave"
+    :validate="zodErrors"
     :save-button-text="isEdit ? 'Update customer' : 'Add customer'"
     @close="cancel"
     @save="save"
   >
-    <template #content>
+    <template #content="{ errors }">
       <div v-if="fetching" class="flex justify-center py-12">
         <BaseSpinner size="lg" />
       </div>
@@ -144,7 +134,7 @@ const { loading: saving, run: save } = useAsync(async () => {
       <div v-else class="mx-auto max-w-2xl space-y-4 p-6">
         <BaseFullPageTabsHeader :title="activeTab.title" :subtitle="activeTab.subtitle" />
 
-        <CustomerDetailsTab v-show="activeTab.value === 'details'" v-model="form" />
+        <CustomerDetailsTab v-show="activeTab.value === 'details'" v-model="form" :errors="errors.details" />
 
         <CustomerAddressTab
           v-if="!isEdit"
@@ -152,14 +142,6 @@ const { loading: saving, run: save } = useAsync(async () => {
           v-model:label="addressLabel"
           v-model:fields="addressFields"
           v-model:landmark="addressLandmark"
-        />
-
-        <CustomerReviewTab
-          v-show="activeTab.value === 'review'"
-          :form="form"
-          :is-edit="isEdit"
-          :address-summary="addressSummary"
-          :address-label="addressLabel"
         />
       </div>
     </template>

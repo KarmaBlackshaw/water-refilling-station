@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { FullPageTab } from '@/components/Base/BaseFullPageTabs.vue';
-import { USERNAME_PATTERN, type EmployeeAccountForm, type EmployeeForm } from '@/constants/employee';
+import { employeeAccountSchema, employeeDetailsSchema, type EmployeeAccountForm, type EmployeeForm } from '@/constants/employee';
 import { ROUTES } from '@/constants/routes';
-import { formatMoney, parseMoney } from '@/helpers/money';
+import { today } from '@/helpers/date';
+import { zodErrors } from '@/helpers/validation';
 
 const route = useRoute();
 const router = useRouter();
@@ -20,14 +21,12 @@ const employee = computed(() => employeeRes.value?.data ?? null);
 const form = reactive<EmployeeForm>({
   full_name: '',
   phone: '',
-  hire_date: '',
+  hire_date: today(),
   role: 'rider',
-  monthly_salary_display: formatMoney(0),
+  monthly_salary: '',
   daily_quota_jugs: '',
+  rest_days: [0],
 });
-
-/** Selected rest-day weekdays (0=Sun..6=Sat). Serialised to sorted number[] on save. */
-const restDays = ref<Set<number>>(new Set([0]));
 
 const account = reactive<EmployeeAccountForm>({ username: '', password: '' });
 
@@ -37,13 +36,13 @@ const saveError = ref<string>();
 const hasAccount = computed(() => !!employee.value?.user_id);
 const showAccount = computed(() => !hasAccount.value);
 
-const hasName = () => !!form.full_name.trim();
-
 const detailsTab: FullPageTab = {
   label: 'Details',
   value: 'details',
   title: isEdit ? 'Edit employee' : 'Add employee',
   subtitle: isEdit ? 'Update employee details' : 'Create a new employee',
+  schema: employeeDetailsSchema,
+  data: () => form,
 };
 
 const accountTab: FullPageTab = {
@@ -51,32 +50,13 @@ const accountTab: FullPageTab = {
   value: 'account',
   title: 'App account',
   subtitle: 'Login credentials for this employee',
-  canNavigateTo: hasName,
+  schema: employeeAccountSchema,
+  data: () => account,
 };
 
-const reviewTab: FullPageTab = {
-  label: 'Review',
-  value: 'review',
-  title: 'Review',
-  subtitle: isEdit ? 'Confirm the changes before saving' : 'Confirm the details before adding the employee',
-  canNavigateTo: hasName,
-};
-
-const tabs = computed<FullPageTab[]>(() => (showAccount.value ? [detailsTab, accountTab, reviewTab] : [detailsTab, reviewTab]));
+const tabs = computed<FullPageTab[]>(() => (showAccount.value ? [detailsTab, accountTab] : [detailsTab]));
 
 const activeTab = ref<FullPageTab>(detailsTab);
-
-const disableSave = computed(() => {
-  if (!hasName()) {
-    return true;
-  }
-
-  if (showAccount.value) {
-    return !USERNAME_PATTERN.test(account.username) || account.password.length < 8;
-  }
-
-  return false;
-});
 
 watch(
   employee,
@@ -89,9 +69,9 @@ watch(
     form.phone = e.phone ?? '';
     form.hire_date = e.hire_date ?? '';
     form.role = e.role;
-    form.monthly_salary_display = formatMoney(e.monthly_salary_centavos);
-    form.daily_quota_jugs = e.daily_quota_jugs != null ? String(e.daily_quota_jugs) : '';
-    restDays.value = new Set(e.rest_days ?? []);
+    form.monthly_salary = e.monthly_salary_centavos / 100;
+    form.daily_quota_jugs = e.daily_quota_jugs ?? '';
+    form.rest_days = e.rest_days ?? [];
   },
   { immediate: true },
 );
@@ -103,9 +83,8 @@ function cancel() {
 const { loading: saving, run: save } = useAsync(async () => {
   saveError.value = undefined;
 
-  const monthly_salary_centavos = parseMoney(form.monthly_salary_display);
-  const daily_quota_jugs = form.role === 'rider' && form.daily_quota_jugs ? parseInt(form.daily_quota_jugs, 10) : null;
-  const rest_days = [...restDays.value].sort((a, b) => a - b);
+  const monthly_salary_centavos = Math.round(Number(form.monthly_salary) * 100);
+  const daily_quota_jugs = form.role === 'rider' && form.daily_quota_jugs !== '' ? form.daily_quota_jugs : null;
 
   let userId: string | undefined;
 
@@ -132,7 +111,7 @@ const { loading: saving, run: save } = useAsync(async () => {
       hire_date: form.hire_date || undefined,
       monthly_salary_centavos,
       daily_quota_jugs,
-      rest_days,
+      rest_days: form.rest_days,
       ...(userId ? { user_id: userId } : {}),
     });
   } else {
@@ -151,11 +130,12 @@ const { loading: saving, run: save } = useAsync(async () => {
       role: form.role,
       monthly_salary_centavos,
       daily_quota_jugs,
-      rest_days,
+      rest_days: form.rest_days,
     });
   }
 
   toast.success(isEdit ? 'Employee updated' : 'Employee added');
+
   await router.push(ROUTES.EMPLOYEES);
 });
 </script>
@@ -165,12 +145,12 @@ const { loading: saving, run: save } = useAsync(async () => {
     v-model:tab="activeTab"
     :tabs="tabs"
     :loading="saving"
-    :disable-save="disableSave"
+    :validate="zodErrors"
     :save-button-text="isEdit ? 'Update employee' : 'Add employee'"
     @close="cancel"
     @save="save"
   >
-    <template #content>
+    <template #content="{ errors }">
       <div v-if="fetching" class="flex justify-center py-12">
         <BaseSpinner size="lg" />
       </div>
@@ -178,11 +158,9 @@ const { loading: saving, run: save } = useAsync(async () => {
       <div v-else class="mx-auto max-w-2xl space-y-4 p-6">
         <BaseFullPageTabsHeader :title="activeTab.title" :subtitle="activeTab.subtitle" />
 
-        <EmployeeDetailsTab v-show="activeTab.value === 'details'" v-model="form" v-model:rest-days="restDays" />
+        <EmployeeDetailsTab v-show="activeTab.value === 'details'" v-model="form" :errors="errors.details" />
 
-        <EmployeeAccountTab v-if="showAccount" v-show="activeTab.value === 'account'" v-model="account" />
-
-        <EmployeeReviewTab v-show="activeTab.value === 'review'" :form="form" :account="account" :rest-days="restDays" :show-account="showAccount" />
+        <EmployeeAccountTab v-if="showAccount" v-show="activeTab.value === 'account'" v-model="account" :errors="errors.account" />
 
         <p v-if="saveError" class="text-sm text-blaze-red">{{ saveError }}</p>
       </div>

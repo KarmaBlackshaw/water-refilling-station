@@ -30,9 +30,9 @@ const describedBy = computed(() => {
 
 <template>
   <div class="flex flex-col gap-1">
-    <label v-if="label" :for="controlId" class="text-xs font-medium text-oslo">
+    <label v-if="label" :for="controlId" class="flex items-center gap-1.5 text-xs font-medium text-oslo">
       {{ label }}
-      <span v-if="required" class="text-blaze-red" aria-hidden="true"> *</span>
+      <BaseBadge v-if="required" size="sm" aria-hidden="true">Required</BaseBadge>
     </label>
 
     <slot :control-id="controlId" :described-by="describedBy" :has-error="!!error" />

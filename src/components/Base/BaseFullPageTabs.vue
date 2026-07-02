@@ -1,10 +1,16 @@
 <script lang="ts">
+import type { ZodType } from 'zod';
+import type { TabErrors } from '@/helpers/validation';
+
 export interface FullPageTab {
   label: string;
   value: string;
   title?: string;
   subtitle?: string;
-  canNavigateTo?: () => boolean;
+  /** Optional zod schema validated against `data()`. Errors gate navigation + Save. */
+  schema?: ZodType;
+  /** Getter for the value passed to `schema`. */
+  data?: () => unknown;
 }
 </script>
 
@@ -12,17 +18,23 @@ export interface FullPageTab {
 import { onKeyStroke } from '@vueuse/core';
 import IconClose from '@/components/Icon/IconClose.vue';
 import IconCheck from '@/components/Icon/IconCheck.vue';
+import IconAlertCircle from '@/components/Icon/IconAlertCircle.vue';
 import IconChevronRight from '@/components/Icon/IconChevronRight.vue';
 
-const { tabs, loading, disableSave, saveButtonText, cancelButtonText } = defineProps<{
+const { tabs, loading, disableSave, saveButtonText, cancelButtonText, validate } = defineProps<{
   tabs: FullPageTab[];
   loading?: boolean;
   disableSave?: boolean;
   saveButtonText?: string;
   cancelButtonText?: string;
+  /** Injected validator (e.g. `zodErrors`) — keeps this component schema-library agnostic. */
+  validate?: (schema: ZodType, value: unknown) => TabErrors;
 }>();
 
 const activeTab = defineModel<FullPageTab>('tab', { required: true });
+
+/** Tabs the user has attempted to advance past or submit. Errors surface only on attempt — never while typing. */
+const attempted = ref(new Set<string>());
 
 const emit = defineEmits<{
   close: [];
@@ -33,11 +45,35 @@ const currentIndex = computed(() => tabs.findIndex((t) => t.value === activeTab.
 
 const isLastTab = computed(() => currentIndex.value === tabs.length - 1);
 
-const canGoNext = computed(() => {
-  const next = tabs[currentIndex.value + 1];
+/** field-errors per tab value; eagerly recomputed so indicators stay live. */
+const errorsByValue = computed<Record<string, TabErrors>>(() => {
+  const map: Record<string, TabErrors> = {};
 
-  return next ? (next.canNavigateTo?.() ?? true) : false;
+  for (const tab of tabs) {
+    map[tab.value] = tab.schema && validate ? validate(tab.schema, tab.data?.()) : {};
+  }
+
+  return map;
 });
+
+function isValid(tab: FullPageTab) {
+  return Object.keys(errorsByValue.value[tab.value] ?? {}).length === 0;
+}
+
+/** Errors surfaced to the UI — a tab stays clean until the user attempts to advance past or submit it. */
+const visibleErrors = computed<Record<string, TabErrors>>(() => {
+  const map: Record<string, TabErrors> = {};
+
+  for (const tab of tabs) {
+    map[tab.value] = attempted.value.has(tab.value) ? (errorsByValue.value[tab.value] ?? {}) : {};
+  }
+
+  return map;
+});
+
+function showError(tab: FullPageTab) {
+  return Object.keys(visibleErrors.value[tab.value] ?? {}).length > 0;
+}
 
 const canGoBack = computed(() => currentIndex.value > 0);
 
@@ -46,7 +82,7 @@ function isActive(tab: FullPageTab) {
 }
 
 function isCompleted(tab: FullPageTab) {
-  return currentIndex.value > tabs.findIndex((t) => t.value === tab.value);
+  return isValid(tab) && currentIndex.value > tabs.findIndex((t) => t.value === tab.value);
 }
 
 function navigateTo(target: FullPageTab) {
@@ -56,16 +92,42 @@ function navigateTo(target: FullPageTab) {
 
   const targetIndex = tabs.findIndex((t) => t.value === target.value);
 
-  /** When jumping forward, every gated tab in between must allow it. */
+  /** Moving forward: the current tab and every tab passed through must be valid.
+   *  On the first invalid one, reveal its errors and stop there instead of advancing. */
   if (targetIndex > currentIndex.value) {
-    for (let i = currentIndex.value + 1; i <= targetIndex; i++) {
-      if (tabs[i]?.canNavigateTo?.() === false) {
+    for (let i = currentIndex.value; i < targetIndex; i++) {
+      const tab = tabs[i]!;
+
+      if (!isValid(tab)) {
+        attempted.value.add(tab.value);
+        activeTab.value = tab;
         return;
       }
     }
   }
 
   activeTab.value = target;
+}
+
+/** Submit gate: reveal all errors, jump to the first invalid tab, and block save until every tab is valid. */
+function attemptSave() {
+  if (loading || disableSave) {
+    return;
+  }
+
+  const firstInvalid = tabs.find((tab) => !isValid(tab));
+
+  if (firstInvalid) {
+    for (const tab of tabs) {
+      attempted.value.add(tab.value);
+    }
+
+    activeTab.value = firstInvalid;
+
+    return;
+  }
+
+  emit('save');
 }
 
 function goNext() {
@@ -104,9 +166,7 @@ onKeyStroke('Enter', (e) => {
   }
 
   if (isLastTab.value) {
-    if (!disableSave) {
-      emit('save');
-    }
+    attemptSave();
   } else {
     goNext();
   }
@@ -144,7 +204,8 @@ onKeyStroke('Enter', (e) => {
                 :class="isActive(tab) ? 'text-casual-navy' : 'text-oslo hover:text-independence'"
                 @click="navigateTo(tab)"
               >
-                <IconCheck v-if="isCompleted(tab)" class="size-4 text-dark-green-turquoise" />
+                <IconAlertCircle v-if="showError(tab)" class="size-4 text-blaze-red" />
+                <IconCheck v-else-if="isCompleted(tab)" class="size-4 text-dark-green-turquoise" />
                 <span v-else class="size-3.5 flex-none rounded-full border-2" :class="isActive(tab) ? 'border-tampa' : 'border-tender-light-blue'" />
                 <span class="truncate text-left">{{ tab.label }}</span>
               </button>
@@ -158,7 +219,7 @@ onKeyStroke('Enter', (e) => {
           <BaseButton variant="full-white" size="sm" :disabled="!canGoBack || loading" aria-label="Previous step" @click="goBack">
             <IconChevronRight class="size-4 rotate-180" />
           </BaseButton>
-          <BaseButton variant="full-white" size="sm" :disabled="!canGoNext || loading" aria-label="Next step" @click="goNext">
+          <BaseButton variant="full-white" size="sm" :disabled="isLastTab || loading" aria-label="Next step" @click="goNext">
             <IconChevronRight class="size-4" />
           </BaseButton>
         </div>
@@ -166,16 +227,16 @@ onKeyStroke('Enter', (e) => {
         <!-- Cancel + Save / Continue -->
         <div class="flex flex-none items-center gap-x-1">
           <BaseButton variant="full-white" size="sm" :disabled="loading" @click="close">{{ cancelButtonText || 'Cancel' }}</BaseButton>
-          <BaseButton v-if="isLastTab" size="sm" :loading="loading" :disabled="loading || disableSave" @click="emit('save')">
+          <BaseButton v-if="isLastTab" size="sm" :loading="loading" :disabled="loading || disableSave" @click="attemptSave">
             {{ saveButtonText || 'Save' }}
           </BaseButton>
-          <BaseButton v-else size="sm" :disabled="loading || !canGoNext" @click="goNext">Continue</BaseButton>
+          <BaseButton v-else size="sm" :disabled="loading" @click="goNext">Continue</BaseButton>
         </div>
       </div>
 
       <!-- Content -->
       <div class="flex-1 overflow-y-auto">
-        <slot name="content" :active-tab="activeTab" />
+        <slot name="content" :active-tab="activeTab" :errors="visibleErrors" />
       </div>
     </div>
   </Teleport>

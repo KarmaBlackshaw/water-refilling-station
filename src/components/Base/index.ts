@@ -27,5 +27,7 @@ export { default as BaseTableHeader } from './BaseTableHeader.vue';
 export { default as BaseTableTabs } from './BaseTableTabs.vue';
 export { default as BaseTabs } from './BaseTabs.vue';
 export { default as BaseTextarea } from './BaseTextarea.vue';
+export { default as BaseToggleGroup } from './BaseToggleGroup.vue';
+export { default as BaseWeekdayToggle } from './BaseWeekdayToggle.vue';
 export { default as KpiCard } from './Kpi/Card.vue';
 export { default as KpiTile } from './Kpi/Tile.vue';

@@ -86,6 +86,7 @@ declare module 'vue' {
     ExpenseFormModal: typeof import('./components/Expense/FormModal.vue')['default']
     FilterBar: typeof import('./components/Filter/Bar.vue')['default']
     FilterPill: typeof import('./components/Filter/Pill.vue')['default']
+    IconAlertCircle: typeof import('./components/Icon/IconAlertCircle.vue')['default']
     IconAreas: typeof import('./components/Icon/IconAreas.vue')['default']
     IconArrowUpRight: typeof import('./components/Icon/IconArrowUpRight.vue')['default']
     IconBell: typeof import('./components/Icon/IconBell.vue')['default']

@@ -19,7 +19,7 @@ const emit = defineEmits<{
   submit: [restDays: number[]];
 }>();
 
-const selected = ref<Set<number>>(new Set());
+const selected = ref<number[]>([]);
 
 watch(
   () => open.value,
@@ -28,26 +28,20 @@ watch(
       return;
     }
 
-    selected.value = new Set(rider?.rest_days ?? []);
+    selected.value = rider?.rest_days ?? [];
   },
   { immediate: true },
 );
 
 function submit() {
-  emit(
-    'submit',
-    [...selected.value].sort((a, b) => a - b),
-  );
+  emit('submit', selected.value);
 }
 </script>
 
 <template>
   <BaseModal v-model:open="open" :title="`Rest days — ${rider?.full_name ?? ''}`">
     <form id="rest-days-form" @submit.prevent="submit">
-      <fieldset class="m-0 border-0 p-0">
-        <legend class="mb-1 text-xs text-oslo">Select the days this rider does not deliver. Leave all unchecked if this rider works every day.</legend>
-        <BaseWeekdayToggle v-model="selected" class="mt-2" />
-      </fieldset>
+      <BaseWeekdayToggle v-model="selected" description="Select the days this rider does not deliver. Leave all unchecked if this rider works every day." />
     </form>
 
     <template #footer>

@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import type { CustomerType, Option } from '@/types';
 
 export type CustomerForm = {
@@ -6,6 +7,13 @@ export type CustomerForm = {
   type: CustomerType;
   notes: string;
 };
+
+export const customerDetailsSchema = z.object({
+  name: z.string().trim().min(1, 'Name is required'),
+  phone: z.string(),
+  type: z.string(),
+  notes: z.string(),
+});
 
 export type AddressFields = {
   street: string;
